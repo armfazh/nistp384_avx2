@@ -1,6 +1,11 @@
 #ifndef _AVX2_H_ /* _AVX2_H_ */
 #define _AVX2_H_
 
+#define HASWELL 0x80
+#define	SKYLAKE 0x40
+
+//#define PROCESSOR SKYLAKE
+
 #include <immintrin.h>
 
 #define ALIGN_BYTES 32
@@ -20,7 +25,9 @@
 #define ADD(X,Y)        _mm256_add_epi64(X,Y)
 #define SUB(X,Y)        _mm256_sub_epi64(X,Y)
 #define AND(X,Y)        _mm256_and_si256(X,Y)
+#define ANDNOT(X,Y)     _mm256_andnot_si256(X,Y)
 #define XOR(X,Y)        _mm256_xor_si256(X,Y)
+#define OR(X,Y)         _mm256_or_si256(X,Y)
 #define MUL(X,Y)        _mm256_mul_epi32(X,Y)
 #define SHR(X,Y)        _mm256_srli_epi64(X,Y)
 #define SHL(X,Y)        _mm256_slli_epi64(X,Y)
@@ -35,6 +42,20 @@
 #define UPKH64(X,Y)     _mm256_unpackhi_epi64(X,Y)
 #define SHUF(X,Y)       _mm256_shuffle_epi32(X,Y)
 #define SHUFPD(X,Y,Z)   _mm256_castpd_si256(_mm256_shuffle_pd(_mm256_castsi256_pd(X),_mm256_castsi256_pd(Y),Z))
-#define PERM64          _mm256_permute4x64_epi64
+#define PERM64(X,Y)     _mm256_permute4x64_epi64(X,Y)
+#define PERM128(X,Y,Z)  _mm256_permute2x128_si256(X,Y,Z)
+#define BLEND32(X,Y,Z)  _mm256_blend_epi32(X,Y,Z)
+#define SET1_64(X)		_mm256_set1_epi64x(X)
+//_mm256_broadcastq_epi64(_mm_cvtsi64_si128(X))
+/**
+ * This construction calls broadcast instruction
+ * explicitly specifying a memory location Y, which
+ * could or could not be aligned.
+ */
+#define BROADCASTQ(X,Y)	__asm__ __volatile(\
+"vpbroadcastq (%1), %0       ;"\
+:/* out  */ "=x" (X)\
+:/* in   */ "r" (Y)\
+:/* regs */);
 
 #endif /* _AVX2_H_ */
