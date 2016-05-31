@@ -54,7 +54,7 @@ void printex_Element_1w_h0h7(uint64_t *A)
 void print_Element_1w_h0h7(uint64_t *A)
 {
 	STR_BYTES a;
-	singleH0H7_To_str_bytes(a, A);
+	str_bytes_To_Element_1w_h0h7(a, A);
 	print_str_bytes(a);
 }
 
@@ -117,36 +117,38 @@ void from_1w_h0h7(uint64_t *C)
 void str_bytes_To_Element_1w_h0h7(uint64_t *__restrict pC, uint8_t *__restrict p8A)
 {
 	int i;
-	const uint64_t mask = (((uint64_t)1)<<VECT_BASE0)-1;
+	const uint64_t mask0 = (((uint64_t)1)<<VECT_BASE0)-1;
+	const uint64_t mask1 = (((uint64_t)1)<<VECT_BASE1)-1;
 	const uint64_t *p64A = (uint64_t*)p8A;
 
 	pC[0 ] =  p64A[0]>>0;
 	pC[2 ] = (p64A[0]>>VECT_BASE0);
-	pC[4 ] = (p64A[0]>>(2*VECT_BASE1)) | (p64A[1]<<8);
+	pC[4 ] = (p64A[0]>>(VECT_BASE0+VECT_BASE1)) | (p64A[1]<<9);
 
-	pC[6 ] = (p64A[1]>>20);
-	pC[8 ] = (p64A[1]>>(20+VECT_BASE0)) | (p64A[2]<<16);
+	pC[6 ] = (p64A[1]>>19);
+	pC[8 ] = (p64A[1]>>(19+VECT_BASE1)) | (p64A[2]<<10);
 
-	pC[10] = (p64A[2]>>12);
-	pC[12] = (p64A[2]>>(12+VECT_BASE1)) | (p64A[3]<<24);
+	pC[10] = (p64A[2]>>10);
+	pC[12] = (p64A[2]>>(10+VECT_BASE1));
 
-	pC[14] = (p64A[3]>>4);
-	pC[1 ] = (p64A[3]>>(4+VECT_BASE0));
-	pC[3 ] = (p64A[3]>>(4+2*VECT_BASE1)) | (p64A[4]<<4);
+	pC[1 ] =  p64A[3]>>0;
+	pC[3 ] = (p64A[3]>>VECT_BASE0);
+	pC[5 ] = (p64A[3]>>(VECT_BASE0+VECT_BASE1)) | (p64A[4]<<9);
 
-	pC[5 ] = (p64A[4]>>24);
-	pC[7 ] = (p64A[4]>>(24+VECT_BASE0)) | (p64A[5]<<12);
+	pC[7 ] = (p64A[4]>>19);
+	pC[9 ] = (p64A[4]>>(19+VECT_BASE1)) | (p64A[5]<<10);
 
-	pC[9 ] = (p64A[5]>>16);
-	pC[11] = (p64A[5]>>(16+VECT_BASE1)) | (p64A[6]<<20);
+	pC[11] = (p64A[5]>>10);
+	pC[13] = (p64A[5]>>(10+VECT_BASE1));
 
-	pC[13] = (p64A[6]>>8);
-	pC[15] = (p64A[6]>>(8+VECT_BASE0));
+	pC[ 0] &= mask0;		pC[ 1] &= mask0;
+	pC[ 2] &= mask1;		pC[ 3] &= mask1;
+	pC[ 4] &= mask0;		pC[ 5] &= mask0;
+	pC[ 6] &= mask1;		pC[ 7] &= mask1;
+	pC[ 8] &= mask0;		pC[ 9] &= mask0;
+	pC[10] &= mask1;		pC[11] &= mask1;
+	pC[12] &= mask1;		pC[13] &= mask1;
 
-	for(i=0;i<NUM_WORDS_64B_NISTP384;i++)
-	{
-		pC[i] &= mask;
-	}
 }
 
 void singleH0H7_To_str_bytes(uint8_t *p8C, uint64_t *puA)
@@ -390,7 +392,7 @@ inline void sqr_Element_1w_h0h7(uint64_t *A)
 
 void compress_Element_1w_h0h7(uint64_t *A)
 {
-	const uint64_t ones = ((uint64_t) 1 << VECT_BASE) - 1;
+	const uint64_t ones = ((uint64_t) 1 << VECT_BASE0) - 1;
 	const __m128i mask = _mm_set_epi32(0, ones, 0, ones);
 
 	__m128i c0 = _mm_load_si128((__m128i*)A+0);
@@ -405,35 +407,35 @@ void compress_Element_1w_h0h7(uint64_t *A)
 	__m128i h0_h7,  h1_h9,  h2_h10, h3_h11,
 			h4_h12, h5_h13, h6_h14, h7_h15;
 
-	h0_h7 = _mm_srli_epi64(c0, VECT_BASE);
+	h0_h7 = _mm_srli_epi64(c0, VECT_BASE0);
 	c0 = _mm_and_si128(c0, mask);
 	c1 = _mm_add_epi64(c1, h0_h7);
 
-	h1_h9 = _mm_srli_epi64(c1, VECT_BASE);
+	h1_h9 = _mm_srli_epi64(c1, VECT_BASE0);
 	c1 = _mm_and_si128(c1, mask);
 	c2 = _mm_add_epi64(c2, h1_h9);
 
-	h2_h10 = _mm_srli_epi64(c2, VECT_BASE);
+	h2_h10 = _mm_srli_epi64(c2, VECT_BASE0);
 	c2 = _mm_and_si128(c2, mask);
 	c3 = _mm_add_epi64(c3, h2_h10);
 
-	h3_h11 = _mm_srli_epi64(c3, VECT_BASE);
+	h3_h11 = _mm_srli_epi64(c3, VECT_BASE0);
 	c3 = _mm_and_si128(c3, mask);
 	c4 = _mm_add_epi64(c4, h3_h11);
 
-	h4_h12 = _mm_srli_epi64(c4, VECT_BASE);
+	h4_h12 = _mm_srli_epi64(c4, VECT_BASE0);
 	c4 = _mm_and_si128(c4, mask);
 	c5 = _mm_add_epi64(c5, h4_h12);
 
-	h5_h13 = _mm_srli_epi64(c5, VECT_BASE);
+	h5_h13 = _mm_srli_epi64(c5, VECT_BASE0);
 	c5 = _mm_and_si128(c5, mask);
 	c6 = _mm_add_epi64(c6, h5_h13);
 
-	h6_h14 = _mm_srli_epi64(c6, VECT_BASE);
+	h6_h14 = _mm_srli_epi64(c6, VECT_BASE0);
 	c6 = _mm_and_si128(c6, mask);
 	c7 = _mm_add_epi64(c7, h6_h14);
 
-	h7_h15 = _mm_srli_epi64(c7, VECT_BASE);
+	h7_h15 = _mm_srli_epi64(c7, VECT_BASE0);
 	c7 = _mm_and_si128(c7, mask);
 
 	/**
@@ -447,7 +449,7 @@ void compress_Element_1w_h0h7(uint64_t *A)
 	 **/
 	c0 = _mm_add_epi64(c0,_mm_shuffle_epi32(h7_h15,0x4E));
 
-	h0_h7 = _mm_srli_epi64(c0, VECT_BASE);
+	h0_h7 = _mm_srli_epi64(c0, VECT_BASE0);
 	c0 = _mm_and_si128(c0, mask);
 	c1 = _mm_add_epi64(c1, h0_h7);
 
