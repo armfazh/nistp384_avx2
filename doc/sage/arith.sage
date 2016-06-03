@@ -1,48 +1,50 @@
-import math
 
-N = 255
-num_words = 10
-rho = N/num_words
-p = 2**N-19
-#p = 2**384-2**128-2**96+2**32-1
+N = 384
+num_words = 14
+rho = 27.5
+p = 2**N-2**128-2**96+2**32-1
 Fp = GF(p)
 
-#toVect = lambda a : [ (a>>int(math.ceil(rho*i)))%(2**int(math.ceil(rho-(i%2)))) for i in range(num_words) ]
-#fromVect = lambda V: sum([v*2**int(math.ceil(rho*i)) for i,v in enumerate(V)])%p
+toVect = lambda a : [ (a>>int(math.ceil(rho*i)))%(2**int(math.ceil(rho-(i%2)))) for i in range(num_words) ]
+fromVect = lambda V: sum([v*2**int(math.ceil(rho*i)) for i,v in enumerate(V)])%p
 
 Add = lambda X,Y : [x+y for x,y in zip(X,Y)]
 Sub = lambda X,Y : [x-y for x,y in zip(X,Y)]
 Dot = lambda X,Y : [x*y for x,y in zip(X,Y)]
 
-toVect = lambda a : [ (a>>int(math.ceil(25.5*i)))%(2**int(math.ceil(25.5-(i%2)))) for i in range(10) ]
-fromVect = lambda V: sum([v*2**int(math.ceil(25.5*i)) for i,v in enumerate(V)])%p
-
 Hex = lambda V: map(hex,V)
 
-mul_19= lambda i,j:19 if i+j>=10 else 1
-mul_2 = lambda i,j: 2 if (i%2==1 and j%2==1) else 1
-line =lambda i: [ A[i]*B[t]*mul_19(i,t)*mul_2(i,t) for t in [ (-i+j)%10 for j in range(10)] ]
 size = lambda x:  floor(log(abs(x),2))+1
 sizes = lambda V: map(size,V) 
 
-def integer_mult(A,B):
-	c = [0]*len(A)
-	for i,a in enumerate(A):
-		for j,b in enumerate(B):
-			c[(i+j)%10] += a*b*mul_19(i,j)*mul_2(i,j)
-	return c
 
+def Pi384i(X,i):
+	if i==0:
+		return X
+	elif i%2==0:
+		a13 = X[-1]
+		return Add([0]+X[:-1],[2*a13, -2**5*a13, 0, 2**14*a13,2**19*a13,0,0,0, 0,0,0, 0,0,0])
+	else:
+		a13 = X[-1]
+		return Add([0]+X[:-1],[2*a13, -2**6*a13, 0, 2**15*a13,2**19*a13,0,0,0, 0,0,0, 0,0,0])
+	
+def Muli(A,B):
+	C = [0]*num_words
+	Y = A
+	for i,b in enumerate(B):
+		if i%2==0:
+			bV = [b]*num_words
+		else:
+			bV = [2*b, b]*(num_words>>1)
+		Y = Pi384i(Y,i)
+		C = Add(C,Dot(Y,bV))
+	return C
 
-def Pi(X):
-	return [19*X[-1]] + X[:-1]
-
-def Mul(X,Y):
-	Z = [0]*num_words
-	for x in X:
-		Z = Add(Z,Dot(Y,[x]*num_words))
-		Y = Pi(Y)
-	return Z
-
-
+a = randrange(p)
+b = randrange(p)
+A = toVect(a)
+B = toVect(b)
+C = Muli(A,B)
+print( fromVect(C) == (a*b%p) )
 
 
