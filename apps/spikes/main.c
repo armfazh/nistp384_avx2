@@ -4,29 +4,34 @@
 
 int main()
 {
+	int i=0;
 	printf("=== MAIN === \n");
 
 
 #if 1 /* === Element 1w ===  */
 	printf("=== Element 1w === \n");
 
-	STR_BYTES  A;
-	random_str_bytes(A);
-	Element_1w_H0H7 a,b,c;
+	Element_1w_H0H7 a,b,c,d;
 
-	print_str_bytes(A);
-	str_bytes_To_Element_1w_h0h7(a,A);
-	printex_Element_1w_h0h7(a);
-//	random_Element_1w_h0h7(a);
-//	random_Element_1w_h0h7(b);
-//
-//	printex_Element_1w_h0h7(a);
-//	print_Element_1w_h0h7(b);
+	random_Element_1w_h0h7(a);
+	random_Element_1w_h0h7(b);
+
+	print_Element_1w_h0h7(a);
+	print_Element_1w_h0h7(b);
 
 //	add_Element_1w_h0h7(c,a,b);
-//	print_Element_1w_h0h7(c);
+//	printf("add:\t");print_Element_1w_h0h7(c);
+
+	sub_Element_1w_h0h7(d,a,b);
+	printf("sub:\n");
+	print_python_Element_1w_h0h7(d);
+//	sizes_Element_1w_h0h7(d);
+	print_Element_1w_h0h7(d);
+
+//	neg_Element_1w_h0h7(a);
+//	printf("neg:\t");print_Element_1w_h0h7(a);
 
 #endif
 
-	return 0;
+	return 0*i;
 }

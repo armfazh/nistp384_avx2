@@ -14,7 +14,7 @@ Dot = lambda X,Y : [x*y for x,y in zip(X,Y)]
 
 Hex = lambda V: map(hex,V)
 
-size = lambda x:  floor(log(abs(x),2))+1
+size = lambda x:  floor(log(abs(x),2))+1 if x!=0 else 0
 sizes = lambda V: map(size,V) 
 
 
