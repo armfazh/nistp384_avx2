@@ -32,9 +32,28 @@ def Proy_to_Affine(P):
 	return [X/Z,Y/Z]
 
 #Returns Q+P
+# [EFD] add-2001-b
+# 2001 Bernstein http://cr.yp.to/nistp224.html opt-idea53.c ecadd.
 def add_short(Q,P):
 	X1,Y1,Z1 = Q
 	X2,Y2,Z2 = P
+	ZZ1 = Z1**2
+	ZZZ1 = Z1*ZZ1
+	ZZ2 = Z2**2
+	ZZZ2 = Z2*ZZ2
+	A = X1*ZZ2
+	B = X2*ZZ1-A
+	c = Y1*ZZZ2
+	d = Y2*ZZZ1-c
+	e = B**2
+	f = B*e
+	g = A*e
+	h = Z1*Z2
+	f2g = 2*g+f
+	X3 = d**2-f2g
+	Z3 = B*h
+	gx = g-X3
+	Y3 = d*gx-c*f
 	return X3,Y3,Z3
 
 #Returns 2P
@@ -64,12 +83,55 @@ def doub_short(P):
 	
 	
 #Returns Q+P
+#Alg, 4 Costello
+# a=-3
 def add_complete(Q,P):
 	global ecc_b
 	X1,Y1,Z1 = Q
 	X2,Y2,Z2 = P
-
+	t0 = X1*X2;		t1 = Y1*Y2;		t2 = Z1*Z2
+	t3 = X1+Y1;		t4 = X2+Y2;		t3 = t3*t4
+	t4 = t0+t1;		t3 = t3-t4;		t4 = Y1+Z1
+	X3 = Y2+Z2;		t4 = t4*X3;		X3 = t1+t2
+	t4 = t4-X3;		X3 = X1+Z1;		Y3 = X2+Z2
+	X3 = X3*Y3;		Y3 = t0+t2;		Y3 = X3-Y3
+	Z3 = ecc_b*t2;	X3 = Y3-Z3;		Z3 = 2*X3
+	X3 = X3+Z3;		Z3 = t1-X3;		X3 = t1+X3
+	Y3 = ecc_b*Y3;	t1 = 2*t2;		t2 = t1+t2
+	Y3 = Y3-t2;		Y3 = Y3-t0;		t1 = 2*Y3
+	Y3 = t1+Y3;		t1 = 2*t0;		t0 = t1+t0
+	t0 = t0-t2;		t1 = t4*Y3;		t2 = t0*Y3
+	Y3 = X3*Z3;		Y3 = Y3+t2;		X3 = t3*X3
+	X3 = X3-t1;		Z3 = t4*Z3;		t1 = t3*t0
+	Z3 = Z3+t1;
 	return X3,Y3,Z3
+
+	t0 = X1*X2;		t1 = Y1*Y2;	# 1M
+	t3 = X1+Y1;		t4 = X2+Y2;
+	t2 = Z1*Z2;		t3 = t3*t4;	# 1M
+
+	t4 = t0+t1;		t3 = t3-t4;
+	t4 = Y1+Z1;		X3 = Y2+Z2;
+	t4 = t4*X3;		X3 = t1+t2;
+	t4 = t4-X3;		X3 = X1+Z1;
+	Y3 = X2+Z2;
+	X3 = X3*Y3;
+	Y3 = t0+t2;		Y3 = X3-Y3;
+	Z3 = ecc_b*t2;
+	X3 = Y3-Z3;		Z3 = 2*X3;
+	X3 = X3+Z3;
+	Z3 = t1-X3;		X3 = t1+X3;
+	Y3 = ecc_b*Y3;
+	t1 = 2*t2;		t2 = t1+t2;
+	Y3 = Y3-t2;		Y3 = Y3-t0;
+	t1 = 2*Y3;
+	Y3 = t1+Y3;		t1 = 2*t0;
+	t0 = t1+t0;		t0 = t0-t2;
+	t1 = t4*Y3;		t2 = t0*Y3;	# 1M
+	Y3 = X3*Z3;		X3 = t3*X3;	# 1M
+	Y3 = Y3+t2;		X3 = X3-t1;
+	Z3 = t4*Z3;		t1 = t3*t0;	# 1M
+	Z3 = Z3+t1;
 	
 	
 #Returns 2P
@@ -98,10 +160,23 @@ def doub_complete(P):
 J = to_Jac(G)
 P = to_Proy(G)
 
-_2J = Jac_to_Affine(doub_short(J))
-_2P = Proy_to_Affine(doub_complete(P))
-print(_2J==_2P)
+_2J = doub_short(J)
+_2P = doub_complete(P)
 
+print(Jac_to_Affine(_2J)==Proy_to_Affine(_2P))
+
+_3J = add_short(_2J,J)
+_3P = add_complete(_2P,P)
+
+print(Jac_to_Affine(_3J)==Proy_to_Affine(_3P))
+
+_iJ = _2J
+_iP = _2P
+for i in range(1000):
+	_iJ = add_short(_iJ,J)
+	_iP = add_complete(_iP,P)
+
+print(Jac_to_Affine(_iJ)==Proy_to_Affine(_iP))
 
 
 
