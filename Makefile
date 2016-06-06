@@ -8,13 +8,19 @@ lib: folder $(LIB)/lib$(TARGET)_$(CC).a
 lib_all: folder $(LIB)/lib$(TARGET)_all_$(CC).a
 
 #$(LIB)/lib%_$(CC).a: $(SRC)/$(TARGET).o
-$(LIB)/lib%_$(CC).a: $(SRC)/str_bytes.o  $(SRC)/random.o
+$(LIB)/lib%_$(CC).a: $(SRC)/str_bytes.o  $(SRC)/random.o $(SRC)/element_1w_h0h7.o
 	$(AR) rcvs $@ $^
 
 bench: $(BIN)/bench_$(CC)
 papi: $(BIN)/papi_$(CC)
 super: $(BIN)/super_$(CC)
 test: $(BIN)/test_$(CC)
+
+benchall: $(TARGET)
+	make -C apps/bench bench_all
+
+testall: $(TARGET)
+	make -C apps/test test_all
 
 $(BIN)/%_$(CC): $(TARGET) apps/%
 	make -C apps/$*
