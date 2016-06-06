@@ -19,17 +19,14 @@ int main()
 	print_Element_1w_h0h7(a);
 	print_Element_1w_h0h7(b);
 
-//	add_Element_1w_h0h7(c,a,b);
-//	printf("add:\t");print_Element_1w_h0h7(c);
+	add_Element_1w_h0h7(c,a,b);
+	printf("add:\n");print_Element_1w_h0h7(c);
 
 	sub_Element_1w_h0h7(d,a,b);
-	printf("sub:\n");
-	print_python_Element_1w_h0h7(d);
-//	sizes_Element_1w_h0h7(d);
-	print_Element_1w_h0h7(d);
+	printf("sub:\n");print_Element_1w_h0h7(d);
 
-//	neg_Element_1w_h0h7(a);
-//	printf("neg:\t");print_Element_1w_h0h7(a);
+	neg_Element_1w_h0h7(a);
+	printf("neg:\n");print_Element_1w_h0h7(a);
 
 #endif
 

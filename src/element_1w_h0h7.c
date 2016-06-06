@@ -116,7 +116,6 @@ void from_1w_h0h7(uint64_t *C)
  * */
 void str_bytes_To_Element_1w_h0h7(uint64_t *__restrict pC, uint8_t *__restrict p8A)
 {
-	int i;
 	const uint64_t mask0 = (((uint64_t)1)<<VECT_BASE0)-1;
 	const uint64_t mask1 = (((uint64_t)1)<<VECT_BASE1)-1;
 	const uint64_t *p64A = (uint64_t*)p8A;
@@ -167,12 +166,12 @@ void singleH0H7_To_str_bytes(uint8_t *p8C, uint64_t *puA)
 		a[i] = (__int128_t)pA[i];
 	}
 
-	__int128_t tmp = a[13]>>VECT_BASE1;
-	a[13] &= (((__int128_t)1<<VECT_BASE1)-1);
+	__int128_t tmp = a[13]>>(VECT_BASE1-1);
+	a[13] &= (((__int128_t)1<<(VECT_BASE1-1))-1);
 
 	a[0] += tmp;
 	a[2] -= tmp<<4;
-	a[4] += tmp<<13;
+	a[6] += tmp<<13;
 	a[8] += tmp<<18;
 
 	c[0] =              (a[4 ]<<(VECT_BASE0+VECT_BASE1))   + (a[2 ]<<VECT_BASE0)     + (a[0]) ;
@@ -183,8 +182,6 @@ void singleH0H7_To_str_bytes(uint8_t *p8C, uint64_t *puA)
 	c[5] = (c[4]>>64) + (a[13]<<(10+VECT_BASE0))  + (a[11]<<10);
 
 	tmp = (c[5]>>64);
-	printf("%llx\n",tmp);
-
 	c[0] += tmp-(tmp<<32);
 	c[1] += tmp<<32;
 	c[2] += tmp;
