@@ -20,9 +20,9 @@ void bench_element_1w_h0h7()
 	CLOCKS(sub_Element_1w_h0h7(c,c,b));
 	CLOCKS(addsub_Element_1w_h0h7(a,b));
 	CLOCKS(naddsub_Element_1w_h0h7(c,d,a,b));
-//	CLOCKS(mul_Element_1w_h0h7(c,a,b));
-//	CLOCKS(mul_Element_1w_h0h7(c,b,c));
-//	CLOCKS(mul_Element_1w_h0h7(c,c,b));
+	CLOCKS(mul_Element_1w_h0h7(c,a,b));
+	CLOCKS(mul_Element_1w_h0h7(c,b,c));
+	CLOCKS(mul_Element_1w_h0h7(c,c,b));
 //	CLOCKS(sqr_Element_1w_h0h7(c));
 //
 //	CLOCKS(compress_Element_1w_h0h7(c));

@@ -275,99 +275,101 @@ inline void naddsub_Element_1w_h0h7(uint64_t *pC, uint64_t *pD, uint64_t *pA, ui
 static void mul_schoolbook_Element_1w_h0h7(uint64_t *C, uint64_t *A, uint64_t *B)
 {
 	int i;
-	__m256i ai,tmp;
-	__m256i b0,b1,b2,b3,b4,b5,b6,b7;
-	__m256i c0,c1,c2,c3,c4,c5,c6,c7;
+	const __m128i mask22 = _mm_set_epi64x(0x0,((uint64_t)1<<22)-1);
+	const __m128i mask21 = _mm_set_epi64x(0x0,((uint64_t)1<<21)-1);
+	const __m128i mask13 = _mm_set_epi64x(0x0,((uint64_t)1<<13)-1);
+	const __m128i mask12 = _mm_set_epi64x(0x0,((uint64_t)1<<12)-1);
+	const __m128i mask9 = _mm_set_epi64x(0x0,((uint64_t)1<<9)-1);
+	__m128i ai, aH, aL, tmp,a13;
+	__m128i b0,b1,b2,b3,b4,b5,b6;
+	__m128i c0,c1,c2,c3,c4,c5,c6;
 
-	__m256i y0 = LOAD(B+0);
-	__m256i y1 = LOAD(B+1);
-	__m256i y2 = LOAD(B+2);
-	__m256i y3 = LOAD(B+3);
+	b0 = _mm_load_si128((__m128i*)B+0);
+	b1 = _mm_load_si128((__m128i*)B+1);
+	b2 = _mm_load_si128((__m128i*)B+2);
+	b3 = _mm_load_si128((__m128i*)B+3);
+	b4 = _mm_load_si128((__m128i*)B+4);
+	b5 = _mm_load_si128((__m128i*)B+5);
+	b6 = _mm_load_si128((__m128i*)B+6);
 
-	__m256i x0 = ADD(BLEND32(y0, ZERO, 0x33), SHUF(y0, 0x4E));
-	__m256i x1 = ADD(BLEND32(y1, ZERO, 0x33), SHUF(y1, 0x4E));
-	__m256i x2 = ADD(BLEND32(y2, ZERO, 0x33), SHUF(y2, 0x4E));
-	__m256i x3 = ADD(BLEND32(y3, ZERO, 0x33), SHUF(y3, 0x4E));
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i*)A+0),0x44);
+	c0 = _mm_mul_epi32(b0, ai);
+	c1 = _mm_mul_epi32(b1, ai);
+	c2 = _mm_mul_epi32(b2, ai);
+	c3 = _mm_mul_epi32(b3, ai);
+	c4 = _mm_mul_epi32(b4, ai);
+	c5 = _mm_mul_epi32(b5, ai);
+	c6 = _mm_mul_epi32(b6, ai);
 
-	b0 = _mm256_permute2x128_si256(y0,x0,0x20);
-	b1 = _mm256_permute2x128_si256(y0,x0,0x31);
-	b2 = _mm256_permute2x128_si256(y1,x1,0x20);
-	b3 = _mm256_permute2x128_si256(y1,x1,0x31);
-	b4 = _mm256_permute2x128_si256(y2,x2,0x20);
-	b5 = _mm256_permute2x128_si256(y2,x2,0x31);
-	b6 = _mm256_permute2x128_si256(y3,x3,0x20);
-	b7 = _mm256_permute2x128_si256(y3,x3,0x31);
 
-	c0 = ZERO;
-	c1 = ZERO;
-	c2 = ZERO;
-	c3 = ZERO;
-	c4 = ZERO;
-	c5 = ZERO;
-	c6 = ZERO;
-	c7 = ZERO;
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i*)A+1),0x44);
+	aH = _mm_add_epi64(ai, ai);
+	aL = _mm_blend_epi32(ai, aH, 0x3);
+	aH = _mm_blend_epi32(ai, aH, 0xC);
 
-	for(i=0;i<4;i++)
-	{
-		ai = PERM64(LOAD(A+i),0x50);
-		c0 = ADD(c0,MUL(b0, ai));
-		c1 = ADD(c1,MUL(b1, ai));
-		c2 = ADD(c2,MUL(b2, ai));
-		c3 = ADD(c3,MUL(b3, ai));
-		c4 = ADD(c4,MUL(b4, ai));
-		c5 = ADD(c5,MUL(b5, ai));
-		c6 = ADD(c6,MUL(b6, ai));
-		c7 = ADD(c7,MUL(b7, ai));
+	tmp = b6;
+	b6 = b5;
+	b5 = b4;
+	b4 = b3;
+	b3 = b2;
+	b2 = b1;
+	b1 = b0;
+	b0 = _mm_shuffle_epi32(tmp,0x4E);
 
-		tmp= b7;
-		b7 = b6;
-		b6 = b5;
-		b5 = b4;
-		b4 = b3;
-		b3 = b2;
-		b2 = b1;
-		b1 = b0;
-		b0 = ADD(BLEND32(tmp, ZERO, 0x33), SHUF(tmp, 0x4E));
+	a13 = _mm_move_epi64(b0);
+	b0 = _mm_add_epi64(b0,a13);
+	b1 = _mm_sub_epi64(b1,_mm_slli_epi64(_mm_and_si128(mask21,a13),6));
+	b2 = _mm_sub_epi64(b2,_mm_srli_epi64(a13,21));
+	b3 = _mm_add_epi64(b3,_mm_slli_epi64(_mm_and_si128(mask12,a13),15));
+	b4 = _mm_add_epi64(b4,_mm_srli_epi64(a13,12));
+	b4 = _mm_add_epi64(b4,_mm_slli_epi64(_mm_and_si128(mask9,a13),19));
+	b5 = _mm_add_epi64(b5,_mm_srli_epi64(a13,9));
 
-		ai = PERM64(LOAD(A+i),0xFA);
-		c0 = ADD(c0,MUL(b0, ai));
-		c1 = ADD(c1,MUL(b1, ai));
-		c2 = ADD(c2,MUL(b2, ai));
-		c3 = ADD(c3,MUL(b3, ai));
-		c4 = ADD(c4,MUL(b4, ai));
-		c5 = ADD(c5,MUL(b5, ai));
-		c6 = ADD(c6,MUL(b6, ai));
-		c7 = ADD(c7,MUL(b7, ai));
+	c0 = _mm_add_epi64(c0,_mm_mul_epi32(b0, aL));
+	c1 = _mm_add_epi64(c1,_mm_mul_epi32(b1, aH));
+	c2 = _mm_add_epi64(c2,_mm_mul_epi32(b2, aL));
+	c3 = _mm_add_epi64(c3,_mm_mul_epi32(b3, aH));
+	c4 = _mm_add_epi64(c4,_mm_mul_epi32(b4, aL));
+	c5 = _mm_add_epi64(c5,_mm_mul_epi32(b5, aH));
+	c6 = _mm_add_epi64(c6,_mm_mul_epi32(b6, aL));
 
-		tmp= b7;
-		b7 = b6;
-		b6 = b5;
-		b5 = b4;
-		b4 = b3;
-		b3 = b2;
-		b2 = b1;
-		b1 = b0;
-		b0 = ADD(BLEND32(tmp, ZERO, 0x33), SHUF(tmp, 0x4E));
-	}
+	goto end;
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i*)A+2),0x44);
 
-	__m128i p0 = _mm_add_epi64(_mm256_extracti128_si256(c0,1),_mm256_castsi256_si128(c0));
-	__m128i p1 = _mm_add_epi64(_mm256_extracti128_si256(c1,1),_mm256_castsi256_si128(c1));
-	__m128i p2 = _mm_add_epi64(_mm256_extracti128_si256(c2,1),_mm256_castsi256_si128(c2));
-	__m128i p3 = _mm_add_epi64(_mm256_extracti128_si256(c3,1),_mm256_castsi256_si128(c3));
-	__m128i p4 = _mm_add_epi64(_mm256_extracti128_si256(c4,1),_mm256_castsi256_si128(c4));
-	__m128i p5 = _mm_add_epi64(_mm256_extracti128_si256(c5,1),_mm256_castsi256_si128(c5));
-	__m128i p6 = _mm_add_epi64(_mm256_extracti128_si256(c6,1),_mm256_castsi256_si128(c6));
-	__m128i p7 = _mm_add_epi64(_mm256_extracti128_si256(c7,1),_mm256_castsi256_si128(c7));
+	tmp = b6;
+	b6 = b5;
+	b5 = b4;
+	b4 = b3;
+	b3 = b2;
+	b2 = b1;
+	b1 = b0;
 
-	c0 = _mm256_insertf128_si256(_mm256_castsi128_si256(p0),p1,1);
-	c1 = _mm256_insertf128_si256(_mm256_castsi128_si256(p2),p3,1);
-	c2 = _mm256_insertf128_si256(_mm256_castsi128_si256(p4),p5,1);
-	c3 = _mm256_insertf128_si256(_mm256_castsi128_si256(p6),p7,1);
+	a13 = _mm_move_epi64(tmp);
+	b0 = _mm_add_epi64(b0,_mm_add_epi64(a13,a13));
+	b1 = _mm_sub_epi64(b1,_mm_slli_epi64(_mm_and_si128(mask22,a13),5));
+	b2 = _mm_sub_epi64(b2,_mm_srli_epi64(a13,22));
+	b3 = _mm_add_epi64(b3,_mm_slli_epi64(_mm_and_si128(mask13,a13),14));
+	b4 = _mm_add_epi64(b4,_mm_srli_epi64(a13,13));
+	b4 = _mm_add_epi64(b4,_mm_slli_epi64(_mm_and_si128(mask9,a13),19));
+	b5 = _mm_add_epi64(b5,_mm_srli_epi64(a13,9));
 
-	STORE(C+0,c0);
-	STORE(C+1,c1);
-	STORE(C+2,c2);
-	STORE(C+3,c3);
+	c0 = _mm_add_epi64(c0,_mm_mul_epi32(b0, ai));
+	c1 = _mm_add_epi64(c1,_mm_mul_epi32(b1, ai));
+	c2 = _mm_add_epi64(c2,_mm_mul_epi32(b2, ai));
+	c3 = _mm_add_epi64(c3,_mm_mul_epi32(b3, ai));
+	c4 = _mm_add_epi64(c4,_mm_mul_epi32(b4, ai));
+	c5 = _mm_add_epi64(c5,_mm_mul_epi32(b5, ai));
+	c6 = _mm_add_epi64(c6,_mm_mul_epi32(b6, ai));
+	end:
+
+	_mm_store_si128((__m128i*)C+0,c0);
+	_mm_store_si128((__m128i*)C+1,c1);
+	_mm_store_si128((__m128i*)C+2,c2);
+	_mm_store_si128((__m128i*)C+3,c3);
+	_mm_store_si128((__m128i*)C+4,c4);
+	_mm_store_si128((__m128i*)C+5,c5);
+	_mm_store_si128((__m128i*)C+6,c6);
+
 }
 
 inline void mul_Element_1w_h0h7(uint64_t *pC, uint64_t *pA, uint64_t *pB)

@@ -19,14 +19,18 @@ int main()
 	print_Element_1w_h0h7(a);
 	print_Element_1w_h0h7(b);
 
-	add_Element_1w_h0h7(c,a,b);
-	printf("add:\n");print_Element_1w_h0h7(c);
+//	add_Element_1w_h0h7(c,a,b);
+//	printf("add:\n");print_Element_1w_h0h7(c);
+//
+//	sub_Element_1w_h0h7(d,a,b);
+//	printf("sub:\n");print_Element_1w_h0h7(d);
+//
+//	neg_Element_1w_h0h7(a);
+//	printf("neg:\n");print_Element_1w_h0h7(a);
 
-	sub_Element_1w_h0h7(d,a,b);
-	printf("sub:\n");print_Element_1w_h0h7(d);
+	mul_Element_1w_h0h7(c,b,a);
 
-	neg_Element_1w_h0h7(a);
-	printf("neg:\n");print_Element_1w_h0h7(a);
+	printf("mul:\n");printex_Element_1w_h0h7(c);
 
 #endif
 
