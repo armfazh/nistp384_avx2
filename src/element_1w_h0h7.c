@@ -268,7 +268,6 @@ inline void naddsub_Element_1w_h0h7(uint64_t *pC, uint64_t *pD, uint64_t *pA, ui
 	}
 }
 
-
 static void mul_schoolbook_Element_1w_h0h7(uint64_t *C, uint64_t *A, uint64_t *B)
 {
 	int i;
@@ -394,6 +393,10 @@ void compress_Element_1w_h0h7(uint64_t *A)
 {
 	const uint64_t ones = ((uint64_t) 1 << VECT_BASE) - 1;
 	const __m128i mask = _mm_set_epi32(0, ones, 0, ones);
+	const __m128i mask20 = _mm_set_epi64x(0x0,((uint64_t)1<<20)-1);
+	const __m128i mask16 = _mm_set_epi64x(0x0,((uint64_t)1<<16)-1);
+	const __m128i mask8 = _mm_set_epi64x(0x0,((uint64_t)1<<8)-1);
+	const __m128i mask4 = _mm_set_epi64x(0x0,((uint64_t)1<<4)-1);
 
 	__m128i c0 = _mm_load_si128((__m128i*)A+0);
 	__m128i c1 = _mm_load_si128((__m128i*)A+1);
@@ -404,7 +407,22 @@ void compress_Element_1w_h0h7(uint64_t *A)
 	__m128i c6 = _mm_load_si128((__m128i*)A+6);
 
 	__m128i h0_h7,  h1_h8,  h2_h9, h3_h10,
-			h4_h11, h5_h12, h6_h13;
+			h4_h11, h5_h12, h6_h13, h13, h6;
+
+	h6_h13 = _mm_srli_epi64(c6, VECT_BASE);
+	c6 = _mm_and_si128(c6, mask);
+
+	h6  = _mm_slli_si128(h6_h13, 8);
+	h13 = _mm_srli_si128(h6_h13, 8);
+	c0 = _mm_add_epi64(c0,h6);
+	c0 = _mm_add_epi64(c0, _mm_slli_epi64(_mm_and_si128(mask20, h13), 8));
+	c1 = _mm_add_epi64(c1, _mm_srli_epi64(h13, 20));
+	c1 = _mm_sub_epi64(c1, _mm_slli_epi64(_mm_and_si128(mask16, h13), 12));
+	c2 = _mm_sub_epi64(c2, _mm_srli_epi64(h13, 16));
+	c3 = _mm_add_epi64(c3, _mm_slli_epi64(_mm_and_si128(mask8, h13), 20));
+	c4 = _mm_add_epi64(c4, _mm_srli_epi64(h13, 8));
+	c4 = _mm_add_epi64(c4, _mm_slli_epi64(_mm_and_si128(mask4, h13), 24));
+	c5 = _mm_add_epi64(c5, _mm_srli_epi64(h13, 4));
 
 	h0_h7 = _mm_srli_epi64(c0, VECT_BASE);
 	c0 = _mm_and_si128(c0, mask);
@@ -433,20 +451,14 @@ void compress_Element_1w_h0h7(uint64_t *A)
 	h6_h13 = _mm_srli_epi64(c6, VECT_BASE);
 	c6 = _mm_and_si128(c6, mask);
 
-	/**
-	 * LOW  h7  ->  h0
-	 * HIGH h15 ->  h7
-	 **/
-	c0 = _mm_add_epi64(c0,_mm_blend_epi32(h6_h13,_mm_setzero_si128(),0x3));
-	/**
-	 * LOW  h7   \/  h0
-	 * HIGH h15  /\  h7
-	 **/
-	c0 = _mm_add_epi64(c0,_mm_shuffle_epi32(h6_h13,0x4E));
-
-	h0_h7 = _mm_srli_epi64(c0, VECT_BASE);
-	c0 = _mm_and_si128(c0, mask);
-	c1 = _mm_add_epi64(c1, h0_h7);
+	h6  = _mm_slli_si128(h6_h13, 8);
+	h13 = _mm_srli_si128(h6_h13, 8);
+	c0 = _mm_add_epi64(c0, h6);
+	c0 = _mm_add_epi64(c0, _mm_slli_epi64(_mm_and_si128(mask20, h13), 8));
+	c1 = _mm_sub_epi64(c1, _mm_slli_epi64(_mm_and_si128(mask16, h13), 12));
+	c3 = _mm_add_epi64(c3, _mm_slli_epi64(_mm_and_si128(mask8, h13), 20));
+	c4 = _mm_add_epi64(c4, _mm_slli_epi64(_mm_and_si128(mask4, h13), 24));
+	c5 = _mm_add_epi64(c5, _mm_srli_epi64(h13, 4));
 
 	_mm_store_si128((__m128i*)A+0,c0);
 	_mm_store_si128((__m128i*)A+1,c1);
@@ -460,62 +472,73 @@ void compress_Element_1w_h0h7(uint64_t *A)
 void compressfast_Element_1w_h0h7(uint64_t *pA)
 {
 	const uint64_t ones = ((uint64_t) 1 << VECT_BASE) - 1;
-	const __m256i mask  = _mm256_set1_epi64x(ones);
+	const __m128i mask  = _mm_set1_epi64x(ones);
+	const __m128i mask20 = _mm_set_epi64x(0x0,((uint64_t)1<<20)-1);
+	const __m128i mask16 = _mm_set_epi64x(0x0,((uint64_t)1<<16)-1);
+	const __m128i mask8 = _mm_set_epi64x(0x0,((uint64_t)1<<8)-1);
+	const __m128i mask4 = _mm_set_epi64x(0x0,((uint64_t)1<<4)-1);
 
-	__m256i A0,A1,A2,A3;
-	__m256i l0,l1,l2,l3;
-	__m256i m0,m1,m2,m3;
-	__m256i _m0,_m1,_m2,_m3;
-	__m256i h0,h1,h2,h3;
-	__m256i c0,c1,c2,c3;
+	__m128i A0,A1,A2,A3,A4,A5,A6;
+	__m128i l0,l1,l2,l3,l4,l5,l6;
+	__m128i m0,m1,m2,m3,m4,m5,m6,m13;
+	__m128i h0,h1,h2,h3,h4,h5,h6,h12,h13;
+	__m128i c0,c1,c2,c3,c4,c5,c6;
 
-	A0 = LOAD(pA+0);
-	A1 = LOAD(pA+1);
-	A2 = LOAD(pA+2);
-	A3 = LOAD(pA+3);
+	A0 = _mm_load_si128((__m128i*)pA+0);
+	A1 = _mm_load_si128((__m128i*)pA+1);
+	A2 = _mm_load_si128((__m128i*)pA+2);
+	A3 = _mm_load_si128((__m128i*)pA+3);
+	A4 = _mm_load_si128((__m128i*)pA+4);
+	A5 = _mm_load_si128((__m128i*)pA+5);
+	A6 = _mm_load_si128((__m128i*)pA+6);
 
-	l0 = AND(A0,mask);
-	l1 = AND(A1,mask);
-	l2 = AND(A2,mask);
-	l3 = AND(A3,mask);
+	l0 = _mm_and_si128(A0,mask);	m0 = _mm_and_si128(mask,_mm_srli_epi64(A0,VECT_BASE));	h0 = _mm_srli_epi64(A0,2*VECT_BASE);
+	l1 = _mm_and_si128(A1,mask);	m1 = _mm_and_si128(mask,_mm_srli_epi64(A1,VECT_BASE));	h1 = _mm_srli_epi64(A1,2*VECT_BASE);
+	l2 = _mm_and_si128(A2,mask);	m2 = _mm_and_si128(mask,_mm_srli_epi64(A2,VECT_BASE));	h2 = _mm_srli_epi64(A2,2*VECT_BASE);
+	l3 = _mm_and_si128(A3,mask);	m3 = _mm_and_si128(mask,_mm_srli_epi64(A3,VECT_BASE));	h3 = _mm_srli_epi64(A3,2*VECT_BASE);
+	l4 = _mm_and_si128(A4,mask);	m4 = _mm_and_si128(mask,_mm_srli_epi64(A4,VECT_BASE));	h4 = _mm_srli_epi64(A4,2*VECT_BASE);
+	l5 = _mm_and_si128(A5,mask);	m5 = _mm_and_si128(mask,_mm_srli_epi64(A5,VECT_BASE));	h5 = _mm_srli_epi64(A5,2*VECT_BASE);
+	l6 = _mm_and_si128(A6,mask);	m6 = _mm_and_si128(mask,_mm_srli_epi64(A6,VECT_BASE));	h6 = _mm_srli_epi64(A6,2*VECT_BASE);
 
-	m0 = SHR(A0,VECT_BASE);
-	m1 = SHR(A1,VECT_BASE);
-	m2 = SHR(A2,VECT_BASE);
-	m3 = SHR(A3,VECT_BASE);
+	c0 = _mm_add_epi64(l0,_mm_add_epi64(m6,_mm_slli_si128(h5,8)));
+	c1 = _mm_add_epi64(l1,_mm_add_epi64(m0,_mm_slli_si128(h6,8)));
+	c2 = _mm_add_epi64(l2,_mm_add_epi64(m1,h0));
+	c3 = _mm_add_epi64(l3,_mm_add_epi64(m2,h1));
+	c4 = _mm_add_epi64(l4,_mm_add_epi64(m3,h2));
+	c5 = _mm_add_epi64(l5,_mm_add_epi64(m4,h3));
+	c6 = _mm_add_epi64(l6,_mm_add_epi64(m5,h4));
 
-	m0 = AND(m0,mask);
-	m1 = AND(m1,mask);
-	m2 = AND(m2,mask);
-	m3 = AND(m3,mask);
+	h12 = _mm_srli_si128(h5,8);
+	h13 = _mm_srli_si128(h6,8);
 
-	h0 = SHR(A0,2*VECT_BASE);
-	h1 = SHR(A1,2*VECT_BASE);
-	h2 = SHR(A2,2*VECT_BASE);
-	h3 = SHR(A3,2*VECT_BASE);
+	c0 = _mm_add_epi64(c0,_mm_slli_epi64(h12,8));
+	c1 = _mm_sub_epi64(c1,_mm_slli_epi64(h12,12));
+	c3 = _mm_add_epi64(c3,_mm_slli_epi64(h12,20));
+	c4 = _mm_add_epi64(c4,_mm_slli_epi64(h12,24));
 
-	_m3 = SHUF(ADD(m3,SHR_128(m3)),0x4E);
-	h3 = SHUF(ADD(h3,SHR_128(h3)),0x4E);
+	c1 = _mm_add_epi64(c1,_mm_slli_epi64(h13,8));
+	c2 = _mm_sub_epi64(c2,_mm_slli_epi64(h13,12));
+	c4 = _mm_add_epi64(c4,_mm_slli_epi64(h13,20));
+	c5 = _mm_add_epi64(c5,_mm_slli_epi64(h13,24));
 
-	_m0 = _mm256_permute2f128_si256(_m3,m0,0x21);
-	_m1 = _mm256_permute2f128_si256(m0,m1,0x21);
-	_m2 = _mm256_permute2f128_si256(m1,m2,0x21);
-	_m3 = _mm256_permute2f128_si256(m2,m3,0x21);
+	m13 = _mm_srli_si128(m6,8);
+	c0 = _mm_add_epi64(c0, _mm_slli_epi64(_mm_and_si128(mask20,m13), 8));
+	c1 = _mm_add_epi64(c1, _mm_srli_epi64(m13,20));
+	c1 = _mm_sub_epi64(c1, _mm_slli_epi64(_mm_and_si128(mask16,m13),12));
+	c2 = _mm_sub_epi64(c2, _mm_srli_epi64(m13,16));
+	c3 = _mm_add_epi64(c3, _mm_slli_epi64(_mm_and_si128(mask8 ,m13),20));
+	c4 = _mm_add_epi64(c4, _mm_srli_epi64(m13, 8));
+	c4 = _mm_add_epi64(c4, _mm_slli_epi64(_mm_and_si128(mask4 ,m13),24));
+	c5 = _mm_add_epi64(c5, _mm_srli_epi64(m13, 4));
 
-	c0 = ADD(l0,_m0);
-	c1 = ADD(l1,_m1);
-	c2 = ADD(l2,_m2);
-	c3 = ADD(l3,_m3);
 
-	c0 = ADD(c0,h3);
-	c1 = ADD(c1,h0);
-	c2 = ADD(c2,h1);
-	c3 = ADD(c3,h2);
-
-	STORE(pA+0,c0);
-	STORE(pA+1,c1);
-	STORE(pA+2,c2);
-	STORE(pA+3,c3);
+	_mm_store_si128((__m128i*)pA+0,c0);
+	_mm_store_si128((__m128i*)pA+1,c1);
+	_mm_store_si128((__m128i*)pA+2,c2);
+	_mm_store_si128((__m128i*)pA+3,c3);
+	_mm_store_si128((__m128i*)pA+4,c4);
+	_mm_store_si128((__m128i*)pA+5,c5);
+	_mm_store_si128((__m128i*)pA+6,c6);
 }
 
 void new_compressfast_Element_1w_h0h7(uint64_t * pA)

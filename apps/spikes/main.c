@@ -45,7 +45,13 @@ int main()
 //	printf("neg:\n");print_Element_1w_h0h7(a);
 
 	mul_Element_1w_h0h7(c,b,a);
-	printf("mul:\n");printex_Element_1w_h0h7(c);
+	printf("mul:\n");
+	printex_Element_1w_h0h7(c);
+	sizes_Element_1w_h0h7(c);
+	compressfast_Element_1w_h0h7(c);
+	sizes_Element_1w_h0h7(c);
+	printex_Element_1w_h0h7(c);
+	print_Element_1w_h0h7(c);
 
 #endif
 

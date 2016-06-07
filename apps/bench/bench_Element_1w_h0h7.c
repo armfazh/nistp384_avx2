@@ -25,8 +25,8 @@ void bench_element_1w_h0h7()
 	CLOCKS(mul_Element_1w_h0h7(c,c,b));
 //	CLOCKS(sqr_Element_1w_h0h7(c));
 //
-//	CLOCKS(compress_Element_1w_h0h7(c));
-//	CLOCKS(compressfast_Element_1w_h0h7(c));
+	CLOCKS(compress_Element_1w_h0h7(c));
+	CLOCKS(compressfast_Element_1w_h0h7(c));
 //	CLOCKS(new_compressfast_Element_1w_h0h7(c));
 
 	BENCH = BENCH/10;
