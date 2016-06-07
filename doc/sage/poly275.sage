@@ -1,7 +1,7 @@
 
 N = 384
 num_words = 14
-rho = 28
+rho = 27.5
 p = 2**N-2**128-2**96+2**32-1
 Fp = GF(p)
 
@@ -15,6 +15,7 @@ BB = PolynomialRing(ZZ,names=var1)
 BB.inject_variables()
 
 PP.<alpha> = PolynomialRing(BB)
+#R.<x> = PP.quotient_ring(alpha**255-19)
 R.<x> = PP.quotient_ring(alpha**384-alpha**128-alpha**96+alpha**32-1)
 Avars = BB.gens()[:num_words]
 Bvars = BB.gens()[num_words:]
@@ -31,18 +32,31 @@ def integer_mult(A,B):
 C = integer_mult(A,B)
 Cp = sum(C)
 
-def Pi384(X,i):
+def Pi19(X,i):
 	if i==0:
 		return X
 	else:
+		a9 = X[-1]
+		return [ x**19*a9 ]+X[:-1]
+
+def Pi384(X,i):
+	if i==0:
+		return X
+	elif i%2==0:
 		a13 = X[-1]
-		return Add([0]+X[:-1],[x**8*a13, -x**12*a13, 0, x**20*a13,x**24*a13,0,0,0, 0,0,0, 0,0,0])
+		return Add([0]+X[:-1],[x*a13, -x**5*a13, 0, x**14*a13,x**19*a13,0,0,0, 0,0,0, 0,0,0])
+	else:
+		a13 = X[-1]
+		return Add([0]+X[:-1],[x*a13, -x**6*a13, 0, x**15*a13,x**19*a13,0,0,0, 0,0,0, 0,0,0])
 	
 def Mul(A,B):
 	C = [0]*num_words
 	Y = A
 	for i,b in enumerate(B):
-		bV = [b]*num_words
+		if i%2==0:
+			bV = [b]*num_words
+		else:
+			bV = [x*b, b]*(num_words>>1)
 		Y = Pi384(Y,i)
 		C = Add(C,Dot(Y,bV))
 	return C

@@ -5,68 +5,49 @@ rho = 28
 p = 2**N-2**128-2**96+2**32-1
 Fp = GF(p)
 
-toVect = lambda a : [ (a>>int(math.ceil(rho*i)))%(2**int(math.ceil(rho-(i%2)))) for i in range(num_words) ]
-fromVect = lambda V: sum([v*2**int(math.ceil(rho*i)) for i,v in enumerate(V)])%p
+powers = [ int(ceil(rho*i)) for i in range(num_words) ]
+bits   = [ int(ceil(rho*(i+1))-ceil(rho*i)) for i in range(num_words) ]
+toVect = lambda a : [ (a>>pow)%2**b for pow,b in zip(powers,bits) ]
+fromVect = lambda V: sum([v*2**pow for pow,v in zip(powers,V)])%p
 
-Add = lambda X,Y : [x+y for x,y in zip(X,Y)]
-Sub = lambda X,Y : [x-y for x,y in zip(X,Y)]
-Dot = lambda X,Y : [x*y for x,y in zip(X,Y)]
+Add = lambda X,Y : [x+y for x,y in zip(X,Y)] if len(X)==len(Y) else []
+Sub = lambda X,Y : [x-y for x,y in zip(X,Y)] if len(X)==len(Y) else []
+Dot = lambda X,Y : [x*y for x,y in zip(X,Y)] if len(X)==len(Y) else []
 
 Hex = lambda V: map(hex,V)
 
 size = lambda x:  floor(log(abs(x),2))+1 if x!=0 else 0
 sizes = lambda V: map(size,V) 
 
-
-def Pi384i(X,i):
-	if i==0:
-		return X
-	else:
-		a13 = X[-1]
-		Y = [0] + X[:-1]
-		Y[0] += a13*2**8 
-		Y[1] -= a13*2**12
-		Y[3] += a13*2**20
-		Y[4] += a13*2**24
-		return Y
-
 def Pi384_bis(X,i):
     if i==0:
         return X
-    elif i%2==0:
-        a13 = X[-1]
-        print(i,hex(a13))
-        Y = [0] + X[:-1]
-        Y[0] += 2*a13 
-        #print(Hex(Y))
-        #Y[1] -= (a13 % 2**22)<<5
-        #Y[2] -= (a13>>22)
-        #Y[3] += (a13 % 2**13)<<14
-        #Y[4] += (a13>>13)
-        Y[4] += (a13 % 2**9)<<19
-        Y[5] += (a13>>9)
-        return Y
     else:
         a13 = X[-1]
-        print(i,hex(a13))
         Y = [0] + X[:-1]
-        Y[0] += 2*a13 
-        #print(Hex(Y))
-        #print(Hex(Y))
-        #Y[1] -= (a13 % 2**21)<<6
-        #Y[2] -= (a13>>21)
-        #Y[3] += (a13 % 2**12)<<15
-        #Y[4] += (a13>>12)
-        Y[4] += (a13 % 2**9)<<19
-        Y[5] += (a13>>9)
+        Y[0] += (a13 % 2**20)<<8
+        Y[1] += (a13>>20)
+        Y[1] -= (a13 % 2**16)<<12
+        Y[2] -= (a13>>16)
+        Y[3] += (a13 % 2**8)<<20
+        Y[4] += (a13>>8)
+        Y[4] += (a13 % 2**4)<<24
+        Y[5] += (a13>>4)
         return Y
+
+def Pi384i(X,i):
+    if i==0:
+        return X
+    else:
+        a13 = X[-1]
+        return Add([0]+X[:-1],[2**8*a13, -2**12*a13, 0, 2**20*a13, 2**24*a13, 0,0,0, 0,0,0, 0,0,0])
 
 def Muli(A,B):
 	C = [0]*num_words
 	Y = A
 	for i,b in enumerate(B):
 		bV = [b]*num_words
-		Y = Pi384i(Y,i)
+		Y = Pi384_bis(Y,i)
 		C = Add(C,Dot(Y,bV))
 	return C
 
@@ -79,46 +60,4 @@ A = toVect(a)
 B = toVect(b)
 C = Muli(A,B)
 print(c == fromVect(C))
-
-
-#Y = [0]*num_words
-#Z = [0]*num_words
-#Y[0] = deepcopy(A)
-#Z[0] = deepcopy(A)
-#for i in range(1,num_words):
-	#Y[i] = Pi384_bis(Y[i-1],i)
-	#Z[i] = Pi384i(Z[i-1],i)
-	#print(i,fromVect(Z[i])==fromVect(Y[i]))
-    
-
-
-
-
-
-
-
-
-#C = [0]*num_words
-#Y = A
-#
-#i=0
-#b = B[i]
-#if i%2==0:
-#    bV = [b]*num_words
-#else:
-#    bV = [2*b, b]*(num_words>>1)
-#Y = Pi384_bis(Y,i)
-#C = Add(C,Dot(Y,bV))
-#
-#i=1
-#b = B[i]
-#if i%2==0:
-#    bV = [b]*num_words
-#else:
-#    bV = [2*b, b]*(num_words>>1)
-#Y = Pi384_bis(Y,i)
-#C = Add(C,Dot(Y,bV))
-
-
-
 
