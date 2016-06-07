@@ -10,8 +10,7 @@ typedef uint64_t * argElement_1w;
 #define NUM_WORDS_64B_NISTP384 14
 #define NUM_WORDS_256B_NISTP384 4
 
-#define VECT_BASE0 28
-#define VECT_BASE1 27
+#define VECT_BASE 28
 
 
 void random_Element_1w_h0h7(uint64_t *A);

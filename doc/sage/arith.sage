@@ -60,4 +60,3 @@ A = toVect(a)
 B = toVect(b)
 C = Muli(A,B)
 print(c == fromVect(C))
-
