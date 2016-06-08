@@ -19,7 +19,7 @@ int main()
 
 //	printex_Element_1w_h0h7(a);
 //	print_python_Element_1w_h0h7(a);
-//	singleH0H7_To_str_bytes(B,a);
+//	Element_1w_h0h7_To_str_bytes(B,a);
 //	print_str_bytes(B);
 
 //	random_Element_1w_h0h7(a);

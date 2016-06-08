@@ -14,8 +14,8 @@ int compare_Element_1w_h0h7(uint64_t *A, uint64_t *B)
 	STR_BYTES a,b;
 	compress_Element_1w_h0h7(A);
 	compress_Element_1w_h0h7(B);
-	singleH0H7_To_str_bytes(a, A);
-	singleH0H7_To_str_bytes(b, B);
+	Element_1w_h0h7_To_str_bytes(a, A);
+	Element_1w_h0h7_To_str_bytes(b, B);
 	return areEqual_str_bytes(a,b);
 }
 
@@ -55,7 +55,7 @@ void printex_Element_1w_h0h7(uint64_t *A)
 void print_Element_1w_h0h7(uint64_t *A)
 {
 	STR_BYTES a;
-	singleH0H7_To_str_bytes(a, A);
+	Element_1w_h0h7_To_str_bytes(a, A);
 	print_str_bytes(a);
 }
 
@@ -147,7 +147,7 @@ void str_bytes_To_Element_1w_h0h7(uint64_t *__restrict pC, uint8_t *__restrict p
 	}
 }
 
-void singleH0H7_To_str_bytes(uint8_t *p8C, uint64_t *puA)
+void Element_1w_h0h7_To_str_bytes(uint8_t *p8C, uint64_t *puA)
 {
 	/**
 	* It only accepts positive coefficients.
@@ -785,7 +785,7 @@ void new_compressfast_Element_1w_h0h7(uint64_t * pA)
 	STORE(C+2,LOAD(A+2));\
 	STORE(C+3,LOAD(A+3));
 
-void invsqrt_Element_1w_h0h7(uint64_t * __restrict pC, uint64_t * __restrict pA, const int only_inverse)
+void inv_Element_1w_h0h7(uint64_t * __restrict pC, uint64_t * __restrict pA)
 {
 	Element_1w_H0H7 x0,x1;
 	uint64_t * T[4];
@@ -852,11 +852,7 @@ void invsqrt_Element_1w_h0h7(uint64_t * __restrict pC, uint64_t * __restrict pA,
 	mul_Element_1w_h0h7(T[1],T[1],T[2]);
 	compressfast_Element_1w_h0h7(T[1]);
 
-	if(only_inverse != 0)
-	{
-		sqrn_Element_1w_h0h7(T[1],2);
-		mul_Element_1w_h0h7(T[1],T[1],T[3]);
-		compressfast_Element_1w_h0h7(T[1]);
-	}
-
+	sqrn_Element_1w_h0h7(T[1],2);
+	mul_Element_1w_h0h7(T[1],T[1],T[3]);
+	compressfast_Element_1w_h0h7(T[1]);
 }

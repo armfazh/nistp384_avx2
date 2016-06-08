@@ -15,7 +15,7 @@ void bench_element_1w_h0h7()
 	random_Element_1w_h0h7(b);
 	random_Element_1w_h0h7(c);
 	CLOCKS(str_bytes_To_Element_1w_h0h7(a,A));
-	CLOCKS(singleH0H7_To_str_bytes(A,a));
+	CLOCKS(Element_1w_h0h7_To_str_bytes(A, a));
 	CLOCKS(add_Element_1w_h0h7(c,a,b));
 	CLOCKS(sub_Element_1w_h0h7(c,c,b));
 	CLOCKS(addsub_Element_1w_h0h7(a,b));
@@ -30,5 +30,5 @@ void bench_element_1w_h0h7()
 	CLOCKS(new_compressfast_Element_1w_h0h7(c));
 
 	BENCH = BENCH/10;
-//	CLOCKS(invsqrt_Element_1w_h0h7(c,a,1));
+	CLOCKS(inv_Element_1w_h0h7(c,a));
 }

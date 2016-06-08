@@ -34,6 +34,10 @@ void deinterleave(argElement_1w_H0H7 LOW, argElement_1w_H0H7 HIGH, argElement_2w
 	STORE(LOW  + 3, _mm256_castsi128_si256(_mm256_castsi256_si128(A[6])));
 	STORE(HIGH + 3, _mm256_castsi128_si256(_mm256_extracti128_si256(A[6],1)));
 }
+void str_bytes_to_Element_2w_h0h7(argElement_2w_H0H7 pC, uint8_t * p8A)
+{
+
+}
 
 void random_Element_2w_h0h7(argElement_2w_H0H7 X_Y)
 {

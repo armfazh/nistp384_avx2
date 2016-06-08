@@ -11,14 +11,16 @@ set(TARGET nistp384_avx2)
 set(SRC ./src)
 enable_language(ASM-ATT)
 
-set(CMAKE_C_FLAGS "-Wall -Wextra -I./include -L./lib -O3 -march=haswell -mtune=intel -mno-vzeroupper")
+set(CMAKE_C_FLAGS "-Wall -DPROCESSOR=HASWELL -Wextra -I./include -L./lib -O3 -march=haswell -mtune=intel -mno-vzeroupper")
 
 add_library(${TARGET} STATIC ${SRC}/${TARGET}.c src/element_1w_h0h7.c include/element_1w_h0h7.h)
 add_library(${TARGET}_all STATIC ${SRC}/str_bytes.c
 		src/element_1w_h0h7.c
 		src/element_2w_h0h7.c
+		src/ecc.c
 		include/element_2w_h0h7.h
-		include/element_1w_h0h7.h)
+		include/element_1w_h0h7.h
+		include/ecc.h)
 #add_executable(bench apps/bench/bench.c apps/bench/clocks.c apps/bench/bench_ecdh_avx2.c ${SRC}/random.c )
 #add_executable(test apps/test/test.c apps/test/test_ecdh_avx2.c ${SRC}/random.c)
 add_executable(bench_all apps/bench/bench_all.c apps/bench/clocks.c

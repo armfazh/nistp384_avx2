@@ -24,7 +24,7 @@ int compare_Element_1w_h0h7(uint64_t *A, uint64_t *B);
 void to_1w_h0h7(uint64_t *C);
 void from_1w_h0h7(uint64_t *C);
 void str_bytes_To_Element_1w_h0h7(uint64_t *__restrict pC, uint8_t *__restrict p8A);
-void singleH0H7_To_str_bytes(uint8_t *__restrict p8C, uint64_t *__restrict pA);
+void Element_1w_h0h7_To_str_bytes(uint8_t *__restrict p8C, uint64_t *__restrict pA);
 
 void neg_Element_1w_h0h7(uint64_t *pA);
 void add_Element_1w_h0h7(uint64_t *C, uint64_t *A, uint64_t *B);
@@ -33,7 +33,7 @@ void addsub_Element_1w_h0h7(uint64_t *pA, uint64_t *pB);
 void naddsub_Element_1w_h0h7(uint64_t *pC, uint64_t *pD, uint64_t *pA, uint64_t *pB);
 void mul_Element_1w_h0h7(uint64_t *C, uint64_t *A, uint64_t *B);
 void sqr_Element_1w_h0h7(uint64_t *A);
-void invsqrt_Element_1w_h0h7(uint64_t *__restrict pC, uint64_t *__restrict pA, const int only_inverse);
+void inv_Element_1w_h0h7(uint64_t * __restrict pC, uint64_t * __restrict pA);
 void compressfast_Element_1w_h0h7(uint64_t *A);
 void new_compressfast_Element_1w_h0h7(uint64_t *A);
 void compress_Element_1w_h0h7(uint64_t *A);
