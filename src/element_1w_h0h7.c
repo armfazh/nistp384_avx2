@@ -385,7 +385,7 @@ void sqrn_Element_1w_h0h7(uint64_t * A, const int times)
 
 inline void sqr_Element_1w_h0h7(uint64_t *A)
 {
-	sqrn_Element_1w_h0h7(A, 1);
+
 }
 
 
