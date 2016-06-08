@@ -31,7 +31,8 @@ void deinterleave(argElement_1w_H0H7 LOW, argElement_1w_H0H7 HIGH, argElement_2w
 	STORE(HIGH + 1, _mm256_permute2x128_si256(A[2], A[3], 0x31));
 	STORE(LOW  + 2, _mm256_permute2x128_si256(A[4], A[5], 0x20));
 	STORE(HIGH + 2, _mm256_permute2x128_si256(A[4], A[5], 0x31));
-	STORE(LOW  + 3, _mm256_permute2x128_si256(A[6], ZERO, 0x20));
+	STORE(LOW  + 3, _mm256_castsi128_si256(_mm256_castsi256_si128(A[6])));
+	STORE(HIGH + 3, _mm256_castsi128_si256(_mm256_extracti128_si256(A[6],1)));
 }
 
 void random_Element_2w_h0h7(argElement_2w_H0H7 X_Y)
@@ -90,7 +91,7 @@ inline void add_Element_2w_h0h7(argElement_2w_H0H7 C,argElement_2w_H0H7 A,argEle
 		C[i] = ADD(A[i],B[i]);
 }
 
-const uint64_t CONST_2P_2P_H0H7[2*NUM_WORDS_64B_NISTP384] = {
+static const uint64_t CONST_2P_2P_H0H7[2*NUM_WORDS_64B_NISTP384] = {
 	0x1ffffefe,0x1ffffffe,0x1ffffefe,0x1ffffffe,
 	0x2000101e,0x1ffffffe,0x2000101e,0x1ffffffe,
 	0x1ffffffe,0x1ffffffe,0x1ffffffe,0x1ffffffe,
@@ -100,7 +101,7 @@ const uint64_t CONST_2P_2P_H0H7[2*NUM_WORDS_64B_NISTP384] = {
 	0x1ffffffe,0x101ffffe,0x1ffffffe,0x101ffffe
 };
 
-const uint64_t CONST_2P_00_H0H7[2*NUM_WORDS_64B_NISTP384] = {
+static const uint64_t CONST_2P_00_H0H7[2*NUM_WORDS_64B_NISTP384] = {
 		0x1ffffefe,0x1ffffffe,0x0000000,0x0000000,
 		0x2000101e,0x1ffffffe,0x0000000,0x0000000,
 		0x1ffffffe,0x1ffffffe,0x0000000,0x0000000,
@@ -108,6 +109,17 @@ const uint64_t CONST_2P_00_H0H7[2*NUM_WORDS_64B_NISTP384] = {
 		0x1efdfffe,0x1ffffffe,0x0000000,0x0000000,
 		0x1ffffffe,0x1ffffffe,0x0000000,0x0000000,
 		0x1ffffffe,0x101ffffe,0x0000000,0x0000000};
+
+static const uint64_t CONST_2_32P_ELEMENT[2*NUM_WORDS_64B_NISTP384] = {
+		0x1ffffefe00000000,0x1ffffffe00000000,0x1ffffefe00000000,0x1ffffffe00000000,
+		0x2000101e00000000,0x1ffffffe00000000,0x2000101e00000000,0x1ffffffe00000000,
+		0x1ffffffe00000000,0x1ffffffe00000000,0x1ffffffe00000000,0x1ffffffe00000000,
+		0x1fefdffe00000000,0x1ffffffe00000000,0x1fefdffe00000000,0x1ffffffe00000000,
+		0x1efdfffe00000000,0x1ffffffe00000000,0x1efdfffe00000000,0x1ffffffe00000000,
+		0x1ffffffe00000000,0x1ffffffe00000000,0x1ffffffe00000000,0x1ffffffe00000000,
+		0x1ffffffe00000000,0x101ffffe00000000,0x1ffffffe00000000,0x101ffffe00000000
+};
+
 
 inline void sub_Element_2w_h0h7(argElement_2w_H0H7 __restrict C, argElement_2w_H0H7 __restrict A, argElement_2w_H0H7 __restrict B)
 {
@@ -185,6 +197,8 @@ inline void addsub_large_Element_2w_h0h7(argElement_2w_H0H7 A, argElement_2w_H0H
 			_mm256_set_epi64x(0x3ffffffc00000000,0x3ffffffc00000000,0x3ffffffc00000000,0x3ffffffc00000000),
 			_mm256_set_epi64x(0x3ffffffc00000000,0x3ffffffc00000000,0x3ffffffc00000000,0x3ffffffc00000000)
 	};
+
+
 	int i=0;
 	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
 	{
@@ -255,17 +269,37 @@ inline void naddsub_Element_2w_h0h7(
 	}
 }
 
+/* Pi transformation */
+#define PI_2w()								\
+	tmp = b6;								\
+	b6 = b5; 								\
+	b5 = b4; 								\
+	b4 = b3; 								\
+	b3 = b2; 								\
+	b2 = b1; 								\
+	b1 = b0; 								\
+	b0 = SHLi_128(tmp, 8);					\
+	a13 = SHRi_128(tmp, 8);					\
+	b0 = ADD(b0, SHL(AND(mask20, a13), 8)); \
+	b1 = ADD(b1, SHR(a13, 20));				\
+	b1 = SUB(b1, SHL(AND(mask16, a13), 12));\
+	b2 = SUB(b2, SHR(a13, 16));				\
+	b3 = ADD(b3, SHL(AND(mask8, a13), 20)); \
+	b4 = ADD(b4, SHR(a13, 8));				\
+	b4 = ADD(b4, SHL(AND(mask4, a13), 24)); \
+	b5 = ADD(b5, SHR(a13, 4));
 
 /**
  *
  * */
 void mul_Element_2w_h0h7(__m256i *  C, __m256i * A, __m256i *  B)
 {
-	int i;
+	int i,j;
 	const __m256i mask20 = _mm256_set_epi64x(0x0,((uint64_t)1<<20)-1,0x0,((uint64_t)1<<20)-1);
 	const __m256i mask16 = _mm256_set_epi64x(0x0,((uint64_t)1<<16)-1,0x0,((uint64_t)1<<16)-1);
 	const __m256i mask8  = _mm256_set_epi64x(0x0,((uint64_t)1<< 8)-1,0x0,((uint64_t)1<< 8)-1);
 	const __m256i mask4  = _mm256_set_epi64x(0x0,((uint64_t)1<< 4)-1,0x0,((uint64_t)1<< 4)-1);
+	const __m256i M[2] = { _mm256_set1_epi64x(0x0706050403020100), _mm256_set1_epi64x(0x0F0E0D0C0B0A0908) };
 
 	__m256i ai,tmp,a13;
 	__m256i b0,b1,b2,b3,b4,b5,b6;
@@ -279,7 +313,7 @@ void mul_Element_2w_h0h7(__m256i *  C, __m256i * A, __m256i *  B)
 	b5 = LOAD(B+5);
 	b6 = LOAD(B+6);
 
-	ai = SHUF(LOAD( A + 0), 0x44);
+	ai = _mm256_shuffle_epi8(LOAD(A + 0), M[0]);
 	c0 = MUL(b0,ai);
 	c1 = MUL(b1,ai);
 	c2 = MUL(b2,ai);
@@ -288,68 +322,23 @@ void mul_Element_2w_h0h7(__m256i *  C, __m256i * A, __m256i *  B)
 	c5 = MUL(b5,ai);
 	c6 = MUL(b6,ai);
 
-	for (i = 1; i < 7; i++)
+	i=1;
+	for(j=0;j<2;j++)
 	{
-		/* Pi transformation */
-		tmp = b6;
-		b6 = b5;
-		b5 = b4;
-		b4 = b3;
-		b3 = b2;
-		b2 = b1;
-		b1 = b0;
-		b0 = SHLi_128(tmp, 8);
-		a13 = SHRi_128(tmp, 8);
+		for ( ; i < 7; i++)
+		{
+			PI_2w();
 
-		b0 = ADD(b0, SHL(AND(mask20, a13), 8));
-		b1 = ADD(b1, SHR(a13, 20));
-		b1 = SUB(b1, SHL(AND(mask16, a13), 12));
-		b2 = SUB(b2, SHR(a13, 16));
-		b3 = ADD(b3, SHL(AND(mask8, a13), 20));
-		b4 = ADD(b4, SHR(a13, 8));
-		b4 = ADD(b4, SHL(AND(mask4, a13), 24));
-		b5 = ADD(b5, SHR(a13, 4));
-
-		ai = SHUF(LOAD(A + i), 0x44);
-		c0 = ADD(c0, MUL(b0,ai));
-		c1 = ADD(c1, MUL(b1,ai));
-		c2 = ADD(c2, MUL(b2,ai));
-		c3 = ADD(c3, MUL(b3,ai));
-		c4 = ADD(c4, MUL(b4,ai));
-		c5 = ADD(c5, MUL(b5,ai));
-		c6 = ADD(c6, MUL(b6,ai));
-
-	}
-	for (i = 0; i < 7; i++)
-	{
-		/* Pi transformation */
-		tmp = b6;
-		b6 = b5;
-		b5 = b4;
-		b4 = b3;
-		b3 = b2;
-		b2 = b1;
-		b1 = b0;
-		b0 = SHLi_128(tmp, 8);
-		a13 = SHRi_128(tmp, 8);
-
-		b0 = ADD(b0, SHL(AND(mask20, a13), 8));
-		b1 = ADD(b1, SHR(a13, 20));
-		b1 = SUB(b1, SHL(AND(mask16, a13), 12));
-		b2 = SUB(b2, SHR(a13, 16));
-		b3 = ADD(b3, SHL(AND(mask8, a13), 20));
-		b4 = ADD(b4, SHR(a13, 8));
-		b4 = ADD(b4, SHL(AND(mask4, a13), 24));
-		b5 = ADD(b5, SHR(a13, 4));
-
-		ai = SHUF(LOAD(A + i), 0xEE);
-		c0 = ADD(c0, MUL(b0,ai));
-		c1 = ADD(c1, MUL(b1,ai));
-		c2 = ADD(c2, MUL(b2,ai));
-		c3 = ADD(c3, MUL(b3,ai));
-		c4 = ADD(c4, MUL(b4,ai));
-		c5 = ADD(c5, MUL(b5,ai));
-		c6 = ADD(c6, MUL(b6,ai));
+			ai = _mm256_shuffle_epi8(LOAD(A + i), M[j]);
+			c0 = ADD(c0, MUL(b0, ai));
+			c1 = ADD(c1, MUL(b1, ai));
+			c2 = ADD(c2, MUL(b2, ai));
+			c3 = ADD(c3, MUL(b3, ai));
+			c4 = ADD(c4, MUL(b4, ai));
+			c5 = ADD(c5, MUL(b5, ai));
+			c6 = ADD(c6, MUL(b6, ai));
+		}
+		i=0;
 	}
 
 	STORE(C+0, c0);
@@ -363,7 +352,13 @@ void mul_Element_2w_h0h7(__m256i *  C, __m256i * A, __m256i *  B)
 
 void sqr_Element_2w_h0h7(__m256i *  C)
 {
-	mul_Element_2w_h0h7(C,C,C);
+	int i;
+	Element_2w_H0H7 A,B;
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		A[i] = B[i] = C[i];
+	}
+	mul_Element_2w_h0h7(C,A,B);
 }
 
 
@@ -375,6 +370,10 @@ void compress_Element_2w_h0h7(__m256i * C)
 	const __m256i mask16 = _mm256_set_epi64x(0x0,((uint64_t)1<<16)-1,0x0,((uint64_t)1<<16)-1);
 	const __m256i mask8  = _mm256_set_epi64x(0x0,((uint64_t)1<< 8)-1,0x0,((uint64_t)1<< 8)-1);
 	const __m256i mask4  = _mm256_set_epi64x(0x0,((uint64_t)1<< 4)-1,0x0,((uint64_t)1<< 4)-1);
+	const argElement_2w_H0H7 _2_32P = (argElement_2w_H0H7)CONST_2_32P_ELEMENT;
+
+	__m256i h0_h7,  h1_h8,  h2_h9, h3_h10,
+			h4_h11, h5_h12, h6_h13, h13, h6;
 
 	__m256i c0 = LOAD(C+0);
 	__m256i c1 = LOAD(C+1);
@@ -384,8 +383,13 @@ void compress_Element_2w_h0h7(__m256i * C)
 	__m256i c5 = LOAD(C+5);
 	__m256i c6 = LOAD(C+6);
 
-	__m256i h0_h7,  h1_h8,  h2_h9, h3_h10,
-			h4_h11, h5_h12, h6_h13, h13, h6;
+	c0 = ADD(c0,_2_32P[0]);
+	c1 = ADD(c1,_2_32P[1]);
+	c2 = ADD(c2,_2_32P[2]);
+	c3 = ADD(c3,_2_32P[3]);
+	c4 = ADD(c4,_2_32P[4]);
+	c5 = ADD(c5,_2_32P[5]);
+	c6 = ADD(c6,_2_32P[6]);
 
 	h6_h13 = SHR(c6, VECT_BASE);
 	c6 = AND(c6, mask);
@@ -455,6 +459,7 @@ void compress2_Element_2w_h0h7(__m256i * C, __m256i * D)
 	const __m256i mask16 = _mm256_set_epi64x(0x0,((uint64_t)1<<16)-1,0x0,((uint64_t)1<<16)-1);
 	const __m256i mask8  = _mm256_set_epi64x(0x0,((uint64_t)1<< 8)-1,0x0,((uint64_t)1<< 8)-1);
 	const __m256i mask4  = _mm256_set_epi64x(0x0,((uint64_t)1<< 4)-1,0x0,((uint64_t)1<< 4)-1);
+	const argElement_2w_H0H7 _2_32P = (argElement_2w_H0H7)CONST_2_32P_ELEMENT;
 
 	__m256i c0 = LOAD(C+0);                      		__m256i d0 = LOAD(D+0);
 	__m256i c1 = LOAD(C+1);                      		__m256i d1 = LOAD(D+1);
@@ -466,6 +471,14 @@ void compress2_Element_2w_h0h7(__m256i * C, __m256i * D)
 
 	__m256i h0_h7,  h1_h8,  h2_h9,  h3_h10;      		__m256i f0_f7,  f1_f8,  f2_f9,  f3_f10;
 	__m256i h4_h11, h5_h12, h6_h13, h13, h6;     		__m256i f4_f11, f5_f12, f6_f13, f13, f6;
+
+	c0 = ADD(c0,_2_32P[0]);                             d0 = ADD(d0,_2_32P[0]);
+	c1 = ADD(c1,_2_32P[1]);                             d1 = ADD(d1,_2_32P[1]);
+	c2 = ADD(c2,_2_32P[2]);                             d2 = ADD(d2,_2_32P[2]);
+	c3 = ADD(c3,_2_32P[3]);                             d3 = ADD(d3,_2_32P[3]);
+	c4 = ADD(c4,_2_32P[4]);                             d4 = ADD(d4,_2_32P[4]);
+	c5 = ADD(c5,_2_32P[5]);                             d5 = ADD(d5,_2_32P[5]);
+	c6 = ADD(c6,_2_32P[6]);                             d6 = ADD(d6,_2_32P[6]);
 
 	h6_h13 = SHR(c6, VECT_BASE);                 		f6_f13 = SHR(d6, VECT_BASE);
 	c6 = AND(c6, mask);                          		d6 = AND(d6, mask);

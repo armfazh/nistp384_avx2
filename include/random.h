@@ -2,6 +2,7 @@
 #define _RANDOM_H_
 
 #include <stdint.h>
+void randomize();
 void random_bytes(uint8_t *A, int length);
 
 #endif /* _RANDOM_H_ */

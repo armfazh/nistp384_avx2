@@ -25,14 +25,15 @@ void print_python_Element_1w_h0h7(uint64_t *A)
 	printf("s = [ ");
 	for(i=0;i<(NUM_WORDS_64B_NISTP384)-1;i+=2)
 	{
-		if( ((signed)A[i])<0)		printf("-");
+//		if( ((signed)A[i])<0)		printf("-");
 		printf("0x%.8lx, ", A[i] );
 	}
 	for(i=1;i<(NUM_WORDS_64B_NISTP384)-1;i+=2)
 	{
-		if( ((signed)A[i])<0)		printf("-");
+//		if( ((signed)A[i])<0)		printf("-");
 		printf("0x%.8lx, ", A[i] );
 	}
+//	if( ((signed)A[i])<0)		printf("-");
 	printf("0x%.8lx] \n", A[i] );
 }
 
@@ -210,6 +211,16 @@ static const Element_1w_H0H7 CONST_2P_ELEMENT = {
 		0x1ffffffe,0x101ffffe
 };
 
+static const Element_1w_H0H7 CONST_2_32P_ELEMENT = {
+        0x1ffffefe00000000,0x1ffffffe00000000,
+		0x2000101e00000000,0x1ffffffe00000000,
+		0x1ffffffe00000000,0x1ffffffe00000000,
+		0x1fefdffe00000000,0x1ffffffe00000000,
+		0x1efdfffe00000000,0x1ffffffe00000000,
+		0x1ffffffe00000000,0x1ffffffe00000000,
+		0x1ffffffe00000000,0x101ffffe00000000
+};
+
 void neg_Element_1w_h0h7(uint64_t *pA)
 {
 	int i=0;
@@ -267,14 +278,33 @@ inline void naddsub_Element_1w_h0h7(uint64_t *pC, uint64_t *pD, uint64_t *pA, ui
 		STORE(pD+i,D);
 	}
 }
+#define PI_1w() \
+	tmp = b6;	\
+	b6 = b5;	\
+	b5 = b4;	\
+	b4 = b3;	\
+	b3 = b2;	\
+	b2 = b1;	\
+	b1 = b0;	\
+	b0 = _mm_slli_si128(tmp, 8);											\
+	a13 = _mm_srli_si128(tmp, 8);											\
+	b0 = _mm_add_epi64(b0, _mm_slli_epi64(_mm_and_si128(mask20, a13), 8));	\
+	b1 = _mm_add_epi64(b1, _mm_srli_epi64(a13, 20));						\
+	b1 = _mm_sub_epi64(b1, _mm_slli_epi64(_mm_and_si128(mask16, a13), 12));	\
+	b2 = _mm_sub_epi64(b2, _mm_srli_epi64(a13, 16));						\
+	b3 = _mm_add_epi64(b3, _mm_slli_epi64(_mm_and_si128(mask8, a13), 20));	\
+	b4 = _mm_add_epi64(b4, _mm_srli_epi64(a13, 8));						    \
+	b4 = _mm_add_epi64(b4, _mm_slli_epi64(_mm_and_si128(mask4, a13), 24));	\
+	b5 = _mm_add_epi64(b5, _mm_srli_epi64(a13, 4));
 
 static void mul_schoolbook_Element_1w_h0h7(uint64_t *C, uint64_t *A, uint64_t *B)
 {
-	int i;
+	int i,j;
 	const __m128i mask20 = _mm_set_epi64x(0x0,((uint64_t)1<<20)-1);
 	const __m128i mask16 = _mm_set_epi64x(0x0,((uint64_t)1<<16)-1);
 	const __m128i mask8 = _mm_set_epi64x(0x0,((uint64_t)1<<8)-1);
 	const __m128i mask4 = _mm_set_epi64x(0x0,((uint64_t)1<<4)-1);
+	const __m128i M[2] = { _mm_set1_epi64x(0x0706050403020100), _mm_set1_epi64x(0x0F0E0D0C0B0A0908) };
 
 	__m128i ai,tmp,a13;
 	__m128i b0,b1,b2,b3,b4,b5,b6;
@@ -288,7 +318,7 @@ static void mul_schoolbook_Element_1w_h0h7(uint64_t *C, uint64_t *A, uint64_t *B
 	b5 = _mm_load_si128((__m128i*)B+5);
 	b6 = _mm_load_si128((__m128i*)B+6);
 
-	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + 0), 0x44);
+	ai = _mm_shuffle_epi8(_mm_load_si128((__m128i *) A + 0), M[0]);
 	c0 = _mm_mul_epi32(b0, ai);
 	c1 = _mm_mul_epi32(b1, ai);
 	c2 = _mm_mul_epi32(b2, ai);
@@ -297,67 +327,23 @@ static void mul_schoolbook_Element_1w_h0h7(uint64_t *C, uint64_t *A, uint64_t *B
 	c5 = _mm_mul_epi32(b5, ai);
 	c6 = _mm_mul_epi32(b6, ai);
 
-	for (i = 1; i < 7; i++)
+	i=1;
+	for(j=0;j<2;j++)
 	{
-		/* Pi transformation */
-		tmp = b6;
-		b6 = b5;
-		b5 = b4;
-		b4 = b3;
-		b3 = b2;
-		b2 = b1;
-		b1 = b0;
-		b0 = _mm_slli_si128(tmp, 8);
-		a13 = _mm_srli_si128(tmp, 8);
-
-		b0 = _mm_add_epi64(b0, _mm_slli_epi64(_mm_and_si128(mask20, a13), 8));
-		b1 = _mm_add_epi64(b1, _mm_srli_epi64(a13, 20));
-		b1 = _mm_sub_epi64(b1, _mm_slli_epi64(_mm_and_si128(mask16, a13), 12));
-		b2 = _mm_sub_epi64(b2, _mm_srli_epi64(a13, 16));
-		b3 = _mm_add_epi64(b3, _mm_slli_epi64(_mm_and_si128(mask8, a13), 20));
-		b4 = _mm_add_epi64(b4, _mm_srli_epi64(a13, 8));
-		b4 = _mm_add_epi64(b4, _mm_slli_epi64(_mm_and_si128(mask4, a13), 24));
-		b5 = _mm_add_epi64(b5, _mm_srli_epi64(a13, 4));
-
-		ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + i), 0x44);
-		c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai));
-		c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));
-		c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));
-		c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));
-		c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));
-		c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));
-		c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));
-	}
-	for (i = 0; i < 7; i++)
-	{
-		/* Pi transformation */
-		tmp = b6;
-		b6 = b5;
-		b5 = b4;
-		b4 = b3;
-		b3 = b2;
-		b2 = b1;
-		b1 = b0;
-		b0 = _mm_slli_si128(tmp, 8);
-		a13 = _mm_srli_si128(tmp, 8);
-
-		b0 = _mm_add_epi64(b0, _mm_slli_epi64(_mm_and_si128(mask20, a13), 8));
-		b1 = _mm_add_epi64(b1, _mm_srli_epi64(a13, 20));
-		b1 = _mm_sub_epi64(b1, _mm_slli_epi64(_mm_and_si128(mask16, a13), 12));
-		b2 = _mm_sub_epi64(b2, _mm_srli_epi64(a13, 16));
-		b3 = _mm_add_epi64(b3, _mm_slli_epi64(_mm_and_si128(mask8, a13), 20));
-		b4 = _mm_add_epi64(b4, _mm_srli_epi64(a13, 8));
-		b4 = _mm_add_epi64(b4, _mm_slli_epi64(_mm_and_si128(mask4, a13), 24));
-		b5 = _mm_add_epi64(b5, _mm_srli_epi64(a13, 4));
-
-		ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + i), 0xEE);
-		c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai));
-		c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));
-		c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));
-		c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));
-		c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));
-		c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));
-		c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));
+		for (; i < 7; i++)
+		{
+			/* Pi transformation */
+			PI_1w()
+			ai = _mm_shuffle_epi8(_mm_load_si128((__m128i *) A + i), M[j]);
+			c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai));
+			c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));
+			c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));
+			c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));
+			c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));
+			c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));
+			c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));
+		}
+		i=0;
 	}
 
 	_mm_store_si128((__m128i*)C+0,c0);
@@ -382,9 +368,197 @@ inline void mul_Element_1w_h0h7(uint64_t *pC, uint64_t *pA, uint64_t *pB)
 void sqrn_Element_1w_h0h7(uint64_t * A, const int times)
 {}
 
-inline void sqr_Element_1w_h0h7(uint64_t *A)
+
+inline void sqr_Element_1w_h0h7(uint64_t *  C)
 {
-	mul_Element_1w_h0h7(A,A,A);
+	int i;
+	Element_1w_H0H7 A,B;
+	for(i=0;i<NUM_WORDS_64B_NISTP384;i++)
+	{
+		A[i] = B[i] = C[i];
+	}
+	mul_Element_1w_h0h7(C,A,B);
+}
+
+inline void sqr_complex_Element_1w_h0h7(uint64_t *A)
+{
+	const __m128i mask20 = _mm_set_epi64x(0x0,((uint64_t)1<<20)-1);
+	const __m128i mask16 = _mm_set_epi64x(0x0,((uint64_t)1<<16)-1);
+	const __m128i mask8 = _mm_set_epi64x(0x0,((uint64_t)1<<8)-1);
+	const __m128i mask4 = _mm_set_epi64x(0x0,((uint64_t)1<<4)-1);
+
+	__m128i ai,ai2,tmp,a13;
+	__m128i b0,b1,b2,b3,b4,b5,b6;
+	__m128i c0,c1,c2,c3,c4,c5,c6;
+
+	b0 = _mm_load_si128((__m128i*)A+0);
+	b1 = _mm_load_si128((__m128i*)A+1);
+	b2 = _mm_load_si128((__m128i*)A+2);
+	b3 = _mm_load_si128((__m128i*)A+3);
+	b4 = _mm_load_si128((__m128i*)A+4);
+	b5 = _mm_load_si128((__m128i*)A+5);
+	b6 = _mm_load_si128((__m128i*)A+6);
+
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + 0), 0x44);
+	ai2 = _mm_add_epi64(ai,ai);
+	c0 = _mm_mul_epi32(b0, ai);
+	c1 = _mm_mul_epi32(b1, ai2);
+	c2 = _mm_mul_epi32(b2, ai2);
+	c3 = _mm_mul_epi32(b3, ai2);
+	c4 = _mm_mul_epi32(b4, ai2);
+	c5 = _mm_mul_epi32(b5, ai2);
+	c6 = _mm_mul_epi32(b6, ai2);
+
+	PI_1w();
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + 1), 0x44);
+	ai2 = _mm_add_epi64(ai,ai);
+	c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai2));
+	/*c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));*/
+	c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));
+	c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai2));
+	c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai2));
+	c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai2));
+	c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai2));
+
+	PI_1w();
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + 2), 0x44);
+	ai2 = _mm_add_epi64(ai,ai);
+	c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai2));
+	c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai2));
+	/*c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));*/
+	/*c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));*/
+	c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));
+	c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai2));
+	c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai2));
+
+	PI_1w();
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + 3), 0x44);
+	ai2 = _mm_add_epi64(ai,ai);
+	c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai2));
+	c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai2));
+	c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai2));
+	/*c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));*/
+	/*c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));*/
+	/*c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));*/
+	c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));
+
+	PI_1w();
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + 4), 0x44);
+	ai2 = _mm_add_epi64(ai,ai);
+	/*c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai2));*/
+	c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));
+	c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai2));
+	c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai2));
+	/*c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));*/
+	/*c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));*/
+	/*c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));*/
+
+	PI_1w();
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + 5), 0x44);
+	ai2 = _mm_add_epi64(ai,ai);
+	/*c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai));*/
+	/*c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));*/
+	/*c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));*/
+	c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));
+	c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai2));
+	/*c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));*/
+	/*c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));*/
+
+	PI_1w();
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + 6), 0x44);
+	/*c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai));*/
+	/*c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));*/
+	/*c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));*/
+	/*c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));*/
+	/*c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));*/
+	c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));
+	/*c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));*/
+
+
+	PI_1w();
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + 0), 0xEE);
+	ai2 = _mm_add_epi64(ai,ai);
+	c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai));
+	c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai2));
+	c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai2));
+	c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai2));
+	c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai2));
+	c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai2));
+	c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai2));
+
+	PI_1w();
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + 1), 0xEE);
+	ai2 = _mm_add_epi64(ai,ai);
+	c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai2));
+	/*c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));*/
+	c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));
+	c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai2));
+	c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai2));
+	c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai2));
+	c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai2));
+
+	PI_1w();
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + 2), 0xEE);
+	ai2 = _mm_add_epi64(ai,ai);
+	c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai2));
+	c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai2));
+	/*c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));*/
+	/*c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));*/
+	c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));
+	c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai2));
+	c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai2));
+
+	PI_1w();
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + 3), 0xEE);
+	ai2 = _mm_add_epi64(ai,ai);
+	c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai2));
+	c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai2));
+	c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai2));
+	/*c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));*/
+	/*c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));*/
+	/*c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));*/
+	c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));
+
+	PI_1w();
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + 4), 0xEE);
+	ai2 = _mm_add_epi64(ai,ai);
+	/*c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai));*/
+	c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));
+	c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai2));
+	c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai2));
+	/*c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));*/
+	/*c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));*/
+	/*c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));*/
+
+	PI_1w();
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + 5), 0xEE);
+	ai2 = _mm_add_epi64(ai,ai);
+	/*c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai));*/
+	/*c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));*/
+	/*c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));*/
+	c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));
+	c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai2));
+	/*c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));*/
+	/*c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));*/
+
+	PI_1w();
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + 6), 0xEE);
+	/*c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai));*/
+	/*c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));*/
+	/*c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));*/
+	/*c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));*/
+	/*c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));*/
+	c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));
+	/*c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));*/
+
+
+	_mm_store_si128((__m128i*)A+0,c0);
+	_mm_store_si128((__m128i*)A+1,c1);
+	_mm_store_si128((__m128i*)A+2,c2);
+	_mm_store_si128((__m128i*)A+3,c3);
+	_mm_store_si128((__m128i*)A+4,c4);
+	_mm_store_si128((__m128i*)A+5,c5);
+	_mm_store_si128((__m128i*)A+6,c6);
 }
 
 
@@ -396,6 +570,7 @@ void compress_Element_1w_h0h7(uint64_t *A)
 	const __m128i mask16 = _mm_set_epi64x(0x0,((uint64_t)1<<16)-1);
 	const __m128i mask8 = _mm_set_epi64x(0x0,((uint64_t)1<<8)-1);
 	const __m128i mask4 = _mm_set_epi64x(0x0,((uint64_t)1<<4)-1);
+	const __m128i* _2_32P = (__m128i*)CONST_2_32P_ELEMENT;
 
 	__m128i c0 = _mm_load_si128((__m128i*)A+0);
 	__m128i c1 = _mm_load_si128((__m128i*)A+1);
@@ -407,6 +582,14 @@ void compress_Element_1w_h0h7(uint64_t *A)
 
 	__m128i h0_h7,  h1_h8,  h2_h9, h3_h10,
 			h4_h11, h5_h12, h6_h13, h13, h6;
+
+	c0 = _mm_add_epi64(c0,_2_32P[0]);
+	c1 = _mm_add_epi64(c1,_2_32P[1]);
+	c2 = _mm_add_epi64(c2,_2_32P[2]);
+	c3 = _mm_add_epi64(c3,_2_32P[3]);
+	c4 = _mm_add_epi64(c4,_2_32P[4]);
+	c5 = _mm_add_epi64(c5,_2_32P[5]);
+	c6 = _mm_add_epi64(c6,_2_32P[6]);
 
 	h6_h13 = _mm_srli_epi64(c6, VECT_BASE);
 	c6 = _mm_and_si128(c6, mask);
