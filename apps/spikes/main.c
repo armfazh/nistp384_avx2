@@ -46,11 +46,14 @@ int main()
 
 	mul_Element_1w_h0h7(c,b,a);
 	printf("mul:\n");
-	printex_Element_1w_h0h7(c);
+	compress_Element_1w_h0h7(c);
+
+	for(i=0;i<40;i++)
+		add_Element_1w_h0h7(c,c,a);
+
 	sizes_Element_1w_h0h7(c);
-	compressfast_Element_1w_h0h7(c);
+	new_compressfast_Element_1w_h0h7(c);
 	sizes_Element_1w_h0h7(c);
-	printex_Element_1w_h0h7(c);
 	print_Element_1w_h0h7(c);
 
 #endif

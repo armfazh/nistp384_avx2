@@ -22,6 +22,9 @@ benchall: $(TARGET)
 testall: $(TARGET)
 	make -C apps/test test_all
 
+main: $(TARGET)
+	make -C apps/spikes main
+
 $(BIN)/%_$(CC): $(TARGET) apps/%
 	make -C apps/$*
 
