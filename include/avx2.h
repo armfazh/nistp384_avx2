@@ -36,6 +36,7 @@
 #define SHL_128(X)      _mm256_slli_si256(X,8)
 #define SHR_128(X)      _mm256_srli_si256(X,8)
 #define SHRi_128(X,Y)   _mm256_srli_si256(X,Y)
+#define SHLi_128(X,Y)   _mm256_slli_si256(X,Y)
 #define CLEAN_LOW64(X)  _mm256_blend_epi32(X,ZERO,0x33)
 #define CLEAN_HIGH64(X) _mm256_blend_epi32(X,ZERO,0xCC)
 #define UPKL64(X,Y)     _mm256_unpacklo_epi64(X,Y)

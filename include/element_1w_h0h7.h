@@ -6,7 +6,7 @@
 
 #define MEM_SIZE_NISTP384 16
 typedef ALIGN uint64_t Element_1w_H0H7[MEM_SIZE_NISTP384];
-typedef uint64_t * argElement_1w;
+typedef uint64_t * argElement_1w_H0H7;
 #define NUM_WORDS_64B_NISTP384 14
 #define NUM_WORDS_256B_NISTP384 4
 

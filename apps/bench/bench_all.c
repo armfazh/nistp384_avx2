@@ -9,6 +9,7 @@ int main(void)
 	printf("===== Benchmarking: NIST-P384_avx2 =====\n");
 
 	bench_element_1w_h0h7();
+	bench_element_2w_h0h7();
 
 	return 0;
 }

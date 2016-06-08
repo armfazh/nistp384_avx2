@@ -327,7 +327,6 @@ static void mul_schoolbook_Element_1w_h0h7(uint64_t *C, uint64_t *A, uint64_t *B
 		c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));
 		c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));
 		c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));
-
 	}
 	for (i = 0; i < 7; i++)
 	{
@@ -385,7 +384,7 @@ void sqrn_Element_1w_h0h7(uint64_t * A, const int times)
 
 inline void sqr_Element_1w_h0h7(uint64_t *A)
 {
-
+	mul_Element_1w_h0h7(A,A,A);
 }
 
 
