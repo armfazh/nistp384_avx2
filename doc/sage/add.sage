@@ -101,33 +101,6 @@ def mixadd_complete(Q,P):
 	Y3 = Y3+t2;		X3 = t3*X3;		X3 = X3-t1;
 	Z3 = t4*Z3;		t1 = t3*t0;		Z3 = Z3+t1;
 	return X3,Y3,Z3
-
-
-	t0 = X2*X1;		t1 = Y2*Y1;
-	t3 = X2+Y2;		t4 = X1+Y1;
-	t3 = t3*t4;
-	t4 = t0+t1;		t3 = t3-t4;
-	t4 = Y2*Z1;
-	t4 = t4+Y1;
-	Y3 = X2*Z1;
-	Y3 = Y3+X1;		Z3 = ecc_b*Z1;
-	X3 = Y3-Z3;		Z3 = 2*X3;
-	X3 = X3+Z3;		Z3 = t1-X3;
-	X3 = t1+X3;
-	Y3 = ecc_b*Y3;
-	t1 = 2*Z1;		t2 = t1+Z1;
-	Y3 = Y3-t2;		Y3 = Y3-t0;
-	t1 = 2*Y3;		Y3 = t1+Y3;
-	t1 = 2*t0;		t0 = t1+t0;
-	t0 = t0-t2;
-	t1 = t4*Y3;		t2 = t0*Y3;
-	Y3 = X3*Z3;
-	Y3 = Y3+t2;		X3 = t3*X3;
-	X3 = X3-t1;
-	Z3 = t4*Z3;		t1 = t3*t0;
-	Z3 = Z3+t1;
-
-
 #Returns Q+P
 #Alg, 4 Costello
 # a=-3
@@ -203,30 +176,31 @@ def doub_complete(P):
 
 ##################
 # Main
-J = to_Jac(G)
-P = to_Proy(G)
+def test():
+	J = to_Jac(G)
+	P = to_Proy(G)
 
-_2J = doub_short(J)
-_2P = doub_complete(P)
+	_2J = doub_short(J)
+	_2P = doub_complete(P)
 
-print(Jac_to_Affine(_2J)==Proy_to_Affine(_2P))
+	print(Jac_to_Affine(_2J)==Proy_to_Affine(_2P))
 
-_3J = add_short(_2J,J)
-_3P = add_complete(_2P,P)
+	_3J = add_short(_2J,J)
+	_3P = add_complete(_2P,P)
 
-print(Jac_to_Affine(_3J)==Proy_to_Affine(_3P))
+	print(Jac_to_Affine(_3J)==Proy_to_Affine(_3P))
 
-_iJ = _2J
-_iP = _2P
-_kP = _2P
-for i in range(1000):
-	_iJ = add_short(_iJ,J)
-	_iP = add_complete(_iP,P)
-	_kP = mixadd_complete(_kP,[Gx,Gy])
+	_iJ = _2J
+	_iP = _2P
+	_kP = _2P
+	for i in range(1000):
+		_iJ = add_short(_iJ,J)
+		_iP = add_complete(_iP,P)
+		_kP = mixadd_complete(_kP,[Gx,Gy])
 
-print(Jac_to_Affine(_iJ)==Proy_to_Affine(_iP))
-print(Jac_to_Affine(_iJ)==Proy_to_Affine(_kP))
+	print(Jac_to_Affine(_iJ)==Proy_to_Affine(_iP))
+	print(Jac_to_Affine(_iJ)==Proy_to_Affine(_kP))
 
-
+test()
 
 	
