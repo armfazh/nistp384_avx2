@@ -4,6 +4,50 @@ from sympy.simplify.cse_main import opt_cse, tree_cse
 
 ecc_b = symbols("ecc_b")
 
+def doub_complete(P):
+    global ecc_b
+    X,Y,Z = P
+    t0 = X**2;			t1 = Y**2;			t2 = Z**2
+    t3 = X*Y;			t3 = 2*t3;			Z3 = X*Z
+    Z3 = 2*Z3;			Y3 = ecc_b*t2;		Y3 = Y3-Z3
+    X3 = 2*Y3;			Y3 = X3+Y3;			X3 = t1-Y3
+    Y3 = t1+Y3;			Y3 = X3*Y3;			X3 = X3*t3
+    t3 = 2*t2;			t2 = t2+t3;			Z3 = ecc_b*Z3
+    Z3 = Z3-t2;			Z3 = Z3-t0;			t3 = 2*Z3
+    Z3 = Z3+t3;			t3 = 2*t0;			t0 = t3+t0
+    t0 = t0-t2;			t0 = t0*Z3;			Y3 = Y3+t0
+    t0 = Y*Z;			t0 = 2*t0;			Z3 = t0*Z3
+    X3 = X3-Z3;			Z3 = t0*t1;			Z3 = 2*Z3
+    Z3 = 2*Z3
+    return [X3,Y3,Z3]
+
+def doub_complete_2w(P):
+    global ecc_b
+    X,Y,Z = P
+    p0 = X**2;		q0 = Y**2;
+    p1 = Z**2;		q1 = X*Y;
+    p2 = Y*Z;		q2 = X*Z;
+    
+    l0 = 3*p0;
+    l1 = 3*p1;		r0 = 2*q1;
+    t1 = l0-l1;
+    l2 = 2*p2;		r2 = 2*q2;
+
+    p3 = ecc_b*p1;	q3 = ecc_b*r2;
+    l3 = p3-r2;		r6 = q3-l1;
+    l4 = 3*l3;		r7 = r6-p0;
+    l5 = q0-l4;		r3 = 3*r7;
+    l6 = q0+l4;		
+    
+    r4 = l2*r3;		l7 = l5*l6;
+    t8 = l5*r0;		t2 = t1*r3;
+    r5 = l2*q0;
+    X3 = t8-r4;		Y3 = l7+t2;    
+    Z3 = 4*r5;
+    return [X3,Y3,Z3]
+
+
+
 def mixadd_complete(Q,P):
     global ecc_b
     X1,Y1,Z1 = Q
@@ -57,7 +101,7 @@ def com_sub_elim():
     tree = tree_cse([Rx,Ry,Rz], numbered_symbols('e'))
     print(tree)
 
-def parallel():
+def parallel_mixadd():
     X1,Y1,Z1,X2,Y2 = symbols('X1 Y1 Z1 X2 Y2')
     Q = [X1,Y1,Z1]
     P = [X2,Y2]
@@ -65,7 +109,15 @@ def parallel():
     R1 = mixadd_complete_2w(Q,P)
     print(R0==R1)
 
+def parallel_doub():
+    X1,Y1,Z1 = symbols('X1 Y1 Z1')
+    Q = [X1,Y1,Z1]
+    R0 = doub_complete(Q)
+    R1 = doub_complete_2w(Q)
+    print(R0==R1)
+
 #com_sub_elim()
-parallel()
+# parallel_mixadd()
+parallel_doub()
 
 
