@@ -21,31 +21,6 @@ def doub_complete(P):
     Z3 = 2*Z3
     return [X3,Y3,Z3]
 
-def doub_complete_2w(P):
-    global ecc_b
-    X,Y,Z = P
-    p0 = X**2;		q0 = Y**2;
-    p1 = X*Y;		q1 = Y*Z;
-    p2 = 2*X*Z;		q2 = Z**2;
-    p3 = ecc_b*p2;	q3 = ecc_b*q2;
-    
-    l0 = 3*p0;		r0 = 1*q0
-    l1 = p3-p0;		r1 = q3-p2;
-    l2 = 3*q2;		r2 = 3*r1;
-    l3 = l0-l2;		r3 = r0+r2;
-    l4 = l1-l2;		r4 = r0-r2;
-    l5 = 3*l4;		r5 = 1*r4;
-    
-    p4 = l3*l5;		q4 = r3*r5;
-    p5 = p1*r5;		q5 = q1*l5;
-    1==1;			q6 = q1*r0;
-    
-    X3 = 2*(p5-q5);	Y3 = p4+q4;    
-    Z3 = 8*q6;
-    return [X3,Y3,Z3]
-
-
-
 def mixadd_complete(Q,P):
     global ecc_b
     X1,Y1,Z1 = Q
@@ -63,6 +38,29 @@ def mixadd_complete(Q,P):
     Y3 = Y3+t2;		X3 = t3*X3;		X3 = X3-t1;
     Z3 = t4*Z3;		t1 = t3*t0;		Z3 = Z3+t1;
     return X3,Y3,Z3
+
+def doub_complete_2w(P):
+    global ecc_b
+    X,Y,Z = P
+    p0 = X**2;      q0 = Y**2;
+    p1 = X*Y;       q1 = Y*Z;
+    p2 = 2*X*Z;     q2 = Z**2;
+    p3 = ecc_b*p2;  q3 = ecc_b*q2;
+    
+    l0 = p3-p0;     r0 = q3-p2;
+    l1 = 3*p0;      r1 = 1*q0
+    l2 = 3*q2;      r2 = 3*r0;
+    l3 = l1-l2;     r3 = r1+r2;
+    l4 = l0-l2;     r4 = r1-r2;
+    l5 = 3*l4;      r5 = 1*r4;
+    
+    p4 = l3*l5;     q4 = r3*r5;
+    p5 = p1*r5;     q5 = q1*l5;
+    1==1;           q6 = q1*r1;
+    
+    X3 = 2*(p5-q5); Y3 = p4+q4;    
+    Z3 = 8*q6;
+    return [X3,Y3,Z3]
 
 def mixadd_complete_2w(Q,P):
     global ecc_b
@@ -107,17 +105,18 @@ def parallel_mixadd():
     P = [X2,Y2]
     R0 = mixadd_complete(Q,P)
     R1 = mixadd_complete_2w(Q,P)
-    print(R0==R1)
+    return (R0==R1)
 
 def parallel_doub():
     X1,Y1,Z1 = symbols('X1 Y1 Z1')
     Q = [X1,Y1,Z1]
     R0 = doub_complete(Q)
     R1 = doub_complete_2w(Q)
-    print(R0==R1)
+    return (R0==R1)
 
-#com_sub_elim()
-parallel_mixadd()
-parallel_doub()
+print("Testing: trees.py")
+# com_sub_elim()
+print("mixadd: {0}".format(parallel_mixadd()))
+print("doub:   {0}".format(parallel_doub()))
 
 

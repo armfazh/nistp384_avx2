@@ -1,7 +1,5 @@
-Hex = lambda V: map(hex,V)
-
-p = 2**384-2**128-2**96+2**32-1
-Fp = GF(p)
+load arith.sage
+load("../python/trees.py")
 Gx = Fp(0xaa87ca22be8b05378eb1c71ef320ad746e1d3b628ba79b9859f741e082542a385502f25dbf55296c3a545e3872760ab7)
 Gy = Fp(0x3617de4a96262c6f5d9e98bf9292dc29f8f41dbd289a147ce9da3113b5f0b8c00a60b1ce1d7e819d7a431d7c90ea0e5f)
 G = [ Gx,Gy ]
@@ -124,34 +122,6 @@ def add_complete(Q,P):
 	X3 = X3-t1;		Z3 = t4*Z3;		t1 = t3*t0
 	Z3 = Z3+t1;
 	return X3,Y3,Z3
-
-#	t0 = X1*X2;		t1 = Y1*Y2;	# 1M
-#	t3 = X1+Y1;		t4 = X2+Y2;
-#	t2 = Z1*Z2;		t3 = t3*t4;	# 1M
-#
-#	t4 = t0+t1;		t3 = t3-t4;
-#	t4 = Y1+Z1;		X3 = Y2+Z2;
-#	t4 = t4*X3;		X3 = t1+t2;
-#	t4 = t4-X3;		X3 = X1+Z1;
-#	Y3 = X2+Z2;
-#	X3 = X3*Y3;
-#	Y3 = t0+t2;		Y3 = X3-Y3;
-#	Z3 = ecc_b*t2;
-#	X3 = Y3-Z3;		Z3 = 2*X3;
-#	X3 = X3+Z3;
-#	Z3 = t1-X3;		X3 = t1+X3;
-#	Y3 = ecc_b*Y3;
-#	t1 = 2*t2;		t2 = t1+t2;
-#	Y3 = Y3-t2;		Y3 = Y3-t0;
-#	t1 = 2*Y3;
-#	Y3 = t1+Y3;		t1 = 2*t0;
-#	t0 = t1+t0;		t0 = t0-t2;
-#	t1 = t4*Y3;		t2 = t0*Y3;	# 1M
-#	Y3 = X3*Z3;		X3 = t3*X3;	# 1M
-#	Y3 = Y3+t2;		X3 = X3-t1;
-#	Z3 = t4*Z3;		t1 = t3*t0;	# 1M
-#	Z3 = Z3+t1;
-#
 	
 #Returns 2P
 #Alg, 6 Costello
@@ -174,9 +144,7 @@ def doub_complete(P):
 	return [X3,Y3,Z3]
 
 
-##################
-# Main
-def test():
+def test_ecc():
 	J = to_Jac(G)
 	P = to_Proy(G)
 
@@ -200,7 +168,18 @@ def test():
 
 	print(Jac_to_Affine(_iJ)==Proy_to_Affine(_iP))
 	print(Jac_to_Affine(_iJ)==Proy_to_Affine(_kP))
+	return True
 
-test()
+def test_2w():
+	pass
+
+##################
+# Main
+
+print("Testing: add.sage")
+print("ecc: {0}".format(test_ecc()))
+
+
+
 
 	

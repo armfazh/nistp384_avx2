@@ -34,10 +34,6 @@ void deinterleave(argElement_1w_H0H7 LOW, argElement_1w_H0H7 HIGH, argElement_2w
 	STORE(LOW  + 3, _mm256_castsi128_si256(_mm256_castsi256_si128(A[6])));
 	STORE(HIGH + 3, _mm256_castsi128_si256(_mm256_extracti128_si256(A[6],1)));
 }
-void str_bytes_to_Element_2w_h0h7(argElement_2w_H0H7 pC, uint8_t * p8A)
-{
-
-}
 
 void random_Element_2w_h0h7(argElement_2w_H0H7 X_Y)
 {
@@ -95,7 +91,7 @@ inline void add_Element_2w_h0h7(argElement_2w_H0H7 C,argElement_2w_H0H7 A,argEle
 		C[i] = ADD(A[i],B[i]);
 }
 
-static const uint64_t CONST_2P_2P_H0H7[2*NUM_WORDS_64B_NISTP384] = {
+static const uint64_t CONST_2P_ELEMENT_H0H7[2*NUM_WORDS_64B_NISTP384] = {
 	0x1ffffefe,0x1ffffffe,0x1ffffefe,0x1ffffffe,
 	0x2000101e,0x1ffffffe,0x2000101e,0x1ffffffe,
 	0x1ffffffe,0x1ffffffe,0x1ffffffe,0x1ffffffe,
@@ -105,16 +101,7 @@ static const uint64_t CONST_2P_2P_H0H7[2*NUM_WORDS_64B_NISTP384] = {
 	0x1ffffffe,0x101ffffe,0x1ffffffe,0x101ffffe
 };
 
-static const uint64_t CONST_2P_00_H0H7[2*NUM_WORDS_64B_NISTP384] = {
-		0x1ffffefe,0x1ffffffe,0x0000000,0x0000000,
-		0x2000101e,0x1ffffffe,0x0000000,0x0000000,
-		0x1ffffffe,0x1ffffffe,0x0000000,0x0000000,
-		0x1fefdffe,0x1ffffffe,0x0000000,0x0000000,
-		0x1efdfffe,0x1ffffffe,0x0000000,0x0000000,
-		0x1ffffffe,0x1ffffffe,0x0000000,0x0000000,
-		0x1ffffffe,0x101ffffe,0x0000000,0x0000000};
-
-static const uint64_t CONST_2_32P_ELEMENT[2*NUM_WORDS_64B_NISTP384] = {
+static const uint64_t CONST_2_32P_ELEMENT_H0H7[2*NUM_WORDS_64B_NISTP384] = {
 		0x1ffffefe00000000,0x1ffffffe00000000,0x1ffffefe00000000,0x1ffffffe00000000,
 		0x2000101e00000000,0x1ffffffe00000000,0x2000101e00000000,0x1ffffffe00000000,
 		0x1ffffffe00000000,0x1ffffffe00000000,0x1ffffffe00000000,0x1ffffffe00000000,
@@ -127,151 +114,97 @@ static const uint64_t CONST_2_32P_ELEMENT[2*NUM_WORDS_64B_NISTP384] = {
 
 inline void sub_Element_2w_h0h7(argElement_2w_H0H7 __restrict C, argElement_2w_H0H7 __restrict A, argElement_2w_H0H7 __restrict B)
 {
-	argElement_2w_H0H7 _2P = (argElement_2w_H0H7)CONST_2P_2P_H0H7;
+	argElement_2w_H0H7 _2P = (argElement_2w_H0H7)CONST_2P_ELEMENT_H0H7;
 	int i=0;
 	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
 		C[i] = ADD(A[i],SUB(_2P[i],B[i]));
 }
 
 /**
- * Given
- * 		A = [X | Y]
- * Cumputes:
- * 	if permutation == 0
- * 		C = [X|Y] + [2p|0] + [-Y|X]
- * 		C = [ X+2p-Y | Y+X ]
- * 	if permutation == 1
- * 		C = [Y|X] + [2p|0] + [-X|Y]
- * 		C = [ Y+2p-X | Y+X ]
- * 	if permutation != {0,1}
- * 		undefined
+ * Given A=(A0,A1) and B=(B0,B1)
+ * Returns:
+ * 		C=(A0+B0    , A1+2p-B1)  if subadd==0
+ * 		C=(A0+2p-B0 , A1+B1)     if subadd==1
+ * If large==1
+ * 	     Pi = 2**34Pi
+ * If large==0
+ * 	     Pi = 2Pi
  */
-inline void subadd_Element_2w_h0h7(
+inline void addsub_Element_2w_h0h7(
 		argElement_2w_H0H7 __restrict C,
 		argElement_2w_H0H7 __restrict A,
-		const int permutation)
+		argElement_2w_H0H7 __restrict B,
+		const int subadd, const int large)
 {
-	const __m256i mask_subadd = _mm256_set_epi64x(0,0,-1, -1);
-	argElement_2w_H0H7 _2P_00 = (argElement_2w_H0H7)CONST_2P_00_H0H7;
-	int i=0;
-	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
-	{
-		__m256i M=ZERO,N=ZERO,PA;
-		PA = PERM64(A[i],0x4E);
-		if(permutation==0)
-		{
-			M = A[i];
-			N = PA;
-		}
-		else if(permutation==1)
-		{
-			N = A[i];
-			M = PA;
-		}
-		C[i] = ADD(ADD(M,_2P_00[i]),SUB(XOR(N,mask_subadd),mask_subadd));
-	}
-}
-
-/**
- * Given
- * 		A = [X |Y ]
- * Returns
- * 		C = [2P-X | Y]
- */
-inline void negZZ_Element_2w_h0h7(argElement_2w_H0H7 C,argElement_2w_H0H7 A)
-{
-	const __m256i mask_subadd = _mm256_set_epi64x(0,0,-1, -1);
-	argElement_2w_H0H7 _2P_00 = (argElement_2w_H0H7)CONST_2P_00_H0H7;
-	int i=0;
-	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
-	{
-		C[i] = ADD(_2P_00[i],SUB(XOR(A[i],mask_subadd),mask_subadd));
-	}
-}
-
-inline void addsub_large_Element_2w_h0h7(argElement_2w_H0H7 A, argElement_2w_H0H7 B)
-{
-	const __m256i _2_to_34P[NUM_WORDS_128B_NISTP384] = {
-			/*[TODO]*/
-			_mm256_set_epi64x(0x3ffffff800000000,0x3ffffffc00000000,0x3ffffff800000000,0x3ffffffc00000000),
-			_mm256_set_epi64x(0x3ffffffc00000000,0x3ffffffc00000000,0x3ffffffc00000000,0x3ffffffc00000000),
-			_mm256_set_epi64x(0x3ffffffc00000000,0x3ffffffc00000000,0x3ffffffc00000000,0x3ffffffc00000000),
-			_mm256_set_epi64x(0x3ffffffc00000000,0x3ffffffc00000000,0x3ffffffc00000000,0x3ffffffc00000000),
-			_mm256_set_epi64x(0x3ffffffc00000000,0x3ffffffc00000000,0x3ffffffc00000000,0x3ffffffc00000000),
-			_mm256_set_epi64x(0x3ffffffc00000000,0x3ffffffc00000000,0x3ffffffc00000000,0x3ffffffc00000000),
-			_mm256_set_epi64x(0x3ffffffc00000000,0x3ffffffc00000000,0x3ffffffc00000000,0x3ffffffc00000000)
+	int i;
+	const __m256i mask[2] = {
+			_mm256_set_epi64x(-1,-1,0,0),
+			_mm256_set_epi64x(0,0,-1,-1)
 	};
-
-
-	int i=0;
+	const argElement_2w_H0H7 PP[2] = {
+			(argElement_2w_H0H7) CONST_2P_ELEMENT_H0H7,
+			(argElement_2w_H0H7) CONST_2_32P_ELEMENT_H0H7
+	};
 	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
 	{
-		__m256i add = ADD(A[i],B[i]);
-		__m256i sub = ADD(A[i],SUB(_2_to_34P[i], B[i]));
-		A[i] = add;
-		B[i] = sub;
+		/* Compute:
+		 * (-B0, B1) if subadd == 0
+		 * ( B0,-B1) if subadd == 1
+		 * */
+		__m256i _B = SUB(XOR(B[i],mask[subadd]),mask[subadd]);
+		/* Compute:
+		 * ( PP, 00) if subadd == 0
+		 * ( 00, PP) if subadd == 1
+		 * */
+		__m256i P = AND(PP[large][i],mask[subadd]);
+		C[i] = ADD(ADD(A[i],P),_B);
 	}
 }
 
-/**
- * Computes:
- * 		A = A+B
- * 		B = A-B
- */
-inline void addsub_Element_2w_h0h7(argElement_2w_H0H7 __restrict A, argElement_2w_H0H7 __restrict B)
-{
-	argElement_2w_H0H7 _2P = (argElement_2w_H0H7)CONST_2P_2P_H0H7;
-	int i=0;
-	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
-	{
-		__m256i D,C;
-		D = ADD(A[i], B[i]);
-		C = ADD(A[i],SUB(_2P[i],B[i]));
-		A[i] = D;
-		B[i] = C;
-	}
-}
+//
+///**
+// * Given
+// * 		A = [X | Y]
+// * Cumputes:
+// * 	if permutation == 0
+// * 		C = [X|Y] + [2p|0] + [-Y|X]
+// * 		C = [ X+2p-Y | Y+X ]
+// * 	if permutation == 1
+// * 		C = [Y|X] + [2p|0] + [-X|Y]
+// * 		C = [ Y+2p-X | Y+X ]
+// * 	if permutation != {0,1}
+// * 		undefined
+// */
+//inline void subadd_Element_2w_h0h7(
+//		argElement_2w_H0H7 __restrict C,
+//		argElement_2w_H0H7 __restrict A,
+//		const int permutation)
+//{
+//	const __m256i mask_subadd = _mm256_set_epi64x(0,0,-1, -1);
+//	argElement_2w_H0H7 _2P_00 = (argElement_2w_H0H7)CONST_2P_00_H0H7;
+//	int i=0;
+//	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+//	{
+//		__m256i M=ZERO,N=ZERO,PA;
+//		PA = PERM64(A[i],0x4E);
+//		if(permutation==0)
+//		{
+//			M = A[i];
+//			N = PA;
+//		}
+//		else if(permutation==1)
+//		{
+//			N = A[i];
+//			M = PA;
+//		}
+//		C[i] = ADD(ADD(M,_2P_00[i]),SUB(XOR(N,mask_subadd),mask_subadd));
+//	}
+//}
 
-/**
- * Computes:
- * 		C = A+B
- * 		D = A-B
- */
-inline void addsub4_Element_2w_h0h7(
-		argElement_2w_H0H7 __restrict C, argElement_2w_H0H7 __restrict D,
-		argElement_2w_H0H7 __restrict A, argElement_2w_H0H7 __restrict B)
-{
-	argElement_2w_H0H7 _2P = (argElement_2w_H0H7)CONST_2P_2P_H0H7;
-	int i=0;
-	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
-	{
-		__m256i T0,T1;
-		T0 = ADD(A[i], B[i]);
-		T1 = ADD(A[i],SUB(_2P[i],B[i]));
-		C[i] = T0;
-		D[i] = T1;
-	}
-}
 
-/**
- * Computes:
- * 		C = -A+B
- * 		D = -A-B
- */
-inline void naddsub_Element_2w_h0h7(
-		argElement_2w_H0H7 __restrict C, argElement_2w_H0H7 __restrict D,
-		argElement_2w_H0H7 __restrict A, argElement_2w_H0H7 __restrict B)
-{
-	argElement_2w_H0H7 _2P = (argElement_2w_H0H7)CONST_2P_2P_H0H7;
 
-	int i=0;
-	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
-	{
-		__m256i T = SUB(_2P[i],A[i]);
-		C[i] = ADD(T,B[i]);
-		D[i] = SUB(T,B[i]);
-	}
-}
+
+
 
 /* Pi transformation */
 #define PI_2w()								\
@@ -374,7 +307,7 @@ void compress_Element_2w_h0h7(__m256i * C)
 	const __m256i mask16 = _mm256_set_epi64x(0x0,((uint64_t)1<<16)-1,0x0,((uint64_t)1<<16)-1);
 	const __m256i mask8  = _mm256_set_epi64x(0x0,((uint64_t)1<< 8)-1,0x0,((uint64_t)1<< 8)-1);
 	const __m256i mask4  = _mm256_set_epi64x(0x0,((uint64_t)1<< 4)-1,0x0,((uint64_t)1<< 4)-1);
-	const argElement_2w_H0H7 _2_32P = (argElement_2w_H0H7)CONST_2_32P_ELEMENT;
+	const argElement_2w_H0H7 _2_32P = (argElement_2w_H0H7)CONST_2_32P_ELEMENT_H0H7;
 
 	__m256i h0_h7,  h1_h8,  h2_h9, h3_h10,
 			h4_h11, h5_h12, h6_h13, h13, h6;
@@ -463,7 +396,7 @@ void compress2_Element_2w_h0h7(__m256i * C, __m256i * D)
 	const __m256i mask16 = _mm256_set_epi64x(0x0,((uint64_t)1<<16)-1,0x0,((uint64_t)1<<16)-1);
 	const __m256i mask8  = _mm256_set_epi64x(0x0,((uint64_t)1<< 8)-1,0x0,((uint64_t)1<< 8)-1);
 	const __m256i mask4  = _mm256_set_epi64x(0x0,((uint64_t)1<< 4)-1,0x0,((uint64_t)1<< 4)-1);
-	const argElement_2w_H0H7 _2_32P = (argElement_2w_H0H7)CONST_2_32P_ELEMENT;
+	const argElement_2w_H0H7 _2_32P = (argElement_2w_H0H7)CONST_2_32P_ELEMENT_H0H7;
 
 	__m256i c0 = LOAD(C+0);                      		__m256i d0 = LOAD(D+0);
 	__m256i c1 = LOAD(C+1);                      		__m256i d1 = LOAD(D+1);

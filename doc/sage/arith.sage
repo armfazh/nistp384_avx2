@@ -51,12 +51,16 @@ def Muli(A,B):
 		C = Add(C,Dot(Y,bV))
 	return C
 
-a = randrange(p)
-b = randrange(p)
-a = 0xd45ee95817055d255aa35831b70d32669ac99f33632e5a768de7e81bf854c27c46e3fbf2abbacd29ec4aff517369c667
-b = 0x5cdb18ec543caf32fb3bb0ec2a5c388f966bdcea977e013e67fce141a13ee97087dc3d214174820e1154b49bc6cdb2ab
-c = (a*b)%p
-A = toVect(a)
-B = toVect(b)
-C = Muli(A,B)
-print(c == fromVect(C))
+def test_arith():
+	a = randrange(p)
+	b = randrange(p)
+	a = 0xd45ee95817055d255aa35831b70d32669ac99f33632e5a768de7e81bf854c27c46e3fbf2abbacd29ec4aff517369c667
+	b = 0x5cdb18ec543caf32fb3bb0ec2a5c388f966bdcea977e013e67fce141a13ee97087dc3d214174820e1154b49bc6cdb2ab
+	c = (a*b)%p
+	A = toVect(a)
+	B = toVect(b)
+	C = Muli(A,B)
+	return (c == fromVect(C))
+
+print("Testing: arith.sage")
+print("arith: {0}".format(test_arith()))

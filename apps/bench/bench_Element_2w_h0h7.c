@@ -19,12 +19,16 @@ void bench_element_2w_h0h7()
 
 	CLOCKS(add_Element_2w_h0h7(c,a,b));
 	CLOCKS(sub_Element_2w_h0h7(c,c,b));
-	CLOCKS(subadd_Element_2w_h0h7(c,b,0));
+	CLOCKS(addsub_Element_2w_h0h7(c,a,b,0,0));
+	CLOCKS(addsub_Element_2w_h0h7(c,a,b,1,0));
+	CLOCKS(addsub_Element_2w_h0h7(c,a,b,0,1));
+	CLOCKS(addsub_Element_2w_h0h7(c,a,b,1,1));
+	/*CLOCKS(subadd_Element_2w_h0h7(c,b,0));
 	CLOCKS(subadd_Element_2w_h0h7(c,b,1));
 	CLOCKS(addsub_Element_2w_h0h7(c,b));
 	CLOCKS(addsub_large_Element_2w_h0h7(c,b));
 	CLOCKS(addsub4_Element_2w_h0h7(a,b,c,d));
-	CLOCKS(naddsub_Element_2w_h0h7(a,b,c,d));
+	CLOCKS(naddsub_Element_2w_h0h7(a,b,c,d));*/
 	CLOCKS(mul_Element_2w_h0h7(c,a,b));
 	CLOCKS(mul_Element_2w_h0h7(c,c,b));
 	CLOCKS(mul_Element_2w_h0h7(c,b,c));

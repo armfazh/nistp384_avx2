@@ -18,15 +18,18 @@ add_library(${TARGET}_all STATIC ${SRC}/str_bytes.c
 		src/element_1w_h0h7.c
 		src/element_2w_h0h7.c
 		src/ecc.c
+        src/pointmul.c
 		include/element_2w_h0h7.h
 		include/element_1w_h0h7.h
-		include/ecc.h)
+		include/ecc.h
+		include/pointmul.h)
 #add_executable(bench apps/bench/bench.c apps/bench/clocks.c apps/bench/bench_ecdh_avx2.c ${SRC}/random.c )
 #add_executable(test apps/test/test.c apps/test/test_ecdh_avx2.c ${SRC}/random.c)
 add_executable(bench_all apps/bench/bench_all.c apps/bench/clocks.c
-				apps/bench/bench_Element_1w_h0h7.c
-				apps/bench/bench_Element_2w_h0h7.c
-				${SRC}/random.c)
+                ${SRC}/random.c
+                apps/bench/bench_Element_1w_h0h7.c
+                apps/bench/bench_Element_2w_h0h7.c
+                apps/bench/bench_ecc.c)
 add_executable(test_all apps/test/test_all.c
 				apps/test/test_Element_1w_h0h7.c
 				apps/test/test_Element_2w_h0h7.c

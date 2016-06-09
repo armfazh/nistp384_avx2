@@ -361,14 +361,11 @@ inline void mul_Element_1w_h0h7(uint64_t *pC, uint64_t *pA, uint64_t *pB)
 }
 
 
-#define mul19_128(A)\
-	A = _mm_shuffle_epi32(_mm_add_epi64(_mm_add_epi64(_mm_sllv_epi64(A, shift_4),_mm_sllv_epi64(A, shift_1)),A),0x4E);
 
+void sqrn_Element_1w_h0h7(uint64_t *  C,int times)
+{
 
-void sqrn_Element_1w_h0h7(uint64_t * A, const int times)
-{}
-
-
+}
 inline void sqr_Element_1w_h0h7(uint64_t *  C)
 {
 	int i;
