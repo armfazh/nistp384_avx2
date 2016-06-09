@@ -25,25 +25,23 @@ def doub_complete_2w(P):
     global ecc_b
     X,Y,Z = P
     p0 = X**2;		q0 = Y**2;
-    p1 = Z**2;		q1 = X*Y;
-    p2 = Y*Z;		q2 = X*Z;
+    p1 = X*Y;		q1 = Y*Z;
+    p2 = 2*X*Z;		q2 = Z**2;
+    p3 = ecc_b*p2;	q3 = ecc_b*q2;
     
-    l0 = 3*p0;
-    l1 = 3*p1;		r0 = 2*q1;
-    t1 = l0-l1;
-    l2 = 2*p2;		r2 = 2*q2;
-
-    p3 = ecc_b*p1;	q3 = ecc_b*r2;
-    l3 = p3-r2;		r6 = q3-l1;
-    l4 = 3*l3;		r7 = r6-p0;
-    l5 = q0-l4;		r3 = 3*r7;
-    l6 = q0+l4;		
+    l0 = 3*p0;		r0 = 1*q0
+    l1 = p3-p0;		r1 = q3-p2;
+    l2 = 3*q2;		r2 = 3*r1;
+    l3 = l0-l2;		r3 = r0+r2;
+    l4 = l1-l2;		r4 = r0-r2;
+    l5 = 3*l4;		r5 = 1*r4;
     
-    r4 = l2*r3;		l7 = l5*l6;
-    t8 = l5*r0;		t2 = t1*r3;
-    r5 = l2*q0;
-    X3 = t8-r4;		Y3 = l7+t2;    
-    Z3 = 4*r5;
+    p4 = l3*l5;		q4 = r3*r5;
+    p5 = p1*r5;		q5 = q1*l5;
+    1==1;			q6 = q1*r0;
+    
+    X3 = 2*(p5-q5);	Y3 = p4+q4;    
+    Z3 = 8*q6;
     return [X3,Y3,Z3]
 
 
@@ -73,22 +71,24 @@ def mixadd_complete_2w(Q,P):
 
     p0 = X1*X2;		q0 = Z1*Y2;
     p1 = Y1*Y2;		q1 = Z1*X2;
-    t0 =  3*p0;		u0 =  3*Z1;
-    t7 = X2+Y2;		u1 = q0+Y1;
-    t8 = X1+Y1;		u7 = q1+X1;
-    p2 = ecc_b*Z1;	q2 = ecc_b*u7;
-    t9 = u7-p2;		u8 = q2-p0;
-    pp = t7*t8;
-    t6 = p0+p1;
-    t3 = pp-t6;		u9 = u8-u0
-    t9 =  3*t9;		u2 =  3*u9;
-    t1 = p1+t9;
-    t2 = p1-t9;		u3 = t0-u0;
-    p3 = t1*t2;		q3 = u2*u3;
-    p4 = t1*t3;		q4 = u2*u1;
-    p5 = u1*t2;		q5 = t3*u3;
-    X3 = p4-q4;
-    Y3 = p3+q3;
+    
+    l0 =  3*p0;		r0 =  3*Z1;
+    l1 = X2+Y2;		r1 = q0+Y1;
+    l2 = X1+Y1;		r2 = q1+X1;
+    p2 = ecc_b*Z1;	q2 = ecc_b*r2;
+    l3 = r2-p2;		r3 = q2-p0;
+    pp = l1*l2;		1==1;
+    l4 = p0+p1;
+    l5 = pp-l4;		r4 = r3-r0
+    l6 =  3*l3;		r5 =  3*r4;
+    l7 = p1+l6;		r5 = r5+0;
+    l8 = p1-l6;		r6 = l0-r0;
+    
+    p3 = l7*l8;		q3 = r5*r6;
+    p4 = l7*l5;		q4 = r5*r1;
+    p5 = r1*l8;		q5 = l5*r6;
+    
+    X3 = p4-q4;		Y3 = p3+q3;
     Z3 = p5+q5;
     return X3,Y3,Z3
 
@@ -117,7 +117,7 @@ def parallel_doub():
     print(R0==R1)
 
 #com_sub_elim()
-# parallel_mixadd()
+parallel_mixadd()
 parallel_doub()
 
 
