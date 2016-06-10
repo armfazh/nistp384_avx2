@@ -19,7 +19,16 @@ static const uint64_t ECC_PARAM_B [2*NUM_WORDS_64B_NISTP384]= {
 		0x8f50138,0xfa7e23e,0x8f50138,0xfa7e23e,
 		0x2031408,0x00b3312,0x2031408,0x00b3312
 };
-
+void getIdentityProj(Point_XYZ_1way *pP)
+{
+	int i;
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		pP->XY[i] = ZERO;
+		pP->ZZ[i] = ZERO;
+	}
+	pP->XY[0] = _mm256_set_epi64x(0,1,0,0);
+}
 void getGenerator(Point_XY_1way *G)
 {
 	int i;
@@ -50,6 +59,19 @@ void toProjective(Point_XYZ_1way *pP, Point_XY_1way *aP)
 	}
 	pP->ZZ[0] = _mm256_set_epi64x(0,1,0,1);
 }
+void negatePoint(Point_XYZ_1way*_pP,Point_XYZ_1way*pP)
+{
+	int i;
+	Element_1w_H0H7 X,Y;
+	deinterleave(X,Y,pP->XY);
+	neg_Element_1w_h0h7(Y);
+	compress_Element_1w_h0h7(Y);
+	interleave(_pP->XY,X,Y);
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		_pP->ZZ[i] = pP->ZZ[i];
+	}
+}
 void print_affine_1way(Point_XY_1way* P)
 {
 	print_Element_2w_h0h7(P->XY);
@@ -67,7 +89,7 @@ void print_proj_1way(Point_XYZ_1way* P)
 /**
  *
  */
-void _2way_full_addition_law(PointXYZ_2way * Q,  PointXYZ_2way *P)
+void _2way_full_addition_law(Point_XYZ_2way * Q,  Point_XYZ_2way *P)
 {
 //	__m256i * X1 = Q->X; __m256i * X2 = P->X;
 //	__m256i * Y1 = Q->Y; __m256i * Y2 = P->Y;
@@ -78,7 +100,7 @@ void _2way_full_addition_law(PointXYZ_2way * Q,  PointXYZ_2way *P)
 /**
  *
  */
-void _2way_mix_addition_law(PointXYZ_2way *Q, Point_XY_2way *P)
+void _2way_mix_addition_law(Point_XYZ_2way *Q, Point_XY_2way *P)
 {
 //	__m256i * X1 = Q->X;
 //	__m256i * Y1 = Q->Y;
@@ -91,7 +113,7 @@ void _2way_mix_addition_law(PointXYZ_2way *Q, Point_XY_2way *P)
 /**
  *
  */
-void _2way_doubling(PointXYZ_2way *P)
+void _2way_doubling(Point_XYZ_2way *P)
 {
 //	__m256i * X1 = P->X;
 //	__m256i * Y1 = P->Y;

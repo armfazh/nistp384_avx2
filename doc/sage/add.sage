@@ -3,7 +3,11 @@ load("../python/trees.py")
 Gx = Fp(0xaa87ca22be8b05378eb1c71ef320ad746e1d3b628ba79b9859f741e082542a385502f25dbf55296c3a545e3872760ab7)
 Gy = Fp(0x3617de4a96262c6f5d9e98bf9292dc29f8f41dbd289a147ce9da3113b5f0b8c00a60b1ce1d7e819d7a431d7c90ea0e5f)
 G = [ Gx,Gy ]
-ecc_b = 0xb3312fa7e23ee7e4988e056be3f82d19181d9c6efe8141120314088f5013875ac656398d8a2ed19d2a85c8edd3ec2aef
+ecc_a = Fp(-3)
+ecc_b = Fp(0xb3312fa7e23ee7e4988e056be3f82d19181d9c6efe8141120314088f5013875ac656398d8a2ed19d2a85c8edd3ec2aef)
+
+E = EllipticCurve(Fp,[ecc_a,ecc_b])
+
 
 def to_Jac(P):
 	X = P[0]
@@ -170,7 +174,7 @@ def test_ecc():
 	print(Jac_to_Affine(_iJ)==Proy_to_Affine(_kP))
 	return True
 
-def test_2w():
+def test_ecc():
 	pass
 
 ##################

@@ -6,7 +6,7 @@
 void bench_element_2w_h0h7()
 {
 	long int BENCH = 3000;
-	Element_2w_H0H7 a,b,c,d;
+	Element_2w_H0H7 a,b,c;
 	Element_1w_H0H7 a0,a1;
 	printf("===== 2-way =====\n");
 

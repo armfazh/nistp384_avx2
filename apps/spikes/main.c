@@ -93,12 +93,20 @@ int main()
 	toProjective(&pQ,&G);
 	toProjective(&pP,&G);
 	printf("Gxyz:\n");print_proj_1way(&pQ);
-	for(i=0;i<1000;i++)
+	/*for(i=0;i<1000;i++)
 	_1way_doubling(&pQ);
 	printf("2Gxyz:\n");print_proj_1way(&pQ);
 	for(i=0;i<1000;i++)
 	_1way_mix_addition_law(&pQ,&pP);
 	printf("3Gxyz:\n");print_proj_1way(&pQ);
+	*/
+	negatePoint(&pP,&pQ);
+	printf("-Gxyz:\n");print_proj_1way(&pP);
+	getIdentityProj(&pP);
+	printf("0:\n");print_proj_1way(&pP);
+
+
+
 
 #endif
 	return 0*i;

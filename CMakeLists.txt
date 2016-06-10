@@ -29,7 +29,8 @@ add_executable(bench_all apps/bench/bench_all.c apps/bench/clocks.c
                 ${SRC}/random.c
                 apps/bench/bench_Element_1w_h0h7.c
                 apps/bench/bench_Element_2w_h0h7.c
-                apps/bench/bench_ecc.c)
+				apps/bench/bench_ecc.c
+				apps/bench/bench_pointmul.c)
 add_executable(test_all apps/test/test_all.c
 				apps/test/test_Element_1w_h0h7.c
 				apps/test/test_Element_2w_h0h7.c

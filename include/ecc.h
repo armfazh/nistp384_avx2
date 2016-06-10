@@ -10,7 +10,7 @@ typedef ALIGN struct point_projective_2way{
 	Element_2w_H0H7 X;
 	Element_2w_H0H7 Y;
 	Element_2w_H0H7 Z;
-} PointXYZ_2way;
+} Point_XYZ_2way;
 typedef ALIGN struct point_affine_2way{
 	Element_2w_H0H7 X;
 	Element_2w_H0H7 Y;
@@ -28,9 +28,11 @@ typedef ALIGN struct point_affine_1way{
 /******************************
  * Point util
  ******************************/
+void getIdentityProj(Point_XYZ_1way *pP);
 void getGenerator(Point_XY_1way *G);
 void toAffine(Point_XY_1way *aP, Point_XYZ_1way *pP);
 void toProjective(Point_XYZ_1way *pP, Point_XY_1way *aP);
+void negatePoint(Point_XYZ_1way*_pP,Point_XYZ_1way*pP);
 void print_affine_1way(Point_XY_1way* P);
 void print_proj_1way(Point_XYZ_1way* P);
 /******************************
@@ -41,9 +43,9 @@ void _1way_full_addition_law(Point_XYZ_1way *Q, Point_XYZ_1way *P);
 void _1way_mix_addition_law(Point_XYZ_1way * Q, Point_XY_1way *P);
 void _1way_doubling(Point_XYZ_1way *P);
 
-void _2way_full_addition_law(PointXYZ_2way *Q, PointXYZ_2way *P);
-void _2way_mix_addition_law(PointXYZ_2way * Q, Point_XY_2way *P);
-void _2way_doubling(PointXYZ_2way *P);
+void _2way_full_addition_law(Point_XYZ_2way *Q, Point_XYZ_2way *P);
+void _2way_mix_addition_law(Point_XYZ_2way * Q, Point_XY_2way *P);
+void _2way_doubling(Point_XYZ_2way *P);
 
 
 /******************************
@@ -60,7 +62,6 @@ typedef ALIGN struct pointxytz_2w_h0h7{
 	Element_2w_H0H7 TZ;
 } PointXYZT_2w_H0H7;
 
-void precompute_points(PointXYZT_precompute_2w_H0H7 * table, PointXYZT_2w_H0H7* P);
 void doubling_2w_H0H7(PointXYZT_2w_H0H7 * P);
 void mixaddition_2w_H0H7(PointXYZT_2w_H0H7 *Q, PointXYZT_precompute_2w_H0H7 *P);
 void fulladdition_2w_H0H7(PointXYZT_2w_H0H7 *Q, PointXYZT_2w_H0H7 *P);

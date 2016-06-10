@@ -9,7 +9,7 @@ lib_all: folder $(LIB)/lib$(TARGET)_all_$(CC).a
 
 #$(LIB)/lib%_$(CC).a: $(SRC)/$(TARGET).o
 $(LIB)/lib%_$(CC).a: $(SRC)/str_bytes.o  $(SRC)/random.o $(SRC)/element_1w_h0h7.o $(SRC)/element_2w_h0h7.o \
-                     $(SRC)/ecc.o #$(SRC)/pointmul.o
+                     $(SRC)/ecc.o $(SRC)/pointmul.o
 	$(AR) rcvs $@ $^
 
 bench: $(BIN)/bench_$(CC)

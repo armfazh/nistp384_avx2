@@ -85,7 +85,7 @@ void recoding_signed_scalar_fold2w4(uint64_t *list_signs, uint64_t *list_digits,
 }
 
 
-static void query_table_fold2w4(Point_XY_2way *P, const uint8_t * table,uint64_t * secret_signs,uint64_t *secret_digits)
+void query_table_fold2w4(Point_XY_2way *P, const uint8_t * table,uint64_t * secret_signs,uint64_t *secret_digits)
 {
 	const __m256i _P[16] = {
 			SET1_64(0xfffffff),	SET1_64(0xffffffe),
@@ -165,8 +165,8 @@ static void query_table_fold2w4(Point_XY_2way *P, const uint8_t * table,uint64_t
 		P_subYX[j] = XOR(P_subYX[j], swap);
 	}
 
-	str_bytes_to_Element_2w_h0h7(P->X,P_addYX);
-	str_bytes_to_Element_2w_h0h7(P->Y,P_subYX);
+//	str_bytes_to_Element_2w_h0h7(P->X,P_addYX);
+//	str_bytes_to_Element_2w_h0h7(P->Y,P_subYX);
 
 	/**
 	 * Point Sign Verification (Part 2/2)
@@ -311,7 +311,7 @@ int wnaf(int8_t * K,const uint8_t *p8_r, int w)
  * 		Q0 = 16^3 ( 16^2 ( 16^1 P3 + P2) + P1) + P0
  *
  */
-void join_points_1w_H0H7(Point_XYZ_1way *Q0, PointXYZ_2way *Q)
+void join_points_1w_H0H7(Point_XYZ_1way *Q0, Point_XYZ_2way *Q)
 {
 
 }
@@ -339,27 +339,16 @@ void join_points_1w_H0H7(Point_XYZ_1way *Q0, PointXYZ_2way *Q)
 static void fixed_point_multiplication_fold2w4(Point_XY_1way* kP, uint8_t *k)
 {
 	int i;
-	PointXYZ_2way Q;
-	PointXYZT_2w_H0H7 Q0;
+	Point_XYZ_2way Q;
 	Point_XY_2way P;
 	ALIGN uint64_t K[112];
 	ALIGN uint64_t S[112];
-	const Element_2w_H0H7 one_half = {
-			SET1_64(0x0000000),SET1_64(0xfffffff),
-			SET1_64(0x0000000),SET1_64(0xfffffff),
-			SET1_64(0x0000000),SET1_64(0xfffffff),
-			SET1_64(0x0000000),SET1_64(0xfffffff),
-			SET1_64(0x0000000),SET1_64(0xfffffff),
-			SET1_64(0x0000000),SET1_64(0xfffffff),
-			SET1_64(0x0000000),SET1_64(0xfffffff),
-			SET1_64(0x8000000),SET1_64(0x7ffffff)
-	};
 	recoding_signed_scalar_fold2w4(S,K,k);
 
-	Q.Z[0] = SET1_64(2);
+//	Q.Z[0] = SET1_64(2);
 	for(i=1;i<NUM_WORDS_128B_NISTP384;i++)
 	{
-		Q.Z[i] = ZERO;
+//		Q.Z[i] = ZERO;
 	}
 
 	for(i=0;i<NUM_LUT;i++)
@@ -367,17 +356,10 @@ static void fixed_point_multiplication_fold2w4(Point_XY_1way* kP, uint8_t *k)
 		query_table_fold2w4(&P, ((uint8_t*)TableSign_w4_3675k)+SIZE_ONE_LUT*i,S+4*i,K+4*i);
 		_2way_mix_addition_law(&Q, &P);
 	}
-	join_points_1w_H0H7(&Q0, &Q);
+//	join_points_1w_H0H7(&Q0, &Q);
 
 	/* convert to affine coordinates */
-	Element_1w_H0H7 Z,X,Y,invZ;
-	deinterleave(X,Y,Q0.XY);
-	deinterleave(invZ,Z,Q0.TZ);
-	inv_Element_1w_h0h7(invZ,Z);
-	mul_Element_1w_h0h7(X,X,invZ);compress_Element_1w_h0h7(X);
-	mul_Element_1w_h0h7(Y,Y,invZ);compress_Element_1w_h0h7(Y);
-
-	interleave(kP->XY,X,Y);
+	//toAffine(kP,&Q);
 }
 
 void fixed_point_multiplication(Point_XY_1way* kP, uint8_t *k)
@@ -385,35 +367,30 @@ void fixed_point_multiplication(Point_XY_1way* kP, uint8_t *k)
 	fixed_point_multiplication_fold2w4(kP,k);
 }
 
-void precompute_points(PointXYZT_precompute_2w_H0H7 * table, PointXYZT_2w_H0H7* P)
+void precompute_points(Point_XYZ_1way * table, Point_XY_1way * P)
 {
 	const int num = (1<<(OMEGA_DYNAMIC-2));
 	int i=0;
-
-	PointXYZT_2w_H0H7 iP;
-	PointXYZT_precompute_2w_H0H7 _2P_precmp;
-
-	memcpy(&iP,P,sizeof(PointXYZT_2w_H0H7));
-	doubling_2w_H0H7(P);
-
-//	printf("1P:\n");
-//	print_Element_2w_h0h7(table[0].subaddYX);
-//	print_Element_2w_h0h7(table[0]._2dT_2Z);
+	Point_XYZ_1way _2P;
+	toProjective(&_2P,P);
+	toProjective(&table[0],P);
+	_1way_doubling(&_2P);
 
 	for(i=1;i<num;i++)
 	{
-		mixaddition_2w_H0H7(&iP,&_2P_precmp);
+		memcpy(&table[i],&table[i-1],sizeof(Element_1w_H0H7 ));
+		_1way_full_addition_law(&table[i],&_2P);
 	}
 }
 
-void double_point_multiplication(Point_XY_2way * kP_lQ, const uint8_t *k, uint8_t *l, Point_XY_2way * A)
+void double_point_multiplication(Point_XY_1way * kP_lQ, uint8_t *k, uint8_t *l, Point_XY_1way * A)
 {
 	int i;
-	int8_t wnaf_k[450]={0};
-	int8_t wnaf_l[450]={0};
+	int8_t wnaf_k[392] = {0};
+	int8_t wnaf_l[392] = {0};
 
-	PointXYZ_2way Q;
-	PointXYZ_2way tableA[1<<(OMEGA_DYNAMIC-2)];
+	Point_XYZ_1way Q;
+	Point_XYZ_1way tableA[1<<(OMEGA_DYNAMIC-2)];
 
 	int T_k = wnaf(wnaf_k,k, OMEGA_STATIC);
 //		for(i=l_r-1;i>=0;i--) printf("%d, ",wnaf_r[i]);printf("\n");
@@ -425,19 +402,19 @@ void double_point_multiplication(Point_XY_2way * kP_lQ, const uint8_t *k, uint8_
 	precompute_points(tableA,A);
 
 	/* Set Identity */
-
-	for(i=l-1;i>=0;i--)
+	getIdentityProj(&Q);
+	for(i=T;i>=0;i--)
 	{
-		doubling_2w_H0H7(&Q);
+		_1way_doubling(&Q);
 		/* known point addition */
 //			printf("i:j:%d w_r:%d\n",l-4-i,wnaf_r[i]);
 		if(wnaf_k[i] != 0)
 		{
-			PointXYZT_precompute_2w_H0H7 P;
-			read_point(&P,wnaf_k[i]);
-//				printf("\tsubadd: ");print_Element_2w_h0h7(P.subaddYX);
-//				printf("\t_2dT2Z: ");print_Element_2w_h0h7(P._2dT_2Z);
-			mixaddition_2w_H0H7(&Q,&P);
+			Point_XYZ_1way P;
+			//read_point(&P,wnaf_k[i]);
+//			printf("\tsubadd: ");print_Element_2w_h0h7(P.subaddYX);
+//			printf("\t_2dT2Z: ");print_Element_2w_h0h7(P._2dT_2Z);
+			_1way_full_addition_law(&Q,&P);
 		}
 
 //			printf("i:%d w_h:%d\n",i,wnaf_h[i]);
@@ -447,26 +424,20 @@ void double_point_multiplication(Point_XY_2way * kP_lQ, const uint8_t *k, uint8_
 			uint8_t abs_index_h = wnaf_l[i]> 0 ? wnaf_l[i]: -wnaf_l[i];
 			abs_index_h >>= 1;
 //				printf("h_indx:%d\n",abs_index_h);
-			PointXYZT_precompute_2w_H0H7 * P = &tableA[abs_index_h];
+			Point_XYZ_1way * P = &tableA[abs_index_h];
 			if(wnaf_l[i] < 0)
 			{
-				int ii=0;
-				PointXYZT_precompute_2w_H0H7 _P;
-				for(ii=0;ii<NUM_WORDS_128B_NISTP384;ii++)
-				{
-					_P.subaddYX[ii] = _mm256_permute4x64_epi64(P->subaddYX[ii], 0x4E);
-				}
-				//negZZ_Element_2w_h0h7(_P._2dT_2Z,P->_2dT_2Z);
 //					printf("\tsubadd: ");print_Element_2w_h0h7(_P.subaddYX);
 //					printf("\t_2dT2Z: ");print_Element_2w_h0h7(_P._2dT_2Z);
-				compress_Element_2w_h0h7(_P._2dT_2Z);
-				mixaddition_2w_H0H7(&Q,&_P);
+				Point_XYZ_1way _P;
+				negatePoint(&_P,P);
+				_1way_full_addition_law(&Q,&_P);
 			}
 			else
 			{
 //					printf("\tsubadd: ");print_Element_2w_h0h7(P->subaddYX);
 //					printf("\t_2dT2Z: ");print_Element_2w_h0h7(P->_2dT_2Z);
-				mixaddition_2w_H0H7(&Q,P);
+				_1way_full_addition_law(&Q,P);
 			}
 		}
 //			printf("\tQ->XY: ");print_Element_2w_h0h7(Q.XY);
@@ -477,14 +448,7 @@ void double_point_multiplication(Point_XY_2way * kP_lQ, const uint8_t *k, uint8_
 //	printf("\tQ->XY: ");print_Element_2w_h0h7(Q.XY);
 //	printf("\tQ->TZ: ");print_Element_2w_h0h7(Q.TZ);
 
-
 	/* convert to affine coordinates */
-	Element_1w_H0H7 invZ,Z,X,Y;
-	inv_Element_1w_h0h7(invZ,Z);
-	mul_Element_1w_h0h7(X,X,invZ);compress_Element_1w_h0h7(X);
-	mul_Element_1w_h0h7(Y,Y,invZ);compress_Element_1w_h0h7(Y);
-
-	Element_1w_h0h7_To_str_bytes(kP_lQ->X, X);
-	Element_1w_h0h7_To_str_bytes(kP_lQ->Y, Y);
+	toAffine(kP_lQ,&Q);
 }
 
