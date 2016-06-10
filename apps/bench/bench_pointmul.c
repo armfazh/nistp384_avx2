@@ -16,19 +16,20 @@ void bench_pointmul()
 
 	random_Element_2w_h0h7(Q.XY);
 	random_Element_2w_h0h7(Q.ZZ);
-	CLOCKS_RANDOM(
-			random_str_bytes(a),
-			wnaf(wnaf_exp,a,4);
-	);
-	CLOCKS_RANDOM(
-			random_str_bytes(a),
-			wnaf(wnaf_exp,a,5);
-	);
-	CLOCKS_RANDOM(
-			random_str_bytes(a),
-			wnaf(wnaf_exp,a,8);
-	);
+//	CLOCKS_RANDOM(
+//			random_str_bytes(a),
+//			wnaf(wnaf_exp,a,4);
+//	);
+//	CLOCKS_RANDOM(
+//			random_str_bytes(a),
+//			wnaf(wnaf_exp,a,5);
+//	);
+//	CLOCKS_RANDOM(
+//			random_str_bytes(a),
+//			wnaf(wnaf_exp,a,8);
+//	);
 	CLOCKS(precompute_points(tableA,&P));
+	BENCH /= 5;
 	CLOCKS_RANDOM(
 	    random_str_bytes(a);
 	    random_str_bytes(b),

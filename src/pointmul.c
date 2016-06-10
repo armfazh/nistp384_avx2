@@ -246,10 +246,10 @@ void query_table(Point_XY_2way *P, const uint8_t * table,uint64_t * secret_signs
     uint64_t bit3 = r[3]<<63;\
     uint64_t bit2 = r[2]<<63;\
     uint64_t bit1 = r[1]<<63;\
-    r[7] = (r[6]>>1);\
-    r[6] = (r[5]>>1) | bit6;\
-    r[5] = (r[4]>>1) | bit5;\
-    r[4] = (r[3]>>1) | bit4;\
+    r[6] = (r[6]>>1);\
+    r[5] = (r[5]>>1) | bit6;\
+    r[4] = (r[4]>>1) | bit5;\
+    r[3] = (r[3]>>1) | bit4;\
     r[2] = (r[2]>>1) | bit3;\
     r[1] = (r[1]>>1) | bit2;\
     r[0] = (r[0]>>1) | bit1;\
@@ -257,12 +257,12 @@ void query_table(Point_XY_2way *P, const uint8_t * table,uint64_t * secret_signs
 #define SUB384(b,sign,value)        \
 	__asm__ __volatile__ (          \
 		"subq	%7, %0 \n\t"        \
-		"sbbq	%9, %1 \n\t"        \
-		"sbbq	%9, %2 \n\t"        \
-		"sbbq	%9, %3 \n\t"        \
-		"sbbq	%9, %4 \n\t"        \
-		"sbbq	%9, %5 \n\t"        \
-		"sbbq	%9, %6 \n\t"        \
+		"sbbq	%8, %1 \n\t"        \
+		"sbbq	%8, %2 \n\t"        \
+		"sbbq	%8, %3 \n\t"        \
+		"sbbq	%8, %4 \n\t"        \
+		"sbbq	%8, %5 \n\t"        \
+		"sbbq	%8, %6 \n\t"        \
 		: "+r"((b)[0]), "+r"((b)[1]), "+r"((b)[2]), "+r"((b)[3]), \
 		  "+r"((b)[4]), "+r"((b)[5]), "+r"((b)[6])                \
 		: "r"(sign),"r"(value)  \
@@ -272,9 +272,8 @@ int wnaf(int8_t * K,const uint8_t *p8_r, int w)
 {
 	int i = 0;
 	int64_t value;
-	ALIGN uint64_t r[8];
+	ALIGN uint64_t r[7];
 
-	r[7] = 0;
 	for(i=0;i<SIZE_STR_BYTES;i++)
 	{
 		((uint8_t*)r)[i] = p8_r[i];
@@ -392,13 +391,13 @@ void double_point_multiplication(Point_XY_1way * kP_lQ, uint8_t *k, uint8_t *l, 
 	Point_XYZ_1way Q;
 	Point_XYZ_1way tableA[1<<(OMEGA_DYNAMIC-2)];
 
-	int T_k = wnaf(wnaf_k,k, OMEGA_STATIC);
+//	int T_k = wnaf(wnaf_k,k, OMEGA_STATIC);
 //		for(i=l_r-1;i>=0;i--) printf("%d, ",wnaf_r[i]);printf("\n");
-	int T_l = wnaf(wnaf_l,l, OMEGA_DYNAMIC);
+//	int T_l = wnaf(wnaf_l,l, OMEGA_DYNAMIC);
 //	    for(i=l_h-1;i>=0;i--) printf("%d, ",wnaf_h[i]);printf("\n");
-	int T = T_l > T_k ? T_l : T_k;
+//	int T = T_l > T_k ? T_l : T_k;
 //		printf("l:%d lh: %d lr: %d\n",l,l_h,l_r);
-
+	int T=384;
 	precompute_points(tableA,A);
 
 	/* Set Identity */
