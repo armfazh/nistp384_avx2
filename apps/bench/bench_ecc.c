@@ -12,6 +12,7 @@ void bench_ecc()
 	Point_XYZ_1way Q;
 	random_Element_2w_h0h7(P.XY);
 	random_Element_2w_h0h7(Q.XY);
-	random_Element_2w_h0h7(Q.Z);
+	random_Element_2w_h0h7(Q.ZZ);
 	CLOCKS(_1way_doubling(&Q));
+	CLOCKS(_1way_mix_addition_law(&Q,&P));
 }

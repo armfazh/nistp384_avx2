@@ -67,27 +67,27 @@ def mixadd_complete_2w(Q,P):
     X1,Y1,Z1 = Q
     X2,Y2 = P
 
-    p0 = X1*X2;		q0 = Z1*Y2;
-    p1 = Y1*Y2;		q1 = Z1*X2;
+    p0 = X1*X2;     q0 = Z1*Y2;
+    p1 = Y1*Y2;     q1 = Z1*X2;
     
-    l0 =  3*p0;		r0 =  3*Z1;
-    l1 = X2+Y2;		r1 = q0+Y1;
-    l2 = X1+Y1;		r2 = q1+X1;
-    p2 = ecc_b*Z1;	q2 = ecc_b*r2;
-    l3 = r2-p2;		r3 = q2-p0;
-    pp = l1*l2;		1==1;
+    l0 =  3*p0;     r0 =  3*Z1;
+    l1 = X2+Y2;     r1 = q0+Y1;
+    l2 = X1+Y1;     r2 = q1+X1;
+    p2 = ecc_b*Z1;  q2 = ecc_b*r2;
+    l3 = r2-p2;     r3 = q2-p0;
+    p3 = l1*l2;     
     l4 = p0+p1;
-    l5 = pp-l4;		r4 = r3-r0
-    l6 =  3*l3;		r5 =  3*r4;
-    l7 = p1+l6;		r5 = r5+0;
-    l8 = p1-l6;		r6 = l0-r0;
+    l5 = p3-l4;     r5 = r3-r0
+    l6 =  3*l3;     r6 =  3*r5;
+    l7 = p1+l6;     r7 = r6;
+    l8 = p1-l6;     r8 = l0-r0;
     
-    p3 = l7*l8;		q3 = r5*r6;
-    p4 = l7*l5;		q4 = r5*r1;
-    p5 = r1*l8;		q5 = l5*r6;
+    p4 = l7*l8;     q4 = r7*r8;
+    p5 = l7*l5;     q5 = r7*r1;
+    p6 = r1*l8;     q6 = l5*r8;
     
-    X3 = p4-q4;		Y3 = p3+q3;
-    Z3 = p5+q5;
+    X3 = p5-q5;     Y3 = p4+q4;
+    Z3 = p6+q6;
     return X3,Y3,Z3
 
 

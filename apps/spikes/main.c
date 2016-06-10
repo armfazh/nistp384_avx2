@@ -86,18 +86,19 @@ int main()
 
 #if 1 /* 1way ecc-operations  */
 	Point_XY_1way G;
-	Point_XYZ_1way pG;
+	Point_XYZ_1way pP,pQ;
 
 	getGenerator(&G);
 	printf("Gxy:\n");print_affine_1way(&G);
-	toProjective(&pG,&G);
-	printf("Gxyz:\n");print_proj_1way(&pG);
-
+	toProjective(&pQ,&G);
+	toProjective(&pP,&G);
+	printf("Gxyz:\n");print_proj_1way(&pQ);
 	for(i=0;i<1000;i++)
-		_1way_doubling(&pG);
-
-	printf("2Gxyz:\n");print_proj_1way(&pG);
-
+	_1way_doubling(&pQ);
+	printf("2Gxyz:\n");print_proj_1way(&pQ);
+	for(i=0;i<1000;i++)
+	_1way_mix_addition_law(&pQ,&pP);
+	printf("3Gxyz:\n");print_proj_1way(&pQ);
 
 #endif
 	return 0*i;

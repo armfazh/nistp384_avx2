@@ -33,12 +33,11 @@ void toAffine(Point_XY_1way *aP, Point_XYZ_1way *pP)
 {
 	Element_1w_H0H7 invZ,Z;
 	Element_2w_H0H7 invZ_2w;
-	deinterleave(Z,invZ,pP->Z);
+	deinterleave(Z,invZ,pP->ZZ);
 	inv_Element_1w_h0h7(invZ,Z);
 	interleave(invZ_2w,invZ,invZ);
 	mul_Element_2w_h0h7(aP->XY,invZ_2w,pP->XY);
 	compress_Element_2w_h0h7(aP->XY);
-
 }
 
 void toProjective(Point_XYZ_1way *pP, Point_XY_1way *aP)
@@ -47,9 +46,9 @@ void toProjective(Point_XYZ_1way *pP, Point_XY_1way *aP)
 	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
 	{
 		pP->XY[i] = aP->XY[i];
-		pP->Z[i] = _mm256_setzero_si256();
+		pP->ZZ[i] = _mm256_setzero_si256();
 	}
-	pP->Z[0] = _mm256_set_epi64x(0,0,0,1);
+	pP->ZZ[0] = _mm256_set_epi64x(0,1,0,1);
 }
 void print_affine_1way(Point_XY_1way* P)
 {
@@ -59,7 +58,7 @@ void print_proj_1way(Point_XYZ_1way* P)
 {
 	Element_1w_H0H7 Z,_;
 	print_Element_2w_h0h7(P->XY);
-	deinterleave(Z,_,P->Z);
+	deinterleave(Z,_,P->ZZ);
 	print_Element_1w_h0h7(Z);
 }
 
@@ -115,9 +114,147 @@ void _1way_full_addition_law(Point_XYZ_1way * Q, Point_XYZ_1way *P)
  */
 void _1way_mix_addition_law(Point_XYZ_1way * Q, Point_XY_1way *P)
 {
-//	uint64_t * XY1 = Q->XY; uint64_t * XY2 = P->XY;
-//	uint64_t * Z1 = Q->Z;
+	int i;
+	argElement_2w_H0H7 XY1 = Q->XY;	argElement_2w_H0H7 XY2 = P->XY;
+	argElement_2w_H0H7 ZZ1 = Q->ZZ;
+	argElement_2w_H0H7 BB = (argElement_2w_H0H7)ECC_PARAM_B;
 
+	Element_2w_H0H7 XZ1,YZ1,YX2;
+	Element_2w_H0H7 p0q0,p1q1,p2q2,p3q3,p4q4,p5q5,p6q6,q6p6;
+	Element_2w_H0H7 Z1r2,r2q2,p2p0,p3r3,l4r0,p1l0,l6r0,p5p4,q5q4;
+	Element_2w_H0H7 l0r0,l1r1,l2r2,l3r3,l4r4,l5r5,l6r6,l7r7,l8r8,l5r1;
+
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		XZ1[i] = BLEND32(XY1[i],ZZ1[i],0xF0);
+		YZ1[i] = PERM128(XY1[i],ZZ1[i],0x21);
+		YX2[i] = PERM64(XY2[i],0x4E);
+	}
+
+/*	p0 = X1*X2;     q0 = Z1*Y2*/
+	mul_Element_2w_h0h7(p0q0,XZ1,XY2);
+	compress_Element_2w_h0h7(p0q0);
+/*	p1 = Y1*Y2;     q1 = Z1*X2*/
+	mul_Element_2w_h0h7(p1q1,YZ1,YX2);
+	compress_Element_2w_h0h7(p1q1);
+
+//	printf("\tp0q0:\n");print_Element_2w_h0h7(p0q0);
+//	printf("\tp1q1:\n");print_Element_2w_h0h7(p1q1);
+/*	l0 =  3*p0;     r0 =  3*Z1*/
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		__m256i p0Z1 = BLEND32(p0q0[i],ZZ1[i],0xF0);
+		l0r0[i] = ADD(SHL(p0Z1,1),p0Z1);
+	}
+/*	l1 = X2+Y2;     r1 = q0+Y1*/
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		__m256i X2q0 = BLEND32(XY2[i],p0q0[i],0xF0);
+		__m256i Y2Y1 = BLEND32(YX2[i],XY1[i],0xF0);
+		l1r1[i] = ADD(X2q0,Y2Y1);
+	}
+/*	l2 = X1+Y1;     r2 = q1+X1*/
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		__m256i X1q1 = BLEND32(XY1[i],p1q1[i],0xF0);
+		__m256i YX1 = PERM64(XY1[i],0x4E);
+		l2r2[i] = ADD(X1q1,YX1);
+	}
+
+//	printf("\tl0r0:\n");print_Element_2w_h0h7(l0r0);
+//	printf("\tl1r1:\n");print_Element_2w_h0h7(l1r1);
+//	printf("\tl2r2:\n");print_Element_2w_h0h7(l2r2);
+
+/*	p2 = ecc_b*Z1;  q2 = ecc_b*r2*/
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		Z1r2[i] = BLEND32(ZZ1[i], l2r2[i], 0xF0);
+	}
+	mul_Element_2w_h0h7(p2q2,Z1r2,BB);
+	compress_Element_2w_h0h7(p2q2);
+/*	l3 = r2-p2;     r3 = q2-p0*/
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		r2q2[i] = PERM128(l2r2[i], p2q2[i], 0x31);
+		p2p0[i] = PERM128(p0q0[i], p2q2[i], 0x02);
+	}
+	sub_Element_2w_h0h7(l3r3,r2q2,p2p0);
+/*	p3 = l1*l2*/
+	mul_Element_2w_h0h7(p3q3,l1r1,l2r2);
+	compress_Element_2w_h0h7(p3q3);
+//	printf("\tp2q2:\n");print_Element_2w_h0h7(p2q2);
+//	printf("\tl3r3:\n");print_Element_2w_h0h7(l3r3);
+//	printf("\tp3q3:\n");print_Element_2w_h0h7(p3q3);
+/*	l4 = p0+p1*/
+	add_Element_2w_h0h7(l4r4,p0q0,p1q1);
+/*	l5 = p3-l4;     r5 = r3-r0*/
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		p3r3[i] = BLEND32(p3q3[i], l3r3[i], 0xF0);
+		l4r0[i] = BLEND32(l4r4[i], l0r0[i], 0xF0);
+	}
+	sub_Element_2w_h0h7(l5r5,p3r3,l4r0);
+/*	l6 =  3*l3;     r6 =  3*r5*/
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		__m256i l3r5 = BLEND32(l3r3[i],l5r5[i],0xF0);
+		l6r6[i] = ADD(SHL(l3r5,1),l3r5);
+	}
+//	printf("\tl4r4:\n");print_Element_2w_h0h7(l4r4);
+//	printf("\tl5r5:\n");print_Element_2w_h0h7(l5r5);
+//	printf("\tl6r6:\n");print_Element_2w_h0h7(l6r6);
+/*	l7 = p1+l6;     r7 = r6;         */
+	add_Element_2w_h0h7(l7r7,p1q1,l6r6);
+/*	l8 = p1-l6;     r8 = l0-r0*/
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		p1l0[i] = PERM128(p1q1[i], l0r0[i], 0x20);
+		l6r0[i] = BLEND32(l6r6[i], l0r0[i], 0xF0);
+	}
+	sub_Element_2w_h0h7(l8r8,p1l0,l6r0);
+/*	p4 = l7*l8;     q4 = r7*r8*/
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		l7r7[i] = BLEND32(l7r7[i], l6r6[i], 0xF0);
+	}
+	compress_Element_2w_h0h7(l5r5);
+	compress_Element_2w_h0h7(l7r7);
+	compress_Element_2w_h0h7(l8r8);
+	mul_Element_2w_h0h7(p4q4,l7r7,l8r8);
+	compress_Element_2w_h0h7(p4q4);
+//	printf("\tl7r7:\n");print_Element_2w_h0h7(l7r7);
+//	printf("\tl8r8:\n");print_Element_2w_h0h7(l8r8);
+//	printf("\tp4q4:\n");print_Element_2w_h0h7(p4q4);
+/*	p5 = l7*l5;     q5 = r7*r1*/
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		l5r1[i] = BLEND32(l5r5[i], l1r1[i], 0xF0);
+	}
+	mul_Element_2w_h0h7(p5q5,l7r7,l5r1);
+	compress_Element_2w_h0h7(p5q5);
+/*	p6 = r1*l8;     q6 = l5*r8*/
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		l5r1[i] = PERM64(l5r1[i],0x4E);
+	}
+	mul_Element_2w_h0h7(p6q6,l5r1,l8r8);
+	compress_Element_2w_h0h7(p6q6);
+
+//	printf("\tp5q5:\n");print_Element_2w_h0h7(p5q5);
+//	printf("\tp6q6:\n");print_Element_2w_h0h7(p6q6);
+/*	X3 = p5-q5;     Y3 = p4+q4*/
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		p5p4[i] = PERM128(p5q5[i],p4q4[i],0x20);
+		q5q4[i] = PERM128(p5q5[i],p4q4[i],0x31);
+		q6p6[i] = PERM64(p6q6[i],0x4E);
+	}
+	addsub_Element_2w_h0h7(Q->XY,p5p4,q5q4,1,0);
+/*	Z3 = p6+q6*/
+	add_Element_2w_h0h7(Q->ZZ,p6q6,q6p6);
+
+//	printf("\tQ->XY:\n");print_Element_2w_h0h7(Q->XY);
+//	printf("\tQ->ZZ:\n");print_Element_2w_h0h7(Q->ZZ);
 }
 
 /**
@@ -127,13 +264,13 @@ void _1way_doubling(Point_XYZ_1way *P)
 {
 	int i;
 	argElement_2w_H0H7 XY = P->XY;
-	argElement_2w_H0H7 Z  = P->Z;
+	argElement_2w_H0H7 ZZ = P->ZZ;
 	argElement_2w_H0H7 BB = (argElement_2w_H0H7)ECC_PARAM_B;
 
 	const __m256i shift_1Z = _mm256_set_epi64x(64,64,1,1);
 	const __m256i shift_10 = _mm256_set_epi64x(0,0,1,1);
 
-	Element_2w_H0H7 ZZ,YZ,XZ;
+	Element_2w_H0H7 YZ,XZ;
 	Element_2w_H0H7 p0q0,p1q1,p2q2,p3q3,p4q4,p5q5,q6;
 	Element_2w_H0H7 p0p2,p5p4,q5q4;
 	Element_2w_H0H7 l0r0,l1r1,l2r2,l3r3,l4r4,l5r5,r5l5;
@@ -141,9 +278,8 @@ void _1way_doubling(Point_XYZ_1way *P)
 
 	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
 	{
-		ZZ[i] = PERM64(Z[i],0x44);
-		YZ[i] = PERM128(XY[i],Z[i],0x21);
-		XZ[i] = PERM128(ADD(XY[i],XY[i]),Z[i],0x20);
+		YZ[i] = PERM128(XY[i],ZZ[i],0x21);
+		XZ[i] = BLEND32(ADD(XY[i],XY[i]),ZZ[i],0xF0);
 	}
 
 /*	p0 = X**2;		q0 = Y**2;		*/
@@ -231,9 +367,9 @@ void _1way_doubling(Point_XYZ_1way *P)
 /*  Z3 = 8*q6;*/
 	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
 	{
-		P->Z[i] = PERM64(SHL(q6[i],3),0x4E);
+		P->ZZ[i] = PERM64(SHL(q6[i],3),0xEE);
 	}
-	compress_Element_2w_h0h7(P->Z);
+	compress_Element_2w_h0h7(P->ZZ);
 //	printf("\tP->XY:\n");print_Element_2w_h0h7(P->XY);
 //	printf("\tP->Z :\n");print_Element_2w_h0h7(P->Z );
 }
