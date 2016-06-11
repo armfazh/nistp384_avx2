@@ -37,7 +37,7 @@ def mixadd_complete(Q,P):
     t1 = t4*Y3;		t2 = t0*Y3;		Y3 = X3*Z3;
     Y3 = Y3+t2;		X3 = t3*X3;		X3 = X3-t1;
     Z3 = t4*Z3;		t1 = t3*t0;		Z3 = Z3+t1;
-    return X3,Y3,Z3
+    return [X3,Y3,Z3]
 
 def doub_complete_2w(P):
     global ecc_b
@@ -88,7 +88,7 @@ def mixadd_complete_2w(Q,P):
     
     X3 = p5-q5;     Y3 = p4+q4;
     Z3 = p6+q6;
-    return X3,Y3,Z3
+    return [X3,Y3,Z3]
 
 def fulladd_complete(Q,P):
     global ecc_b
@@ -109,7 +109,7 @@ def fulladd_complete(Q,P):
     Y3 = X3 * Z3;     Y3 = Y3 + t2;     X3 = t3 * X3;
     X3 = X3 - t1;     Z3 = t4 * Z3;     t1 = t3 * t0;
     Z3 = Z3 + t1;
-    return X3,Y3,Z3
+    return [X3,Y3,Z3]
 
 
 def fulladd_complete_2w(Q,P):
@@ -145,7 +145,7 @@ def fulladd_complete_2w(Q,P):
     
     X3 = p4 - q4;     Y3 = p5 + q5;
     Z3 = p6 + q6;
-    return X3,Y3,Z3
+    return [X3,Y3,Z3]
 
 
 
@@ -185,7 +185,7 @@ def parallel_doub():
 print("Testing: trees.py")
 # com_sub_elim()
 print("fulladd: {0}".format(parallel_fulladd()))
-# print("mixadd:  {0}".format(parallel_mixadd()))
-# print("doub:    {0}".format(parallel_doub()))
+print("mixadd:  {0}".format(parallel_mixadd()))
+print("doub:    {0}".format(parallel_doub()))
 
 

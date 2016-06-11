@@ -7,7 +7,7 @@ ecc_a = Fp(-3)
 ecc_b = Fp(0xb3312fa7e23ee7e4988e056be3f82d19181d9c6efe8141120314088f5013875ac656398d8a2ed19d2a85c8edd3ec2aef)
 
 E = EllipticCurve(Fp,[ecc_a,ecc_b])
-
+ecc_order = 39402006196394479212279040100143613805079739270465446667946905279627659399113263569398956308152294913554433653942643
 
 def to_Jac(P):
 	X = P[0]
@@ -28,10 +28,13 @@ def Jac_to_Affine(P):
 	return [X/Z**2,Y/Z**3]
 
 def Proy_to_Affine(P):
-	X = P[0]
-	Y = P[1]
 	Z = P[2]
-	return [X/Z,Y/Z]
+	if Z==0:
+		return [ Fp(0),Fp(1),Fp(0)]
+	else:
+		X = P[0]
+		Y = P[1]
+		return [X/Z,Y/Z]
 
 #Returns Q+P
 # [EFD] add-2001-b
@@ -174,8 +177,70 @@ def test_ecc():
 	print(Jac_to_Affine(_iJ)==Proy_to_Affine(_kP))
 	return True
 
-def test_ecc():
-	pass
+def create_table(P,OMEGA):
+	num_points = (2**(OMEGA-2))
+	T = [0]*num_points
+	_2P = doub_complete(P)
+	T[0] = P
+	for i in range(1,num_points):
+		T[i] = fulladd_complete(T[i-1],_2P)
+	return T
+
+
+def wnaf(k,w):
+	E = []
+	mods = lambda d,w :d if d<2**(w-1) else d-2**(w)
+	while(k>0):
+		if k%2 == 1:
+			d = k%(2**w)
+			E += [ mods(d,w) ]
+		else:
+			E += [0]
+		k>>=1;
+	return E
+
+def double_pmul(k0,w0,P,OMEGA_DYN,k1,w1,TabSta):
+	K0 = wnaf(k0,w0)
+	K1 = wnaf(k1,w1)
+	K0 += [0]*(len(K1)-len(K0))
+	K1 += [0]*(len(K0)-len(K1))
+	Q = [Fp(0),Fp(1),Fp(0)]
+	TabDyn = create_table(P,OMEGA_DYN)
+	for d0,d1 in reversed(zip(K0,K1)):
+		Q = doub_complete(Q)
+		if d0 != 0:
+			R = deepcopy(TabDyn[abs(d0)>>1])
+			if d0 < 0:
+				R[1] = -R[1]
+			Q = fulladd_complete(Q,R)
+		if d1 != 0:
+			R = deepcopy(TabSta[abs(d1)>>1])
+			if d1 < 0:
+				R[1] = -R[1]
+			Q = fulladd_complete(Q,R)
+	return Q
+
+
+#def testing_double_pmul():
+#global ecc_order,Gx,Gy
+OMEGA_DYN = 4
+OMEGA_STA = 4
+w0 = 4
+w1 = 4
+k0 = 1#randrange(ecc_order)
+k1 = 1#randrange(ecc_order)
+G = E([ Gx,Gy,Fp(1) ])
+P = 18*G
+TabSta = create_table([Gx,Gy,Fp(1)],OMEGA_STA)
+projQ = double_pmul(k0,w0,list(P),OMEGA_DYN,k1,w1,TabSta)
+Q = Proy_to_Affine(projQ)
+print(Q)
+
+R = k0*P+k1*G
+print(R)
+#print(R[0]==aQ[0] and R[1]==aQ[1])
+	
+	
 
 ##################
 # Main
