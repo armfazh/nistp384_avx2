@@ -9,7 +9,7 @@ void bench_ecc()
 	printf("=====  ecc =====\n");
 
 	Point_XY_1way P;
-	Point_XYZ_1way Q;
+	Point_XYZ_1way Q,R;
 	random_Element_2w_h0h7(P.XY);
 	random_Element_2w_h0h7(Q.XY);
 	random_Element_2w_h0h7(Q.ZZ);
@@ -17,4 +17,5 @@ void bench_ecc()
 	CLOCKS(toProjective(&Q,&P));
 	CLOCKS(_1way_doubling(&Q));
 	CLOCKS(_1way_mix_addition_law(&Q,&P));
+	CLOCKS(_1way_full_addition_law(&Q,&R));
 }

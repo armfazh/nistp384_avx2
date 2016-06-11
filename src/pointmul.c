@@ -229,8 +229,7 @@ void query_table(Point_XY_2way *P, const uint8_t * table,uint64_t * secret_signs
 	STORE(C+3,LOAD(A+3));
 
 #define is_greater_equal_one(r)  \
-(     	(r[6]!=0)                \
-	||	(r[5]!=0)                \
+(     	(r[5]!=0)                \
 	||	(r[4]!=0)                \
 	||	(r[3]!=0)                \
 	||	(r[2]!=0)                \
@@ -240,43 +239,40 @@ void query_table(Point_XY_2way *P, const uint8_t * table,uint64_t * secret_signs
 #define is_odd(r) ((r[0]&0x1)==1)
 #define div_2(r) \
 {\
-    uint64_t bit6 = r[6]<<63;\
     uint64_t bit5 = r[5]<<63;\
     uint64_t bit4 = r[4]<<63;\
     uint64_t bit3 = r[3]<<63;\
     uint64_t bit2 = r[2]<<63;\
     uint64_t bit1 = r[1]<<63;\
-    r[6] = (r[6]>>1);\
-    r[5] = (r[5]>>1) | bit6;\
+    r[5] = (r[5]>>1);\
     r[4] = (r[4]>>1) | bit5;\
     r[3] = (r[3]>>1) | bit4;\
     r[2] = (r[2]>>1) | bit3;\
     r[1] = (r[1]>>1) | bit2;\
     r[0] = (r[0]>>1) | bit1;\
 }
-#define SUB384(b,sign,value)        \
-	__asm__ __volatile__ (          \
-		"subq	%7, %0 \n\t"        \
-		"sbbq	%8, %1 \n\t"        \
-		"sbbq	%8, %2 \n\t"        \
-		"sbbq	%8, %3 \n\t"        \
-		"sbbq	%8, %4 \n\t"        \
-		"sbbq	%8, %5 \n\t"        \
-		"sbbq	%8, %6 \n\t"        \
-		: "+r"((b)[0]), "+r"((b)[1]), "+r"((b)[2]), "+r"((b)[3]), \
-		  "+r"((b)[4]), "+r"((b)[5]), "+r"((b)[6])                \
-		: "r"(sign),"r"(value)  \
+#define SUB384(b,sign,value)                   \
+	__asm__ __volatile__ (                     \
+		"subq	%6, %0 \n\t"                   \
+		"sbbq	%7, %1 \n\t"                   \
+		"sbbq	%7, %2 \n\t"                   \
+		"sbbq	%7, %3 \n\t"                   \
+		"sbbq	%7, %4 \n\t"                   \
+		"sbbq	%7, %5 \n\t"                   \
+		: "+r"(b[0]), "+r"(b[1]), "+r"(b[2]),  \
+          "+r"(b[3]), "+r"(b[4]), "+r"(b[5])   \
+		: "r"(value), "r"(sign)     \
         : "cc", "memory")
 
 int wnaf(int8_t * K,const uint8_t *p8_r, int w)
 {
 	int i = 0;
-	int64_t value;
-	ALIGN uint64_t r[7];
+	int64_t value,sign;
+	ALIGN uint64_t r[6];
 
-	for(i=0;i<SIZE_STR_BYTES;i++)
+	for(i=0;i<6;i++)
 	{
-		((uint8_t*)r)[i] = p8_r[i];
+		r[i] = ((uint64_t*)p8_r)[i];
 	}
 
 	i=0;
@@ -289,7 +285,7 @@ int wnaf(int8_t * K,const uint8_t *p8_r, int w)
 			{
 				value = value - (1<<w);
 			}
-			int64_t sign=value>>63;
+			sign=value>>63;
 			SUB384(r,sign,value);
 		}
 		else
@@ -391,13 +387,11 @@ void double_point_multiplication(Point_XY_1way * kP_lQ, uint8_t *k, uint8_t *l, 
 	Point_XYZ_1way Q;
 	Point_XYZ_1way tableA[1<<(OMEGA_DYNAMIC-2)];
 
-//	int T_k = wnaf(wnaf_k,k, OMEGA_STATIC);
-//		for(i=l_r-1;i>=0;i--) printf("%d, ",wnaf_r[i]);printf("\n");
-//	int T_l = wnaf(wnaf_l,l, OMEGA_DYNAMIC);
-//	    for(i=l_h-1;i>=0;i--) printf("%d, ",wnaf_h[i]);printf("\n");
-//	int T = T_l > T_k ? T_l : T_k;
-//		printf("l:%d lh: %d lr: %d\n",l,l_h,l_r);
-	int T=384;
+	int T_k = wnaf(wnaf_k,k, OMEGA_STATIC);
+	int T_l = wnaf(wnaf_l,l, OMEGA_DYNAMIC);
+	int T = T_l > T_k ? T_l : T_k;
+
+
 	precompute_points(tableA,A);
 
 	/* Set Identity */

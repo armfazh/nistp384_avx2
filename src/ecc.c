@@ -126,9 +126,164 @@ void _2way_doubling(Point_XYZ_2way *P)
  */
 void _1way_full_addition_law(Point_XYZ_1way * Q, Point_XYZ_1way *P)
 {
-//	uint64_t * XY1 = Q->XY; uint64_t * XY2 = P->XY;
-//	uint64_t * Z1 = Q->Z; 	uint64_t * Z2 = P->Z;
+	int i;
+	argElement_2w_H0H7 XY1 = Q->XY;	argElement_2w_H0H7 XY2 = P->XY;
+	argElement_2w_H0H7 ZZ1 = Q->ZZ; argElement_2w_H0H7 ZZ2 = P->ZZ;
+	argElement_2w_H0H7 BB = (argElement_2w_H0H7)ECC_PARAM_B;
 
+	Element_2w_H0H7 YX1,YX2;
+	Element_2w_H0H7 p0q0,p1q1,p2q2,p3q3,p4q4,p5q5,p6q6;
+	Element_2w_H0H7 m1,m2,q1p1,p3l4,p0q3,r0,l0q0,r0r7,q0q1,p1q2,r9l7,p4p5,q4q5,q6p6;
+	Element_2w_H0H7 l0r0,l1r1,l2r2,l3r3,l4r4,l5r5,l6r6,l7r7,l8r8,l9r9,lArA,lBrB;
+
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		YX1[i] = PERM64(XY1[i],0x4E);
+		YX2[i] = PERM64(XY2[i],0x4E);
+	}
+/*   	m1 = X1 + Y1;   */
+	add_Element_2w_h0h7(m1,XY1,YX1);
+/*   	m2 = X2 + Y2;   */
+	add_Element_2w_h0h7(m2,XY2,YX2);
+/*   	l1 = X1 + Z1;     r1 = Y1 + Z1;   */
+	add_Element_2w_h0h7(l1r1,XY1,ZZ1);
+/*   	l2 = X2 + Z2;     r2 = Y2 + Z2;   */
+	add_Element_2w_h0h7(l2r2,XY2,ZZ2);
+
+//	printf("\tm1  :\n");print_Element_2w_h0h7(m1  );
+//	printf("\tm2  :\n");print_Element_2w_h0h7(m2  );
+//	printf("\tl1r1:\n");print_Element_2w_h0h7(l1r1);
+//	printf("\tl2r2:\n");print_Element_2w_h0h7(l2r2);
+
+/*   	p0 = X1 * X2;     q0 = Y1 * Y2;   */
+	mul_Element_2w_h0h7(p0q0,XY1,XY2);
+	compress_Element_2w_h0h7(p0q0);
+/*       p1 = m1 * m2;     q1 = Z1 * Z2;   */
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		m1[i] = BLEND32(m1[i], ZZ1[i], 0xF0);
+		m2[i] = BLEND32(m2[i], ZZ2[i], 0xF0);
+	}
+	mul_Element_2w_h0h7(p1q1,m1,m2);
+	compress_Element_2w_h0h7(p1q1);
+/*       p2 = l1 * l2;     q2 = r1 * r2;   */
+	mul_Element_2w_h0h7(p2q2,l1r1,l2r2);
+	compress_Element_2w_h0h7(p2q2);
+
+//	printf("\tp0q0:\n");print_Element_2w_h0h7(p0q0);
+//	printf("\tp1q1:\n");print_Element_2w_h0h7(p1q1);
+//	printf("\tp2q2:\n");print_Element_2w_h0h7(p2q2);
+
+/*      l0 = 3*p0;        r0 = 3*q1;       */
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		__m256i p0q1 = BLEND32(p0q0[i],p1q1[i],0xF0);
+		l0r0[i] = ADD(SHL(p0q1,1),p0q1);
+	}
+/*       l3 = p0 + q1;        */
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		q1p1[i] = PERM64(p1q1[i], 0x4E);
+	}
+	add_Element_2w_h0h7(l3r3,p0q0,q1p1);
+/*       l4 = p2 - l3;        */
+	sub_Element_2w_h0h7(l4r4,p2q2,l3r3);
+/*       p3 = ecc_b*l4;    q3 = ecc_b*q1;  */
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		l4r4[i] = BLEND32(l4r4[i],p1q1[i],0xF0);
+	}
+	mul_Element_2w_h0h7(p3q3,l4r4,BB);
+	compress_Element_2w_h0h7(p3q3);
+//	printf("\tl0r0:\n");print_Element_2w_h0h7(l0r0);
+//	printf("\tl3r3:\n");print_Element_2w_h0h7(l3r3);
+//	printf("\tl4r4:\n");print_Element_2w_h0h7(l4r4);
+//	printf("\tp3q3:\n");print_Element_2w_h0h7(p3q3);
+
+/*       l5 = p3 - p0;     r5 = l4 - q3;   */
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		p3l4[i] = PERM128(p3q3[i],l4r4[i],0x20);
+		p0q3[i] = BLEND32(p0q0[i],p3q3[i],0xF0);
+	}
+	sub_Element_2w_h0h7(l5r5,p3l4,p0q3);
+/*       l6 = l5 - r0;     r6 = r5;        */
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		r0[i] = PERM128(l0r0[i],l0r0[i],0x81);
+	}
+	sub_Element_2w_h0h7(l6r6,l5r5,r0);
+/*       l7 = 3*l6;        r7 = 3*r6;      */
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		l7r7[i] = ADD(SHL(l6r6[i],1),l6r6[i]);
+	}
+/*       l8 = l0 - r0;     r8 = q0 - r7;   */
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		l0q0[i] = BLEND32(l0r0[i],p0q0[i],0xF0);
+		r0r7[i] = PERM128(l0r0[i],l7r7[i],0x31);
+	}
+	sub_Element_2w_h0h7(l8r8,l0q0,r0r7);
+// 	printf("\tl5r5:\n");print_Element_2w_h0h7(l5r5);
+//	printf("\tl6r6:\n");print_Element_2w_h0h7(l6r6);
+//	printf("\tl7r7:\n");print_Element_2w_h0h7(l7r7);
+//	printf("\tl8r8:\n");print_Element_2w_h0h7(l8r8);
+
+/*       1==1;             r9 = q0 + r7;   */
+	add_Element_2w_h0h7(l9r9,l0q0,r0r7);
+/*       lA = p0 + q0;     rA = q0 + q1;   */
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		q0q1[i] = PERM128(p0q0[i],p1q1[i],0x31);
+	}
+	add_Element_2w_h0h7(lArA,p0q0,q0q1);
+/*       lB = p1 - lA;     rB = q2 - rA;   */
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		p1q2[i] = BLEND32(p1q1[i],p2q2[i],0xF0);
+	}
+	sub_Element_2w_h0h7(lBrB,p1q2,lArA);
+//	printf("\tl9r9:\n");print_Element_2w_h0h7(l9r9);
+//	printf("\tlArA:\n");print_Element_2w_h0h7(lArA);
+//	printf("\tlBrB:\n");print_Element_2w_h0h7(lBrB);
+
+/*       p4 = lB * r9;     q4 = rB * l7;   */
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		r9l7[i] = PERM128(l7r7[i],l9r9[i],0x03);
+	}
+	compress_Element_2w_h0h7(r9l7);
+	mul_Element_2w_h0h7(p4q4,lBrB,r9l7);
+	compress_Element_2w_h0h7(p4q4);
+/*       p6 = lB * l8;     q6 = rB * r8;   */
+	compress_Element_2w_h0h7(l8r8);
+	mul_Element_2w_h0h7(p6q6,lBrB,l8r8);
+	compress_Element_2w_h0h7(p6q6);
+/*       p5 = r9 * r8;     q5 = l7 * l8;   */
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		l8r8[i] = PERM64(l8r8[i],0x4E);
+	}
+	mul_Element_2w_h0h7(p5q5,l8r8,r9l7);
+	compress_Element_2w_h0h7(p5q5);
+
+//	printf("\tp4q4:\n");print_Element_2w_h0h7(p4q4);
+//	printf("\tp5q5:\n");print_Element_2w_h0h7(p5q5);
+//	printf("\tp6q6:\n");print_Element_2w_h0h7(p6q6);
+/*       X3 = p4 - q4;     Y3 = p5 + q5;   */
+/*       Z3 = p6 + q6;   */
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		p4p5[i] = PERM128(p4q4[i],p5q5[i],0x20);
+		q4q5[i] = PERM128(p4q4[i],p5q5[i],0x31);
+		q6p6[i] = PERM64(p6q6[i],0x4E);
+	}
+	addsub_Element_2w_h0h7(Q->XY,p4p5,q4q5,1,0);
+/*	Z3 = p6+q6*/
+	add_Element_2w_h0h7(Q->ZZ,p6q6,q6p6);
+//	printf("\tQ->XY:\n");print_Element_2w_h0h7(Q->XY);sizes_Element_2w_h0h7(Q->XY);
+//	printf("\tQ->ZZ:\n");print_Element_2w_h0h7(Q->ZZ);sizes_Element_2w_h0h7(Q->ZZ);
 }
 
 /**
@@ -395,20 +550,6 @@ void _1way_doubling(Point_XYZ_1way *P)
 //	printf("\tP->XY:\n");print_Element_2w_h0h7(P->XY);
 //	printf("\tP->Z :\n");print_Element_2w_h0h7(P->Z );
 }
-
-
-
-static inline int are_equal(uint8_t  * X, uint8_t  * Y)
-{
-	int i=0;
-	int zero =0;
-	for(i=0;i<SIZE_STR_BYTES;i++)
-	{
-		zero |= X[i]^Y[i];
-	}
-	return zero==0;
-}
-
 /**
  * Computes the doubling of ONE point
  * stored in P = {XY,ZT}
@@ -423,9 +564,6 @@ void fulladdition_2w_H0H7(PointXYZT_2w_H0H7 *Q, PointXYZT_2w_H0H7 *P)
 
 }
 
-/*
- * Full addition from Hisil page 6.
- */
 void mixaddition_2w_H0H7(PointXYZT_2w_H0H7 *Q, PointXYZT_precompute_2w_H0H7 *P)
 {
 

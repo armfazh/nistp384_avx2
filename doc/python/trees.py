@@ -116,32 +116,31 @@ def fulladd_complete_2w(Q,P):
     global ecc_b
     X1,Y1,Z1 = Q
     X2,Y2,Z2 = P
-    l1 = X1 + Y1;     r1 = X1 + Z1;   
-    l2 = X2 + Y2;     r2 = X2 + Z2;   
+    m1 = X1 + Y1;
+    m2 = X2 + Y2;     
+    l1 = X1 + Z1;     r1 = Y1 + Z1;  
+    l2 = X2 + Z2;     r2 = Y2 + Z2;
     
     p0 = X1 * X2;     q0 = Y1 * Y2;
-    p1 = l1 * l2;     q1 = r1 * r2;
+    p1 = m1 * m2;     q1 = Z1 * Z2;
+    p2 = l1 * l2;     q2 = r1 * r2;
     
-    1==1;             m1 = Y1 + Z1;  
-    1==1;             m2 = Y2 + Z2;
-    p2 = Z1 * Z2;     q2 = m1 * m2;
-    
-    l0 = 3*p0;        r0 = 3*p2;        
-    l3 = p0 + p2;     
-    l4 = q1 - l3;     
+    l0 = 3*p0;        r0 = 3*q1;        
+    l3 = p0 + q1;     
+    l4 = p2 - l3;     
 
-    p3 = ecc_b*l4;    q3 = ecc_b*p2;    
+    p3 = ecc_b*l4;    q3 = ecc_b*q1;    
     l5 = p3 - p0;     r5 = l4 - q3;     
     l6 = l5 - r0;     r6 = r5;          
 
     l7 = 3*l6;        r7 = 3*r6;                
     l8 = l0 - r0;     r8 = q0 - r7;     
-    1==1;             l9 = q0 + r7;   
-    lA = p0 + q0;     rA = q0 + p2;
+    1==1;             r9 = q0 + r7;   
+    lA = p0 + q0;     rA = q0 + q1;
     lB = p1 - lA;     rB = q2 - rA;
     
-    p4 = lB * l9;     q4 = rB * l7;    
-    p5 = l9 * r8;     q5 = l7 * l8;
+    p4 = lB * r9;     q4 = rB * l7;    
+    p5 = r9 * r8;     q5 = l7 * l8;
     p6 = lB * l8;     q6 = rB * r8;
     
     X3 = p4 - q4;     Y3 = p5 + q5;
