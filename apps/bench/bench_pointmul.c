@@ -17,11 +17,12 @@ void bench_pointmul()
 
 	random_Element_2w_h0h7(Q.XY);
 	random_Element_2w_h0h7(Q.ZZ);
-	CLOCKS_RANDOM(random_str_bytes(a),wnaf(wnaf_exp,a,4));
-	CLOCKS_RANDOM(random_str_bytes(a),wnaf(wnaf_exp,a,5));
-	CLOCKS_RANDOM(random_str_bytes(a),wnaf(wnaf_exp,a,8));
-	CLOCKS(precompute_points(tableA,&P,OMEGA_DYNAMIC));
-	BENCH /= 5;
+//	CLOCKS_RANDOM(random_str_bytes(a),wnaf(wnaf_exp,a,4));
+//	CLOCKS_RANDOM(random_str_bytes(a),wnaf(wnaf_exp,a,5));
+//	CLOCKS_RANDOM(random_str_bytes(a),wnaf(wnaf_exp,a,8));
+//	CLOCKS(precompute_points(tableA,&P,OMEGA_DYNAMIC));
+	BENCH /= 10;
+	printf("OMEGA_STA: %d OMEGA_DYN: %d \n",OMEGA_STATIC,OMEGA_DYNAMIC);
 	CLOCKS_RANDOM(
 	    random_str_bytes(a);
 	    random_str_bytes(b),
