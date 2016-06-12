@@ -244,8 +244,22 @@ def testing_double_pmul():
 
 	R = k0*P+k1*G
 	return R[0]==Q[0] and R[1]==Q[1]
-	
-	
+
+def toWords(num,word_size):
+	S = []
+	if num==0: return [0]
+	while num>0:
+		S += [ num%2**word_size ]
+		num >>= word_size
+	return S
+
+def toC(num,word_size):
+	return ",".join([ "0x{num:0{width}x}".format(num=n,width=word_size>>2) for n in toWords(num,word_size) ])
+
+def toC_interleaved(numA,numB,word_size):
+	wA = toWords(numA,word_size)
+	wB = toWords(numB,word_size)
+	return ",".join([ "0x{num:0{width}x}".format(num=nn,width=word_size>>2) for n in zip(wA,wB) for nn in n ])
 
 ##################
 # Main
@@ -254,7 +268,11 @@ print("Testing: add.sage")
 print("ecc: {0}".format(test_ecc()))
 print("double_pmul: {0}".format(testing_double_pmul()))
 
-
-
-
-	
+G = E([Gx,Gy,Fp(1)])
+OMEGA_STA = 7
+for i in range(1<<(OMEGA_STA-2)):
+	P = (2*i+1)*G
+	print("/* {0}*G */".format(2*i+1))
+	#print("{0},".format(toC_interleaved(int(P[0]),int(P[1]),64)))
+	print("{0},".format(toC(int(P[0]),64)))
+	print("{0},".format(toC(int(P[1]),64)))

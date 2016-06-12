@@ -182,40 +182,7 @@ void query_table_fold2w4(Point_XY_2way *P, const uint8_t * table,uint64_t * secr
 	}
 }
 
-void read_point(PointXYZT_precompute_2w_H0H7 * P, int8_t index)
-{
-	uint8_t abs_index_r = index > 0 ? index: -index;
-	abs_index_r >>= 1;
-//	printf("r_indx:%d\n",abs_index_r);
-	const uint64_t * ptr_point = &TableVerification_static_w7[3*7*abs_index_r];
-	const Element_1w_H0H7 two = {
-			0x2,0x0,0x0,0x0,
-			0x0,0x0,0x0,0x0,
-			0x0,0x0,0x0,0x0,
-			0x0,0x0,0x0,0x0};
-	Element_1w_H0H7 add,sub,_2dT;
 
-	str_bytes_To_Element_1w_h0h7(add,(uint8_t*)(ptr_point+0));
-	str_bytes_To_Element_1w_h0h7(sub,(uint8_t*)(ptr_point+7));
-	str_bytes_To_Element_1w_h0h7(_2dT,(uint8_t*)(ptr_point+14));
-
-//	print_Element_1w_h0h7(add);
-//	print_Element_1w_h0h7(sub);
-//	print_Element_1w_h0h7(_2dT);
-	if(index<0)/*negative*/
-	{
-		neg_Element_1w_h0h7(_2dT);
-		compress_Element_1w_h0h7(_2dT);
-		interleave(P->subaddYX,add,sub);
-	}
-	else
-	{
-		interleave(P->subaddYX,sub,add);
-	}
-	interleave(P->_2dT_2Z,_2dT,(argElement_1w_H0H7)two);
-//	print_Element_2w_h0h7(P->subaddYX);
-//	print_Element_2w_h0h7(P->_2dT_2Z);
-}
 
 void query_table(Point_XY_2way *P, const uint8_t * table,uint64_t * secret_signs,uint64_t *secret_digits)
 {
@@ -378,18 +345,32 @@ void precompute_points(Point_XYZ_1way * table, Point_XY_1way * P,const int OMEGA
 		_1way_full_addition_law(&table[i],&_2P);
 	}
 }
+inline void read_point(Point_XYZ_1way * P, int8_t abs_index)
+{
+	int i;
+	const uint64_t * ptr_point = &TableVerification_static_w7[2*6*abs_index];
+	Element_1w_H0H7 x,y;
+	str_bytes_To_Element_1w_h0h7(x,(uint8_t*)(ptr_point+0));
+	str_bytes_To_Element_1w_h0h7(y,(uint8_t*)(ptr_point+6));
+	interleave(P->XY,x,y);
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		P->ZZ[i] = ZERO;
+	}
+	P->ZZ[0] = _mm256_set_epi64x(0,1,0,1);
+}
 
 void double_point_multiplication(
 		Point_XY_1way * kP_lQ,
 		uint8_t *k, uint8_t *l,
-		Point_XY_1way * Q,
-		Point_XYZ_1way * TabSta)
+		Point_XY_1way * Q)
 {
 	int i;
 	int8_t wnaf_k[392] = {0};
 	int8_t wnaf_l[392] = {0};
 
 	Point_XYZ_1way R;
+
 	Point_XYZ_1way TabDynamic[1<<(OMEGA_DYNAMIC-2)];
 
 	int T_k = wnaf(wnaf_k,k, OMEGA_STATIC);
@@ -408,16 +389,17 @@ void double_point_multiplication(
 		{
 			uint8_t abs_index_k = wnaf_k[i]> 0 ? wnaf_k[i]: -wnaf_k[i];
 			abs_index_k >>= 1;
-			Point_XYZ_1way * P = &TabSta[abs_index_k];
+			Point_XYZ_1way P;
+			read_point(&P,abs_index_k);
 			if(wnaf_k[i] < 0)
 			{
 				Point_XYZ_1way _P;
-				negatePoint(&_P,P);
+				negatePoint(&_P,&P);
 				_1way_full_addition_law(&R,&_P);
 			}
 			else
 			{
-				_1way_full_addition_law(&R,P);
+				_1way_full_addition_law(&R,&P);
 			}
 		}
 		/* unknown point addition */

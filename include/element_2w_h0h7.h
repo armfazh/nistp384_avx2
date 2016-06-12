@@ -10,7 +10,7 @@ typedef __m256i * argElement_2w_H0H7;
 
 void random_Element_2w_h0h7(argElement_2w_H0H7 X_Y);
 void print_Element_2w_h0h7(argElement_2w_H0H7 X_Y);
-void str_bytes_to_Element_2w_h0h7(argElement_2w_H0H7 pC, uint8_t * p8A);
+void str_bytes_To_Element_2w_h0h7(argElement_2w_H0H7 pC, uint8_t *p8A);
 void printex_Element_2w_h0h7(argElement_2w_H0H7 X_Y);
 void print_python_Element_2w_h0h7(argElement_2w_H0H7 X_Y);
 int compare_Element_2w_h0h7(argElement_2w_H0H7 X0_X1,argElement_2w_H0H7 Y0_Y1);

@@ -65,5 +65,4 @@ typedef ALIGN struct pointxytz_2w_h0h7{
 void doubling_2w_H0H7(PointXYZT_2w_H0H7 * P);
 void mixaddition_2w_H0H7(PointXYZT_2w_H0H7 *Q, PointXYZT_precompute_2w_H0H7 *P);
 void fulladdition_2w_H0H7(PointXYZT_2w_H0H7 *Q, PointXYZT_2w_H0H7 *P);
-void read_point(PointXYZT_precompute_2w_H0H7 * P, int8_t index);
 #endif /* _ECC_H_ */

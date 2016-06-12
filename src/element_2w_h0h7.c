@@ -1,6 +1,42 @@
 #include "element_2w_h0h7.h"
 #include "element_1w_h0h7.h"
 
+void str_bytes_To_Element_2w_h0h7(argElement_2w_H0H7 pC, uint8_t * p8A)
+{
+	int i;
+	const uint64_t ones28 = (((uint64_t)1)<<VECT_BASE)-1;
+	const uint64_t ones26 = (((uint64_t)1)<<26)-1;
+	const __m128i mask28 = _mm_set1_epi64x(ones28);
+	const __m128i mask26 = _mm_set1_epi64x(ones26);
+	const __m128i *p128A = (__m128i*)p8A;
+	__m128i *p128C = (__m128i*)pC;
+
+	p128C[0 ] = p128A[0];
+	p128C[2 ] = _mm_srli_epi64(p128A[0],VECT_BASE);
+	p128C[4 ] = _mm_xor_si128(_mm_srli_epi64(p128A[0],(2*VECT_BASE)),_mm_slli_epi64(p128A[1],8));
+
+	p128C[6 ] = _mm_srli_epi64(p128A[1],20);
+	p128C[8 ] = _mm_xor_si128(_mm_srli_epi64(p128A[1],(20+VECT_BASE)) , _mm_slli_epi64(p128A[2],16));
+
+	p128C[10] = _mm_srli_epi64(p128A[2],12);
+	p128C[12] = _mm_xor_si128(_mm_srli_epi64(p128A[2],(12+VECT_BASE)),_mm_slli_epi64(p128A[3],24));
+
+	p128C[1 ] = _mm_srli_epi64(p128A[3],4);
+	p128C[3 ] = _mm_srli_epi64(p128A[3],(4+VECT_BASE));
+	p128C[5 ] = _mm_xor_si128(_mm_srli_epi64(p128A[3],(4+2*VECT_BASE)),_mm_slli_epi64(p128A[4],4));
+
+	p128C[7 ] = _mm_srli_epi64(p128A[4],24);
+	p128C[9 ] = _mm_xor_si128(_mm_srli_epi64(p128A[4],(24+VECT_BASE)),_mm_slli_epi64(p128A[5],12));
+
+	p128C[11] = _mm_srli_epi64(p128A[5],16);
+	p128C[13] = _mm_srli_epi64(p128A[5],(16+VECT_BASE));
+
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		p128C[i] = _mm_and_si128(p128C[i],mask28);
+	}
+	p128C[13] = _mm_and_si128(p128C[13],mask26);
+}
 
 void interleave(argElement_2w_H0H7 C, argElement_1w_H0H7 LOW, argElement_1w_H0H7 HIGH)
 {

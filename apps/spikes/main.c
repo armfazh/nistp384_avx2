@@ -159,20 +159,16 @@ int main()
 
 #if 1 /* testing double_point mult */
 	Point_XY_1way G, Q, k0G_k1Q;
-	const int num_points = 1<<(OMEGA_STATIC-2);
-	Point_XYZ_1way TabSta[num_points];
 
 	getGenerator(&G);
 	getGenerator(&Q);
-
-	precompute_points(TabSta,&G,OMEGA_STATIC);
 	STR_BYTES k0,k1;
-
 	random_str_bytes(k0);
 	random_str_bytes(k1);
+
 	printf("k0: ");print_str_bytes(k0);
 	printf("k1: ");print_str_bytes(k1);
-	double_point_multiplication(&k0G_k1Q,k0,k1,&Q,TabSta);
+	double_point_multiplication(&k0G_k1Q,k0,k1,&Q);
 	print_Element_2w_h0h7(k0G_k1Q.XY);
 
 
