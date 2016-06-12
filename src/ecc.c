@@ -42,7 +42,7 @@ void toAffine(Point_XY_1way *aP, Point_XYZ_1way *pP)
 {
 	Element_1w_H0H7 invZ,Z;
 	Element_2w_H0H7 invZ_2w;
-	deinterleave(Z,invZ,pP->ZZ);
+	deinterleave(invZ,Z,pP->ZZ);
 	inv_Element_1w_h0h7(invZ,Z);
 	interleave(invZ_2w,invZ,invZ);
 	mul_Element_2w_h0h7(aP->XY,invZ_2w,pP->XY);

@@ -12,6 +12,7 @@ void bench_pointmul()
 	Point_XY_1way P,R;
 	Point_XYZ_1way Q;
 	Point_XYZ_1way tableA[1<<(OMEGA_DYNAMIC-2)];
+	Point_XYZ_1way TabSta[1<<(OMEGA_STATIC-2)];
 	int8_t wnaf_exp[392] = {0};
 
 	random_Element_2w_h0h7(Q.XY);
@@ -19,12 +20,12 @@ void bench_pointmul()
 	CLOCKS_RANDOM(random_str_bytes(a),wnaf(wnaf_exp,a,4));
 	CLOCKS_RANDOM(random_str_bytes(a),wnaf(wnaf_exp,a,5));
 	CLOCKS_RANDOM(random_str_bytes(a),wnaf(wnaf_exp,a,8));
-	CLOCKS(precompute_points(tableA,&P));
+	CLOCKS(precompute_points(tableA,&P,OMEGA_DYNAMIC));
 	BENCH /= 5;
 	CLOCKS_RANDOM(
 	    random_str_bytes(a);
 	    random_str_bytes(b),
-		double_point_multiplication(&P,a,b,&R);
+		double_point_multiplication(&P,a,b,&R,TabSta);
 	);
 
 }

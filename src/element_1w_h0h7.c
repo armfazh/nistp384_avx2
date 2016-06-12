@@ -366,15 +366,17 @@ void sqrn_Element_1w_h0h7(uint64_t *  C,int times)
 {
 
 }
+#define copy_Element_1w_h0h7(C,A)\
+	STORE(C+0,LOAD(A+0));\
+	STORE(C+1,LOAD(A+1));\
+	STORE(C+2,LOAD(A+2));\
+	STORE(C+3,LOAD(A+3));
+
 inline void sqr_Element_1w_h0h7(uint64_t *  C)
 {
-	int i;
-	Element_1w_H0H7 A,B;
-	for(i=0;i<NUM_WORDS_64B_NISTP384;i++)
-	{
-		A[i] = B[i] = C[i];
-	}
-	mul_Element_1w_h0h7(C,A,B);
+	Element_1w_H0H7 A;
+	copy_Element_1w_h0h7(A,C);
+	mul_Element_1w_h0h7(C,A,A);
 }
 
 inline void sqr_complex_Element_1w_h0h7(uint64_t *A)
@@ -776,80 +778,58 @@ void new_compressfast_Element_1w_h0h7(uint64_t * pA)
 	_mm_store_si128((__m128i*)pA+6,c6);
 }
 
-#define copy_Element_1w_h0h7(C,A)\
-	STORE(C+0,LOAD(A+0));\
-	STORE(C+1,LOAD(A+1));\
-	STORE(C+2,LOAD(A+2));\
-	STORE(C+3,LOAD(A+3));
 
 void inv_Element_1w_h0h7(uint64_t * __restrict pC, uint64_t * __restrict pA)
 {
-	Element_1w_H0H7 x0,x1;
-	uint64_t * T[4];
+	int i;
+	copy_Element_1w_h0h7(pC,pA);
+	for (i = 382; i > 128; i--)
+	{
+		sqr_Element_1w_h0h7(pC);
+		compress_Element_1w_h0h7(pC);
+		mul_Element_1w_h0h7(pC,pC,pA);
+		compress_Element_1w_h0h7(pC);
+	}
+	sqr_Element_1w_h0h7(pC);
+	compress_Element_1w_h0h7(pC);
+	for (i = 127; i >= 96; i--)
+	{
+		sqr_Element_1w_h0h7(pC);
+		compress_Element_1w_h0h7(pC);
+		mul_Element_1w_h0h7(pC,pC,pA);
+		compress_Element_1w_h0h7(pC);
+	}
+	for (i = 95; i >=32; i--)
+	{
+		sqr_Element_1w_h0h7(pC);
+		compress_Element_1w_h0h7(pC);
+	}
+	for (i = 31; i > 1; i--)
+	{
+		sqr_Element_1w_h0h7(pC);
+		compress_Element_1w_h0h7(pC);
+		mul_Element_1w_h0h7(pC,pC,pA);
+		compress_Element_1w_h0h7(pC);
+	}
+	sqr_Element_1w_h0h7(pC);
+	compress_Element_1w_h0h7(pC);
 
-	T[0] = x0;
-	T[1] = pC;
-	T[2] = x1;
-	T[3] = pA;
-
-	copy_Element_1w_h0h7(T[1],T[3]);
-	sqrn_Element_1w_h0h7(T[1],1);
-	mul_Element_1w_h0h7(T[1],T[1],T[3]);
-	compressfast_Element_1w_h0h7(T[1]);
-
-	copy_Element_1w_h0h7(T[0],T[1]);
-	sqrn_Element_1w_h0h7(T[0],1);
-	mul_Element_1w_h0h7(T[0],T[0],T[3]);
-	compressfast_Element_1w_h0h7(T[0]);
-
-	copy_Element_1w_h0h7(T[1],T[0]);
-	sqrn_Element_1w_h0h7(T[1],3);
-	mul_Element_1w_h0h7(T[1],T[1],T[0]);
-	compressfast_Element_1w_h0h7(T[1]);
-
-	copy_Element_1w_h0h7(T[2],T[1]);
-	sqrn_Element_1w_h0h7(T[2],6);
-	mul_Element_1w_h0h7(T[2],T[2],T[1]);
-	compressfast_Element_1w_h0h7(T[2]);
-
-	copy_Element_1w_h0h7(T[1],T[2]);
-	sqrn_Element_1w_h0h7(T[1],12);
-	mul_Element_1w_h0h7(T[1],T[1],T[2]);
-	compressfast_Element_1w_h0h7(T[1]);
-
-	sqrn_Element_1w_h0h7(T[1],3);
-	mul_Element_1w_h0h7(T[1],T[1],T[0]);
-	compressfast_Element_1w_h0h7(T[1]);
-
-	copy_Element_1w_h0h7(T[2],T[1]);
-	sqrn_Element_1w_h0h7(T[2],27);
-	mul_Element_1w_h0h7(T[2],T[2],T[1]);
-	compressfast_Element_1w_h0h7(T[2]);
-
-	copy_Element_1w_h0h7(T[1],T[2]);
-	sqrn_Element_1w_h0h7(T[1],54);
-	mul_Element_1w_h0h7(T[1],T[1],T[2]);
-	compressfast_Element_1w_h0h7(T[1]);
-
-	sqrn_Element_1w_h0h7(T[1],3);
-	mul_Element_1w_h0h7(T[1],T[1],T[0]);
-	compressfast_Element_1w_h0h7(T[1]);
-
-	copy_Element_1w_h0h7(T[2],T[1]);
-	sqrn_Element_1w_h0h7(T[2],111);
-	mul_Element_1w_h0h7(T[2],T[2],T[1]);
-	compressfast_Element_1w_h0h7(T[2]);
-
-	copy_Element_1w_h0h7(T[1],T[2]);
-	sqrn_Element_1w_h0h7(T[1],1);
-	mul_Element_1w_h0h7(T[1],T[1],T[3]);
-	compressfast_Element_1w_h0h7(T[1]);
-
-	sqrn_Element_1w_h0h7(T[1],223);
-	mul_Element_1w_h0h7(T[1],T[1],T[2]);
-	compressfast_Element_1w_h0h7(T[1]);
-
-	sqrn_Element_1w_h0h7(T[1],2);
-	mul_Element_1w_h0h7(T[1],T[1],T[3]);
-	compressfast_Element_1w_h0h7(T[1]);
+	sqr_Element_1w_h0h7(pC);
+	compress_Element_1w_h0h7(pC);
+	mul_Element_1w_h0h7(pC,pC,pA);
+	compress_Element_1w_h0h7(pC);
+	/*for (i = 382; i >= 0; i--)
+	{
+		sqr_Element_1w_h0h7(pC);
+		compress_Element_1w_h0h7(pC);
+		if( i== 128 || i== 1 || (32<=i && i<96))
+		{
+			continue;
+		}
+		else
+		{
+			mul_Element_1w_h0h7(pC,pC,pA);
+			compress_Element_1w_h0h7(pC);
+		}
+	}*/
 }

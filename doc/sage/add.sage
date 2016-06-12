@@ -180,10 +180,10 @@ def test_ecc():
 def create_table(P,OMEGA):
 	num_points = (2**(OMEGA-2))
 	T = [0]*num_points
-	_2P = doub_complete(P)
+	_2P = doub_complete_2w(P)
 	T[0] = P
 	for i in range(1,num_points):
-		T[i] = fulladd_complete(T[i-1],_2P)
+		T[i] = fulladd_complete_2w(T[i-1],_2P)
 	return T
 
 
@@ -192,53 +192,58 @@ def wnaf(k,w):
 	mods = lambda d,w :d if d<2**(w-1) else d-2**(w)
 	while(k>0):
 		if k%2 == 1:
-			d = k%(2**w)
-			E += [ mods(d,w) ]
+			digit = mods(k%2**w,w)
+			k -= digit
+			E += [ digit ]
 		else:
 			E += [0]
 		k>>=1;
 	return E
 
-def double_pmul(k0,w0,P,OMEGA_DYN,k1,w1,TabSta):
+def double_pmul(k0,w0,P,k1,w1,TabSta):
 	K0 = wnaf(k0,w0)
 	K1 = wnaf(k1,w1)
 	K0 += [0]*(len(K1)-len(K0))
 	K1 += [0]*(len(K0)-len(K1))
 	Q = [Fp(0),Fp(1),Fp(0)]
-	TabDyn = create_table(P,OMEGA_DYN)
+	TabDyn = create_table(P,w1)
 	for d0,d1 in reversed(zip(K0,K1)):
-		Q = doub_complete(Q)
+		Q = doub_complete_2w(Q)
 		if d0 != 0:
 			R = deepcopy(TabDyn[abs(d0)>>1])
 			if d0 < 0:
 				R[1] = -R[1]
-			Q = fulladd_complete(Q,R)
+			Q = fulladd_complete_2w(Q,R)
 		if d1 != 0:
 			R = deepcopy(TabSta[abs(d1)>>1])
 			if d1 < 0:
 				R[1] = -R[1]
-			Q = fulladd_complete(Q,R)
+			Q = fulladd_complete_2w(Q,R)
 	return Q
+def inv(a):
+	c = deepcopy(a)
+	for i in reversed(range(383)):
+		c = (c**2)#%p
+		if i==128 or i==1 or (32<=i<96):
+			continue
+		else:
+			c = (c*a)#%p
+	return c
 
+def testing_double_pmul():
+	global ecc_order,Gx,Gy
+	OMEGA_DYN = 4
+	OMEGA_STA = 4
+	k0 = randrange(ecc_order)
+	k1 = randrange(ecc_order)
+	G = E([ Gx,Gy,Fp(1) ])
+	P = G#E.random_point()
+	TabSta = create_table([Gx,Gy,Fp(1)],OMEGA_STA)
+	projQ = double_pmul(k0,OMEGA_STA,list(P),k1,OMEGA_DYN,TabSta)
+	Q = Proy_to_Affine(projQ)
 
-#def testing_double_pmul():
-#global ecc_order,Gx,Gy
-OMEGA_DYN = 4
-OMEGA_STA = 4
-w0 = 4
-w1 = 4
-k0 = 1#randrange(ecc_order)
-k1 = 1#randrange(ecc_order)
-G = E([ Gx,Gy,Fp(1) ])
-P = 18*G
-TabSta = create_table([Gx,Gy,Fp(1)],OMEGA_STA)
-projQ = double_pmul(k0,w0,list(P),OMEGA_DYN,k1,w1,TabSta)
-Q = Proy_to_Affine(projQ)
-print(Q)
-
-R = k0*P+k1*G
-print(R)
-#print(R[0]==aQ[0] and R[1]==aQ[1])
+	R = k0*P+k1*G
+	return R[0]==Q[0] and R[1]==Q[1]
 	
 	
 
@@ -247,6 +252,7 @@ print(R)
 
 print("Testing: add.sage")
 print("ecc: {0}".format(test_ecc()))
+print("double_pmul: {0}".format(testing_double_pmul()))
 
 
 

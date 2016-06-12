@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdio.h>
 #include "pointmul.h"
 #include "table_sign.h"
 #include "table_verif.h"
@@ -362,9 +363,9 @@ void fixed_point_multiplication(Point_XY_1way* kP, uint8_t *k)
 	fixed_point_multiplication_fold2w4(kP,k);
 }
 
-void precompute_points(Point_XYZ_1way * table, Point_XY_1way * P)
+void precompute_points(Point_XYZ_1way * table, Point_XY_1way * P,const int OMEGA)
 {
-	const int num = (1<<(OMEGA_DYNAMIC-2));
+	const int num = (1<<(OMEGA-2));
 	int i=0;
 	Point_XYZ_1way _2P;
 	toProjective(&_2P,P);
@@ -373,75 +374,73 @@ void precompute_points(Point_XYZ_1way * table, Point_XY_1way * P)
 
 	for(i=1;i<num;i++)
 	{
-		memcpy(&table[i],&table[i-1],sizeof(Element_1w_H0H7 ));
+		memcpy(&table[i],&table[i-1],sizeof(Point_XYZ_1way));
 		_1way_full_addition_law(&table[i],&_2P);
 	}
 }
 
-void double_point_multiplication(Point_XY_1way * kP_lQ, uint8_t *k, uint8_t *l, Point_XY_1way * A)
+void double_point_multiplication(
+		Point_XY_1way * kP_lQ,
+		uint8_t *k, uint8_t *l,
+		Point_XY_1way * Q,
+		Point_XYZ_1way * TabSta)
 {
 	int i;
 	int8_t wnaf_k[392] = {0};
 	int8_t wnaf_l[392] = {0};
 
-	Point_XYZ_1way Q;
-	Point_XYZ_1way tableA[1<<(OMEGA_DYNAMIC-2)];
+	Point_XYZ_1way R;
+	Point_XYZ_1way TabDynamic[1<<(OMEGA_DYNAMIC-2)];
 
 	int T_k = wnaf(wnaf_k,k, OMEGA_STATIC);
 	int T_l = wnaf(wnaf_l,l, OMEGA_DYNAMIC);
 	int T = T_l > T_k ? T_l : T_k;
 
-
-	precompute_points(tableA,A);
+	precompute_points(TabDynamic,Q,OMEGA_DYNAMIC);
 
 	/* Set Identity */
-	getIdentityProj(&Q);
+	getIdentityProj(&R);
 	for(i=T;i>=0;i--)
 	{
-		_1way_doubling(&Q);
+		_1way_doubling(&R);
 		/* known point addition */
-//			printf("i:j:%d w_r:%d\n",l-4-i,wnaf_r[i]);
 		if(wnaf_k[i] != 0)
 		{
-			Point_XYZ_1way P;
-			//read_point(&P,wnaf_k[i]);
-//			printf("\tsubadd: ");print_Element_2w_h0h7(P.subaddYX);
-//			printf("\t_2dT2Z: ");print_Element_2w_h0h7(P._2dT_2Z);
-			_1way_full_addition_law(&Q,&P);
+			uint8_t abs_index_k = wnaf_k[i]> 0 ? wnaf_k[i]: -wnaf_k[i];
+			abs_index_k >>= 1;
+			Point_XYZ_1way * P = &TabSta[abs_index_k];
+			if(wnaf_k[i] < 0)
+			{
+				Point_XYZ_1way _P;
+				negatePoint(&_P,P);
+				_1way_full_addition_law(&R,&_P);
+			}
+			else
+			{
+				_1way_full_addition_law(&R,P);
+			}
 		}
-
-//			printf("i:%d w_h:%d\n",i,wnaf_h[i]);
 		/* unknown point addition */
 		if(wnaf_l[i] != 0)
 		{
 			uint8_t abs_index_h = wnaf_l[i]> 0 ? wnaf_l[i]: -wnaf_l[i];
 			abs_index_h >>= 1;
-//				printf("h_indx:%d\n",abs_index_h);
-			Point_XYZ_1way * P = &tableA[abs_index_h];
+			Point_XYZ_1way * P = &TabDynamic[abs_index_h];
 			if(wnaf_l[i] < 0)
 			{
-//					printf("\tsubadd: ");print_Element_2w_h0h7(_P.subaddYX);
-//					printf("\t_2dT2Z: ");print_Element_2w_h0h7(_P._2dT_2Z);
 				Point_XYZ_1way _P;
 				negatePoint(&_P,P);
-				_1way_full_addition_law(&Q,&_P);
+				_1way_full_addition_law(&R,&_P);
 			}
 			else
 			{
-//					printf("\tsubadd: ");print_Element_2w_h0h7(P->subaddYX);
-//					printf("\t_2dT2Z: ");print_Element_2w_h0h7(P->_2dT_2Z);
-				_1way_full_addition_law(&Q,P);
+				_1way_full_addition_law(&R,P);
 			}
 		}
-//			printf("\tQ->XY: ");print_Element_2w_h0h7(Q.XY);
-//			printf("\tQ->TZ: ");print_Element_2w_h0h7(Q.TZ);
-//			if(i==l-4-21)
-//				break;
 	}
-//	printf("\tQ->XY: ");print_Element_2w_h0h7(Q.XY);
-//	printf("\tQ->TZ: ");print_Element_2w_h0h7(Q.TZ);
-
+//	printf("R.XY:\n");print_Element_2w_h0h7(R.XY);
+//	printf("R.ZZ:\n");print_Element_2w_h0h7(R.ZZ);
 	/* convert to affine coordinates */
-	toAffine(kP_lQ,&Q);
+	toAffine(kP_lQ,&R);
 }
 

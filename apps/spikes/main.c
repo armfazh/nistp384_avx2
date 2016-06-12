@@ -61,6 +61,10 @@ int main()
 //	sizes_Element_1w_h0h7(c);
 //	print_Element_1w_h0h7(c);
 
+	inv_Element_1w_h0h7(c,a);
+	print_Element_1w_h0h7(c);
+
+
 #endif
 
 #if 0 /* === Element 2w ===  */
@@ -85,7 +89,7 @@ int main()
 #endif
 
 
-#if 1 /* 1way ecc-operations  */
+#if 0 /* 1way ecc-operations  */
 	Point_XY_1way G;
 	Point_XYZ_1way pP,pQ;
 
@@ -135,5 +139,44 @@ int main()
 	}
 	printf("]\n");
 #endif
+
+#if 0 /* testing precompute */
+
+	Point_XY_1way P;
+	const int num_points = 1<<(OMEGA_DYNAMIC-2);
+	Point_XYZ_1way Tab[num_points];
+
+	getGenerator(&P);
+
+	precompute_points(Tab,&P);
+	for(i<0;i<num_points;i++)
+	{
+		printf("%d:\n",2*i+1);
+		print_Element_2w_h0h7(Tab[i].XY);
+		print_Element_2w_h0h7(Tab[i].ZZ);
+	}
+#endif
+
+#if 1 /* testing double_point mult */
+	Point_XY_1way G, Q, k0G_k1Q;
+	const int num_points = 1<<(OMEGA_STATIC-2);
+	Point_XYZ_1way TabSta[num_points];
+
+	getGenerator(&G);
+	getGenerator(&Q);
+
+	precompute_points(TabSta,&G,OMEGA_STATIC);
+	STR_BYTES k0,k1;
+
+	random_str_bytes(k0);
+	random_str_bytes(k1);
+	printf("k0: ");print_str_bytes(k0);
+	printf("k1: ");print_str_bytes(k1);
+	double_point_multiplication(&k0G_k1Q,k0,k1,&Q,TabSta);
+	print_Element_2w_h0h7(k0G_k1Q.XY);
+
+
+#endif
 	return 0*i;
+
 }
