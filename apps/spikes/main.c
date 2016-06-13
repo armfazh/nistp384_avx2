@@ -140,6 +140,27 @@ int main()
 	printf("]\n");
 #endif
 
+#if 1  /* testing recoding */
+	STR_BYTES a;
+	ALIGN int8_t exp[392];
+	int len;
+
+	random_str_bytes(a);
+	for(i=0;i<SIZE_STR_BYTES;i++)
+	{
+		exp[i] = 0;
+	}
+	print_str_bytes(a);
+	len = recoding(exp,a,OMEGA_FIXED);
+	printf("[");
+	for(i=0;i<len;i++)
+	{
+		printf("%d, ",exp[i]);
+		if (i%8==7)printf("\n");
+	}
+	printf("]\n");
+#endif
+
 #if 0 /* testing precompute */
 
 	Point_XY_1way P;
@@ -157,7 +178,7 @@ int main()
 	}
 #endif
 
-#if 1 /* testing double_point mult */
+#if 0 /* testing double_point mult */
 	Point_XY_1way G, Q, k0G_k1Q;
 
 	getGenerator(&G);
@@ -170,7 +191,6 @@ int main()
 	printf("k1: ");print_str_bytes(k1);
 	double_point_multiplication(&k0G_k1Q,k0,k1,&Q);
 	print_Element_2w_h0h7(k0G_k1Q.XY);
-
 
 #endif
 	return 0*i;

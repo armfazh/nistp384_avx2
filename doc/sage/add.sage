@@ -186,6 +186,16 @@ def create_table(P,OMEGA):
 		T[i] = fulladd_complete_2w(T[i-1],_2P)
 	return T
 
+def recoding(k,w):
+	t = int(ceil(log(k,2)/(w-1)))
+	print(t)
+	E = []
+	for i in range(t):
+		digit = (k%2**w)-2**(w-1)
+		k = (k-digit)>>(w-1)
+		E += [ digit ]
+	E += [ k ]
+	return E
 
 def wnaf(k,w):
 	E = []
@@ -261,6 +271,17 @@ def toC_interleaved(numA,numB,word_size):
 	wB = toWords(numB,word_size)
 	return ",".join([ "0x{num:0{width}x}".format(num=nn,width=word_size>>2) for n in zip(wA,wB) for nn in n ])
 
+def print_tableSta():
+	G = E([Gx,Gy,Fp(1)])
+	OMEGA_STA = 7
+	for i in range(1<<(OMEGA_STA-2)):
+		P = (2*i+1)*G
+		print("/* {0}*G */".format(2*i+1))
+		#print("{0},".format(toC_interleaved(int(P[0]),int(P[1]),64)))
+		print("{0},".format(toC(int(P[0]),64)))
+		print("{0},".format(toC(int(P[1]),64)))
+
+
 ##################
 # Main
 
@@ -268,11 +289,3 @@ print("Testing: add.sage")
 print("ecc: {0}".format(test_ecc()))
 print("double_pmul: {0}".format(testing_double_pmul()))
 
-G = E([Gx,Gy,Fp(1)])
-OMEGA_STA = 7
-for i in range(1<<(OMEGA_STA-2)):
-	P = (2*i+1)*G
-	print("/* {0}*G */".format(2*i+1))
-	#print("{0},".format(toC_interleaved(int(P[0]),int(P[1]),64)))
-	print("{0},".format(toC(int(P[0]),64)))
-	print("{0},".format(toC(int(P[1]),64)))

@@ -1,5 +1,5 @@
 #include <string.h>
-#include <stdio.h>
+#include <math.h>
 #include "pointmul.h"
 #include "table_sign.h"
 #include "table_verif.h"
@@ -205,19 +205,19 @@ void query_table(Point_XY_2way *P, const uint8_t * table,uint64_t * secret_signs
 	||	(r[0]>=(uint64_t)1)      \
 )
 #define is_odd(r) ((r[0]&0x1)==1)
-#define div_2(r) \
+#define rightshift_bits(r,bits) \
 {\
-    uint64_t bit5 = r[5]<<63;\
-    uint64_t bit4 = r[4]<<63;\
-    uint64_t bit3 = r[3]<<63;\
-    uint64_t bit2 = r[2]<<63;\
-    uint64_t bit1 = r[1]<<63;\
-    r[5] = (r[5]>>1);\
-    r[4] = (r[4]>>1) | bit5;\
-    r[3] = (r[3]>>1) | bit4;\
-    r[2] = (r[2]>>1) | bit3;\
-    r[1] = (r[1]>>1) | bit2;\
-    r[0] = (r[0]>>1) | bit1;\
+    uint64_t bit5 = r[5]<<(64-(bits));\
+    uint64_t bit4 = r[4]<<(64-(bits));\
+    uint64_t bit3 = r[3]<<(64-(bits));\
+    uint64_t bit2 = r[2]<<(64-(bits));\
+    uint64_t bit1 = r[1]<<(64-(bits));\
+    r[5] = (r[5]>>(bits));\
+    r[4] = (r[4]>>(bits)) | bit5;\
+    r[3] = (r[3]>>(bits)) | bit4;\
+    r[2] = (r[2]>>(bits)) | bit3;\
+    r[1] = (r[1]>>(bits)) | bit2;\
+    r[0] = (r[0]>>(bits)) | bit1;\
 }
 #define SUB384(b,sign,value)                   \
 	__asm__ __volatile__ (                     \
@@ -261,10 +261,82 @@ int wnaf(int8_t * K,const uint8_t *p8_r, int w)
 			value = 0;
 		}
 		K[i] = (int8_t)(value&0xFF);
-		div_2(r);
+		rightshift_bits(r,1);
 		i++;
 	}
 	return i;
+}
+
+int recoding(int8_t * K,const uint8_t *p8_r, const int w)
+{
+	int i, t;
+	int64_t digit,sign;
+	ALIGN uint64_t r[6];
+
+	t = (int)ceil((SIZE_STR_BYTES*8)/(float)(w-1));
+	for(i=0;i<6;i++)
+	{
+		r[i] = ((uint64_t*)p8_r)[i];
+	}
+	for(i=0;i<t;i++)
+	{
+		digit = r[0] & (((uint64_t)1<<w)-1);
+		digit -= ((uint64_t)1<<(w-1));
+		sign = digit>>63;
+		K[i] = (int8_t)(digit&0xFF);
+		SUB384(r,sign,digit);
+		rightshift_bits(r,w-1);
+	}
+	K[i++] = r[0];
+	return i;
+}
+void read_point_protected(Point_XYZ_1way * P,int8_t index,Point_XYZ_1way * Table)
+{
+	Point_XYZ_1way _Q;
+	uint64_t i,j,num_points,abs_index;
+	num_points = 1<<(OMEGA_FIXED-2);
+	abs_index = index<0?-index:index;
+	abs_index >>=1;
+	for(i=0;i<num_points;i++)
+	{
+		uint64_t bit = (i^abs_index)-1;
+		__m256i mask = _mm256_set1_epi64x(bit);
+		for(j=0;j<NUM_WORDS_128B_NISTP384;j++)
+		{
+			P->XY[j] = XOR(P->XY[j],AND(Table[i].XY[j],mask));
+			P->ZZ[j] = XOR(P->ZZ[j],AND(Table[i].ZZ[j],mask));
+		}
+	}
+	negatePoint(&_Q,P);
+	int64_t bit = ((int64_t)index)>>63;
+	__m256i mask = _mm256_set1_epi64x(bit);
+	for(j=0;j<NUM_WORDS_128B_NISTP384;j++)
+	{
+		P->XY[j] = XOR(P->XY[j], AND(_Q.XY[j], mask));
+	}
+}
+
+void variable_point_multiplication(
+		Point_XY_1way * kP,
+		uint8_t *k,
+		Point_XY_1way * P)
+{
+	int8_t L[80];
+	int len,i,j;
+	Point_XYZ_1way Q,R;
+	Point_XYZ_1way Table[1<<(OMEGA_FIXED-2)];
+	len = recoding(L,k,OMEGA_FIXED);
+	precompute_points(Table,P,OMEGA_FIXED);
+	getIdentityProj(&Q);
+	for(i=len-1;i>=0;i--)
+	{
+		for(j=0;j<(OMEGA_FIXED-1);j++)
+			_1way_doubling(&Q);
+	//	read_point_protected(&R,L[i],Table);
+		_1way_full_addition_law(&Q,&R);
+	}
+	/* convert to affine coordinates */
+	toAffine(kP,&Q);
 }
 
 
