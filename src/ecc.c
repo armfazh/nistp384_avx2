@@ -63,6 +63,7 @@ void negatePoint(Point_XYZ_1way*_pP,Point_XYZ_1way*pP)
 {
 	int i;
 	Element_1w_H0H7 X,Y;
+
 	deinterleave(X,Y,pP->XY);
 	neg_Element_1w_h0h7(Y);
 	compress_Element_1w_h0h7(Y);
@@ -244,6 +245,7 @@ void _1way_full_addition_law(Point_XYZ_1way * Q, Point_XYZ_1way *P)
 		p1q2[i] = BLEND32(p1q1[i],p2q2[i],0xF0);
 	}
 	sub_Element_2w_h0h7(lBrB,p1q2,lArA);
+
 //	printf("\tl9r9:\n");print_Element_2w_h0h7(l9r9);
 //	printf("\tlArA:\n");print_Element_2w_h0h7(lArA);
 //	printf("\tlBrB:\n");print_Element_2w_h0h7(lBrB);

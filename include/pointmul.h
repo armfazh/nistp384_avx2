@@ -16,6 +16,7 @@ void query_table(Point_XY_2way *P, const uint8_t * table,uint64_t * secret_signs
 void fixed_point_multiplication(Point_XY_1way* kP, uint8_t *k);
 
 #define OMEGA_FIXED 6
+void read_point_protected(Point_XYZ_1way * P,int8_t index,Point_XYZ_1way * Table);
 void variable_point_multiplication(
 		Point_XY_1way * kP,
 		uint8_t *k,

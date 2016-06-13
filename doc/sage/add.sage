@@ -63,7 +63,7 @@ def add_short(Q,P):
 
 #Returns 2P
 # (EFD) dbl-2004-hmv
-# 2004 Hankerson–Menezes–Vanstone, page 91.
+# 2004 Hankerson-Menezes-Vanstone, page 91.
 def doub_short(P):
 	X1,Y1,Z1 = P
 	half = Fp(1)/Fp(2)
@@ -188,7 +188,6 @@ def create_table(P,OMEGA):
 
 def recoding(k,w):
 	t = int(ceil(log(k,2)/(w-1)))
-	print(t)
 	E = []
 	for i in range(t):
 		digit = (k%2**w)-2**(w-1)
@@ -196,6 +195,26 @@ def recoding(k,w):
 		E += [ digit ]
 	E += [ k ]
 	return E
+
+def variable_pmul(k,w,P):
+    L = recoding(k,w)
+    Tab = create_table(P,w)
+    d = L[-1]
+    Q = deepcopy(Tab[abs(d)>>1])
+    if d < 0:
+        Q[1] = -Q[1]
+    for i in reversed(range(len(L)-1)):
+        d = L[i]
+        print(i,d)
+        print([hex(int(x)) for x in Q])
+        for j in range(w-1):
+            Q = doub_complete_2w(Q)
+        R = deepcopy(Tab[abs(d)>>1])
+        if d < 0:
+			R[1] = -R[1]
+        Q = fulladd_complete_2w(Q,R)
+    print(Q)
+    return Q
 
 def wnaf(k,w):
 	E = []
@@ -230,6 +249,7 @@ def double_pmul(k0,w0,P,k1,w1,TabSta):
 				R[1] = -R[1]
 			Q = fulladd_complete_2w(Q,R)
 	return Q
+
 def inv(a):
 	c = deepcopy(a)
 	for i in reversed(range(383)):
@@ -239,6 +259,9 @@ def inv(a):
 		else:
 			c = (c*a)#%p
 	return c
+
+def testing_variable_pmul():
+	pass
 
 def testing_double_pmul():
 	global ecc_order,Gx,Gy
@@ -286,6 +309,17 @@ def print_tableSta():
 # Main
 
 print("Testing: add.sage")
-print("ecc: {0}".format(test_ecc()))
-print("double_pmul: {0}".format(testing_double_pmul()))
+#print("ecc: {0}".format(test_ecc()))
+#print("double_pmul: {0}".format(testing_double_pmul()))
+#print("double_pmul: {0}".format(testing_variable_pmul()))
+
+OMEGA_FIXED_VAR = 6
+k = randrange(ecc_order)
+k = 0xd45ee95817055d255aa35831b70d32669ac99f33632e5a768de7e81bf854c27c46e3fbf2abbacd29ec4aff517369c667
+G = E([ Gx,Gy,Fp(1) ])
+projQ = variable_pmul(k,OMEGA_FIXED_VAR,list(G))
+Q = Proy_to_Affine(projQ)
+
+R = k*G
+print(R[0]==Q[0] and R[1]==Q[1])
 

@@ -140,7 +140,7 @@ int main()
 	printf("]\n");
 #endif
 
-#if 1  /* testing recoding */
+#if 0  /* testing recoding */
 	STR_BYTES a;
 	ALIGN int8_t exp[392];
 	int len;
@@ -178,6 +178,44 @@ int main()
 	}
 #endif
 
+#if 0 /* reading point protected */
+
+	Point_XY_1way P;
+	Point_XYZ_1way Q, Tab[1<<(OMEGA_FIXED-2)];
+	int num_points= 1<<(OMEGA_FIXED-2);
+
+	getGenerator(&P);
+	precompute_points(Tab,&P,OMEGA_FIXED);
+//	for(i=0;i<num_points;i++)
+//	{
+//		printf("%dP\n",2*i+1);
+//		print_Element_2w_h0h7(Tab[i].XY);
+//		print_Element_2w_h0h7(Tab[i].ZZ);
+//	}
+	int index = 1;
+	printf("%dP\n",index);
+	read_point_protected(&Q,index,Tab);
+	print_Element_2w_h0h7(Q.XY);
+	print_Element_2w_h0h7(Q.ZZ);
+	index = -1;
+	printf("%dP\n",index);
+	read_point_protected(&Q,index,Tab);
+	print_Element_2w_h0h7(Q.XY);
+	print_Element_2w_h0h7(Q.ZZ);
+#endif
+
+#if 1 /* testing variable point mult */
+	Point_XY_1way P, kP;
+	getGenerator(&P);
+
+	STR_BYTES k;
+	random_str_bytes(k);k[0]--;
+	print_str_bytes(k);
+	variable_point_multiplication(&kP,k,&P);
+	printf("kP: \n");print_Element_2w_h0h7(kP.XY);
+
+#endif
+
 #if 0 /* testing double_point mult */
 	Point_XY_1way G, Q, k0G_k1Q;
 
@@ -193,6 +231,8 @@ int main()
 	print_Element_2w_h0h7(k0G_k1Q.XY);
 
 #endif
+
+
 	return 0*i;
 
 }
