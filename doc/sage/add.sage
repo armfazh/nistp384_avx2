@@ -324,17 +324,66 @@ print("Testing: add.sage")
 #print("double_pmul: {0}".format(testing_double_pmul()))
 #print("double_pmul: {0}".format(testing_variable_pmul()))
 
+def toBin(x):
+	return map(int,list(bin(x)[2:][::-1]))
 
-X1 = Fp(0x5a90d91c792a0df5b3119d33b04f3b78ffc4801ab6f69f28bdb9ac13575d4ed3bbb3581c37cb66b262033ad05503945f)
-Y1 = Fp(0x39675b92f4ca941ee06a89d984138876d1705825f0e6b46db7a4bd2803bca0d507876cef7fb9da703a168644b8d43d6e)
-Z1 = Fp(1)
-X2 = Fp(0x8a313cae9260184b2517d821c1e6a08b81d4ff1fe2c57f1975eec03a2e90cf0ae0313adba1d1e428338ba0aefce01b63)
-Y2 = Fp(0x7f4c2891af8d24b72a2ca836855e3156194f97e444f3d095280643487940c337dde36fff77f79bfa485c79974c869d16)
-Z2 = Fp(1)
+def mlsb_set_table(w,v):
+	e = ceil(t/(v*w))
+	Tab = [0]*2**(w-1)
+	for i in range(2**(w-1)):
+		Tab[i] = [0]*v
+		bin_i = toBin(i)
+		pad = [0]*(w-1-len(bin_i))
+		bin_i += pad 
+		for j in range(v):
+			Tab[i][j] = 2**(e*j)*sum([1] + [ bin_i[k]*2**((k+1)*d) for k in range(w-1) ])
+	return Tab
 
-P = [X1,Y1,Z1]
-Q = [X2,Y2,Z2]
-for i in range(100):
-	P = fulladd_complete_2w(P,Q)
-for i in P:
-	print(hex(int(i)))
+def mlsb_set(n,w,v,t):
+	e = ceil(t/(v*w))
+	d = e*v
+	l = d*w
+	pad = d*w-t
+	k = toBin(n)+[0]*pad
+	
+	bits = [0]*l
+	bits[d-1] = 1
+	for i in range(d-1):
+		bits[i] = 2*int(k[i+1])-1
+	c = floor(n/2**d)
+	for i in range(d,l):
+		bits[i] = bits[i%d]*(c%2)
+		c = floor(c/2)-floor(bits[i]/2)
+	K = bits+[c]
+	T = [0]*v
+	S = [0]*v
+	for i in range(v):
+		T[i] = [0]*e
+		S[i] = [0]*e
+		for j in range(e):
+			T[i][j] = abs(sum([ K[(m+1)*d+e*i+j]*2**m  for m in range(0,w-1)  ]))
+			S[i][j] = K[e*i+j]
+	return K,T,S
+
+def eval_mlsb_set(w,v,t,T,S,Tab):
+	e = ceil(t/(v*w))
+	n = 0
+	for i in reversed(range(0,e)):
+		n = 2*n
+		for j in range(0,v):
+			n = n + S[j][i]*Tab[T[j][i]][j]
+	return n
+	
+
+w = 7
+v = 6
+t = 120
+Tab = mlsb_set_table(w,v)
+
+for _ in range(10000):
+	n = randrange(2**t)
+	n += n%2==0 
+	K,T,S = mlsb_set(n,w,v,t)
+	b = eval_mlsb_set(w,v,t,T,S,Tab)
+	assert n==b
+
