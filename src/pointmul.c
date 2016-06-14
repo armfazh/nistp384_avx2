@@ -328,28 +328,27 @@ void read_point_protected(Point_XYZ_1way * P,int8_t index,Point_XYZ_1way * Table
  */
 #define SUB384_words(c,a,b)                     \
 	__asm__ __volatile__ (                      \
-		"movq	0+%1, %%rax   \n\t"            \
-		"movq	8+%1, %%rcx   \n\t"            \
-		"movq  16+%1, %%rdx   \n\t"            \
-		"movq  24+%1, %%r8    \n\t"            \
-		"movq  32+%1, %%r9    \n\t"            \
-		"movq  40+%1, %%r10   \n\t"            \
-		"subq   0+%2, %%rax   \n\t"            \
-		"sbbq   8+%2, %%rcx   \n\t"            \
-		"sbbq  16+%2, %%rdx   \n\t"            \
-		"sbbq  24+%2, %%r8    \n\t"            \
-		"sbbq  32+%2, %%r9    \n\t"            \
-		"sbbq  40+%2, %%r10   \n\t"            \
-		"movq  %%rax,  0+%0   \n\t"            \
-		"movq  %%rcx,  8+%0   \n\t"            \
-		"movq  %%rdx, 16+%0   \n\t"            \
-		"movq  %%r8 , 24+%0   \n\t"            \
-		"movq  %%r9 , 32+%0   \n\t"            \
-		"movq  %%r10, 40+%0   \n\t"            \
-		: "=o"(c)                               \
-		:  "o"(a), "o"(b)                       \
-        : "cc","%rax","%rcx","%r8",             \
-          "%r9","%r10","%rdx","memory")
+		"movq	(%1), %%rax   \n\t"         \
+		"subq   (%2), %%rax   \n\t"         \
+		"movq  %%rax,   (%0)    \n\t"         \
+		"movq  8(%1), %%rax   \n\t"         \
+		"sbbq  8(%2), %%rax   \n\t"         \
+		"movq  %%rax,  8(%0)   \n\t"         \
+		"movq 16(%1), %%rax   \n\t"         \
+		"sbbq 16(%2), %%rax   \n\t"         \
+		"movq  %%rax, 16(%0)   \n\t"         \
+		"movq 24(%1), %%rax   \n\t"         \
+		"sbbq 24(%2), %%rax   \n\t"         \
+		"movq  %%rax, 24(%0)   \n\t"         \
+		"movq 32(%1), %%rax   \n\t"         \
+		"sbbq 32(%2), %%rax   \n\t"         \
+		"movq  %%rax, 32(%0)   \n\t"         \
+		"movq 40(%1), %%rax   \n\t"         \
+		"sbbq 40(%2), %%rax   \n\t"         \
+		"movq  %%rax, 40(%0)   \n\t"         \
+		:                            \
+		: "r"(c), "r"(a), "r"(b)                   \
+        : "cc","%rax","memory")
 void variable_point_multiplication(
 		Point_XY_1way * kP,
 		uint8_t *k,
@@ -358,25 +357,22 @@ void variable_point_multiplication(
 	int8_t L[80];
 	int len,i,j;
 	uint64_t _k[6];
-	Point_XYZ_1way Q,R;
+	Point_XYZ_1way _Q,Q,R;
 	Point_XYZ_1way Table[1<<(OMEGA_FIXED-2)];
-	uint64_t * const  p64k = (uint64_t*)k;
+	uint64_t * p64k = (uint64_t*)k;
 
 	const uint64_t ecc_order[6] = {
 			0xecec196accc52973,0x581a0db248b0a77a,
 			0xc7634d81f4372ddf,0xffffffffffffffff,
 			0xffffffffffffffff,0xffffffffffffffff
 	};
-	SUB384_words(_k,ecc_order,p64k);
 	uint64_t mask = -(p64k[0]&0x1);
-//	for(i=0;i<6;i++)
-//	{
-//		p64k[i] = (mask&(_k[i]^p64k[i]))^_k[i];
-//	}
-	print_str_bytes(k);
-	print_str_bytes(ecc_order);
-	print_str_bytes(_k);
-	len = recoding(L,k,OMEGA_FIXED);
+	SUB384_words(_k,ecc_order,p64k);
+	for(i=0;i<6;i++)
+	{
+		_k[i] = (p64k[i]&mask)^(_k[i]&(~mask));
+	}
+	len = recoding(L,_k,OMEGA_FIXED);
 	precompute_points(Table,P,OMEGA_FIXED);
 	read_point_protected(&Q,L[len-1],Table);
 	for(i=len-2;i>=0;i--)
@@ -387,6 +383,12 @@ void variable_point_multiplication(
 		}
 		read_point_protected(&R,L[i],Table);
 		_1way_full_addition_law(&Q,&R);
+	}
+	negatePoint(&_Q,&Q);
+	__m256i vmask = _mm256_set1_epi64x(mask);
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		Q.XY[i] = XOR(AND(vmask,Q.XY[i]),ANDNOT(vmask,_Q.XY[i]));
 	}
 	/* convert to affine coordinates */
 	toAffine(kP,&Q);

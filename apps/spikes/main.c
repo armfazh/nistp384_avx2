@@ -209,8 +209,14 @@ int main()
 	getGenerator(&P);
 
 	STR_BYTES k;
-	random_str_bytes(k);k[0]--;
-	print_str_bytes(k);
+	random_str_bytes(k);
+	printf("k: \n");print_str_bytes(k);
+	variable_point_multiplication(&kP,k,&P);
+	printf("kP: \n");print_Element_2w_h0h7(kP.XY);
+
+	random_str_bytes(k);
+	random_str_bytes(k);
+	printf("k: \n");print_str_bytes(k);
 	variable_point_multiplication(&kP,k,&P);
 	printf("kP: \n");print_Element_2w_h0h7(kP.XY);
 
