@@ -11,6 +11,7 @@ typedef ALIGN struct point_projective_2way{
 	Element_2w_H0H7 Y;
 	Element_2w_H0H7 Z;
 } Point_XYZ_2way;
+
 typedef ALIGN struct point_affine_2way{
 	Element_2w_H0H7 X;
 	Element_2w_H0H7 Y;

@@ -260,8 +260,19 @@ def inv(a):
 			c = (c*a)#%p
 	return c
 
-def testing_variable_pmul():
+def testing_fixed_pmul():
 	pass
+	
+def testing_variable_pmul():
+	global ecc_order,Gx,Gy,E
+	OMEGA_FIXED_VAR = 6
+	k = randrange(ecc_order)
+	G = E([ Gx,Gy,Fp(1) ])
+	projQ = variable_pmul(k,OMEGA_FIXED_VAR,list(G))
+	Q = Proy_to_Affine(projQ)
+	R = k*G
+	print(R[0]==Q[0] and R[1]==Q[1])
+
 
 def testing_double_pmul():
 	global ecc_order,Gx,Gy
@@ -313,13 +324,17 @@ print("Testing: add.sage")
 #print("double_pmul: {0}".format(testing_double_pmul()))
 #print("double_pmul: {0}".format(testing_variable_pmul()))
 
-OMEGA_FIXED_VAR = 6
-k = randrange(ecc_order)
-k = 0xd45ee95817055d255aa35831b70d32669ac99f33632e5a768de7e81bf854c27c46e3fbf2abbacd29ec4aff517369c667
-G = E([ Gx,Gy,Fp(1) ])
-projQ = variable_pmul(k,OMEGA_FIXED_VAR,list(G))
-Q = Proy_to_Affine(projQ)
 
-R = k*G
-print(R[0]==Q[0] and R[1]==Q[1])
+X1 = Fp(0x5a90d91c792a0df5b3119d33b04f3b78ffc4801ab6f69f28bdb9ac13575d4ed3bbb3581c37cb66b262033ad05503945f)
+Y1 = Fp(0x39675b92f4ca941ee06a89d984138876d1705825f0e6b46db7a4bd2803bca0d507876cef7fb9da703a168644b8d43d6e)
+Z1 = Fp(1)
+X2 = Fp(0x8a313cae9260184b2517d821c1e6a08b81d4ff1fe2c57f1975eec03a2e90cf0ae0313adba1d1e428338ba0aefce01b63)
+Y2 = Fp(0x7f4c2891af8d24b72a2ca836855e3156194f97e444f3d095280643487940c337dde36fff77f79bfa485c79974c869d16)
+Z2 = Fp(1)
 
+P = [X1,Y1,Z1]
+Q = [X2,Y2,Z2]
+for i in range(100):
+	P = fulladd_complete_2w(P,Q)
+for i in P:
+	print(hex(int(i)))

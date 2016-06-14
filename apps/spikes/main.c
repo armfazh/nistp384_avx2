@@ -2,6 +2,7 @@
 #include <str_bytes.h>
 #include <ecc.h>
 #include <pointmul.h>
+#include <string.h>
 #include "element_1w_h0h7.h"
 #include "element_2w_h0h7.h"
 
@@ -204,7 +205,7 @@ int main()
 	print_Element_2w_h0h7(Q.ZZ);
 #endif
 
-#if 1 /* testing variable point mult */
+#if 0 /* testing variable point mult */
 	Point_XY_1way P, kP;
 	getGenerator(&P);
 
@@ -237,7 +238,52 @@ int main()
 	print_Element_2w_h0h7(k0G_k1Q.XY);
 
 #endif
+#if 1 /* testing 2way full addition */
+	Point_XYZ_2way P,Q;
+	Point_XY_1way G,k0G,k1G,k2G,k3G;
+	STR_BYTES k0,k1,k2,k3;
+	Element_1w_H0H7 one,x0,y0,x1,y1,x2,y2,x3,y3;
 
+
+	memset(one,0,sizeof(Element_1w_H0H7));
+	one[0] = 1;
+	getGenerator(&G);
+	random_str_bytes(k0);
+	random_str_bytes(k1);
+	random_str_bytes(k2);
+	random_str_bytes(k3);
+	variable_point_multiplication(&k0G,k0,&G);
+	variable_point_multiplication(&k1G,k1,&G);
+	variable_point_multiplication(&k2G,k2,&G);
+	variable_point_multiplication(&k3G,k3,&G);
+
+	deinterleave(x0,y0,k0G.XY);
+	deinterleave(x1,y1,k1G.XY);
+	deinterleave(x2,y2,k2G.XY);
+	deinterleave(x3,y3,k3G.XY);
+
+	interleave(P.X,x0,x1);
+	interleave(P.Y,y0,y1);
+	interleave(P.Z,one,one);
+	interleave(Q.X,x2,x3);
+	interleave(Q.Y,y2,y3);
+	interleave(Q.Z,one,one);
+
+	printf("P.X:\n");print_Element_2w_h0h7(P.X);
+	printf("P.Y:\n");print_Element_2w_h0h7(P.Y);
+	printf("P.Z:\n");print_Element_2w_h0h7(P.Z);
+
+	printf("Q.X:\n");print_Element_2w_h0h7(Q.X);
+	printf("Q.Y:\n");print_Element_2w_h0h7(Q.Y);
+	printf("Q.Z:\n");print_Element_2w_h0h7(Q.Z);
+	for(i=0;i<100;i++)
+		_2way_full_addition_law(&P,&Q);
+	printf("P+Q.X:\n");print_Element_2w_h0h7(P.X);
+	printf("P+Q.Y:\n");print_Element_2w_h0h7(P.Y);
+	printf("P+Q.Z:\n");print_Element_2w_h0h7(P.Z);
+
+
+#endif
 
 	return 0*i;
 

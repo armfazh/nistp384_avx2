@@ -88,14 +88,120 @@ void print_proj_1way(Point_XYZ_1way* P)
 
 
 /**
- *
+ * computes 2 independent full additions.
  */
 void _2way_full_addition_law(Point_XYZ_2way * Q,  Point_XYZ_2way *P)
 {
-//	__m256i * X1 = Q->X; __m256i * X2 = P->X;
-//	__m256i * Y1 = Q->Y; __m256i * Y2 = P->Y;
-//	__m256i * Z1 = Q->Z; __m256i * Z2 = P->Z;
+	__m256i * X3 = Q->X; __m256i * X1 = Q->X; __m256i * X2 = P->X;
+	__m256i * Y3 = Q->Y; __m256i * Y1 = Q->Y; __m256i * Y2 = P->Y;
+	__m256i * Z3 = Q->Z; __m256i * Z1 = Q->Z; __m256i * Z2 = P->Z;
+	Element_2w_H0H7 m1,m2,l0,l1,l2,l3,l4,l5,l6,l7,l8,lA,lB;
+	Element_2w_H0H7 r0,r1,r2,r5,r7,r8,r9,rA,rB;
+	Element_2w_H0H7 p0,p1,p2,p3,p4,p5,p6;
+	Element_2w_H0H7 q0,q1,q2,q3,q4,q5,q6;
+	argElement_2w_H0H7 BB = (argElement_2w_H0H7)ECC_PARAM_B;
 
+/*	  m1 = X1 + Y1;     		      m2 = X2 + Y2; */
+	add_Element_2w_h0h7(m1,X1,Y1);    add_Element_2w_h0h7(m2,X2,Y2);
+/*    l1 = X1 + Z1;     		      r1 = Y1 + Z1; */
+	add_Element_2w_h0h7(l1,X1,Z1);	  add_Element_2w_h0h7(r1,Y1,Z1);
+/*    l2 = X2 + Z2;     		      r2 = Y2 + Z2; */
+	add_Element_2w_h0h7(l2,X2,Z2);	  add_Element_2w_h0h7(r2,Y2,Z2);
+/*    p0 = X1 * X2;     		      q0 = Y1 * Y2; */
+//	printf("\tm1:\n");print_Element_2w_h0h7(m1);
+//	printf("\tm2:\n");print_Element_2w_h0h7(m2);
+//	printf("\tl1:\n");print_Element_2w_h0h7(l1);
+//	printf("\tr1:\n");print_Element_2w_h0h7(r1);
+//	printf("\tl2:\n");print_Element_2w_h0h7(l2);
+//	printf("\tr2:\n");print_Element_2w_h0h7(r2);
+	mul_Element_2w_h0h7(p0,X1,X2);    mul_Element_2w_h0h7(q0,Y1,Y2);
+	compress_Element_2w_h0h7(p0);     compress_Element_2w_h0h7(q0);
+/*    p1 = m1 * m2;     		      q1 = Z1 * Z2; */
+	mul_Element_2w_h0h7(p1,m1,m2);    mul_Element_2w_h0h7(q1,Z1,Z2);
+	compress_Element_2w_h0h7(p1);     compress_Element_2w_h0h7(q1);
+/*    p2 = l1 * l2;     		      q2 = r1 * r2; */
+	mul_Element_2w_h0h7(p2,l1,l2);    mul_Element_2w_h0h7(q2,r1,r2);
+	compress_Element_2w_h0h7(p2);     compress_Element_2w_h0h7(q2);
+
+//	printf("\tp0:\n");print_Element_2w_h0h7(p0);
+//	printf("\tq0:\n");print_Element_2w_h0h7(q0);
+//	printf("\tp1:\n");print_Element_2w_h0h7(p1);
+//	printf("\tq1:\n");print_Element_2w_h0h7(q1);
+//	printf("\tp2:\n");print_Element_2w_h0h7(p2);
+//	printf("\tq2:\n");print_Element_2w_h0h7(q2);
+/*    l0 = 3*p0;     		          r0 = 3*q1; */
+	add_Element_2w_h0h7(l0,p0,p0);    add_Element_2w_h0h7(r0,q1,q1);
+	add_Element_2w_h0h7(l0,l0,p0);    add_Element_2w_h0h7(r0,r0,q1);
+/*    l3 = p0 + q1;                              */
+	add_Element_2w_h0h7(l3,p0,q1);
+/*    l4 = p2 - l3;                              */
+	sub_Element_2w_h0h7(l4,p2,l3);
+	compress_Element_2w_h0h7(l4);
+/*    p3 = ecc_b*l4;     		      q3 = ecc_b*q1; */
+	mul_Element_2w_h0h7(p3,BB,l4);    mul_Element_2w_h0h7(q3,BB,q1);
+	compress_Element_2w_h0h7(p3);     compress_Element_2w_h0h7(q3);
+
+//	printf("\tl0:\n");print_Element_2w_h0h7(l0);
+//	printf("\tr0:\n");print_Element_2w_h0h7(r0);
+//	printf("\tl3:\n");print_Element_2w_h0h7(l3);
+//	printf("\tl4:\n");print_Element_2w_h0h7(l4);
+//	printf("\tp3:\n");print_Element_2w_h0h7(p3);
+//	printf("\tq3:\n");print_Element_2w_h0h7(q3);
+/*    l5 = p3 - p0;     		      r5 = l4 - q3; */
+	sub_Element_2w_h0h7(l5,p3,p0);    sub_Element_2w_h0h7(r5,l4,q3);
+/*    l6 = l5 - r0;     		      r6 = r5; */
+	sub_Element_2w_h0h7(l6,l5,r0);    argElement_2w_H0H7 r6 = &r5;
+/*    l7 = 3*l6;     		          r7 = 3*r6; */
+	add_Element_2w_h0h7(l7,l6,l6);    add_Element_2w_h0h7(r7,r6,r6);
+	add_Element_2w_h0h7(l7,l7,l6);    add_Element_2w_h0h7(r7,r7,r6);
+/*    l8 = l0 - r0;     		      r8 = q0 - r7; */
+	sub_Element_2w_h0h7(l8,l0,r0);    sub_Element_2w_h0h7(r8,q0,r7);
+/*                                    r9 = q0 + r7; */
+	                                  add_Element_2w_h0h7(r9,q0,r7);
+
+//	printf("\tl5:\n");print_Element_2w_h0h7(l5);
+//	printf("\tr5:\n");print_Element_2w_h0h7(r5);
+//	printf("\tl6:\n");print_Element_2w_h0h7(l6);
+//	printf("\tr6:\n");print_Element_2w_h0h7(r6);
+//	printf("\tl7:\n");print_Element_2w_h0h7(l7);
+//	printf("\tr7:\n");print_Element_2w_h0h7(r7);
+//	printf("\tl8:\n");print_Element_2w_h0h7(l8);
+//	printf("\tr8:\n");print_Element_2w_h0h7(r8);
+//	printf("\tr9:\n");print_Element_2w_h0h7(r9);
+/*    lA = p0 + q0;     		      rA = q0 + q1; */
+	add_Element_2w_h0h7(lA,p0,q0);    add_Element_2w_h0h7(rA,q0,q1);
+/*    lB = p1 - lA;     		      rB = q2 - rA; */
+	sub_Element_2w_h0h7(lB,p1,lA);    sub_Element_2w_h0h7(rB,q2,rA);
+//	printf("\tlA:\n");print_Element_2w_h0h7(lA);
+//	printf("\trA:\n");print_Element_2w_h0h7(rA);
+//	printf("\tlB:\n");print_Element_2w_h0h7(lB);
+//	printf("\trB:\n");print_Element_2w_h0h7(rB);
+
+	compress_Element_2w_h0h7(r9);
+	compress_Element_2w_h0h7(l7);
+	compress_Element_2w_h0h7(l8);
+	compress_Element_2w_h0h7(r8);
+
+//	printf("\tl7:\n");print_Element_2w_h0h7(l7);
+/*    p4 = lB * r9;     		      q4 = rB * l7; */
+	mul_Element_2w_h0h7(p4,lB,r9);    mul_Element_2w_h0h7(q4,rB,l7);
+	compress_Element_2w_h0h7(p4);     compress_Element_2w_h0h7(q4);
+/*    p5 = r9 * r8;     		      q5 = l7 * l8; */
+	mul_Element_2w_h0h7(p5,r8,r9);    mul_Element_2w_h0h7(q5,l8,l7);
+	compress_Element_2w_h0h7(p5);     compress_Element_2w_h0h7(q5);
+/*    p6 = lB * l8;     		      q6 = rB * r8; */
+	mul_Element_2w_h0h7(p6,lB,l8);    mul_Element_2w_h0h7(q6,rB,r8);
+	compress_Element_2w_h0h7(p6);     compress_Element_2w_h0h7(q6);
+//	printf("\tp4:\n");print_Element_2w_h0h7(p4);
+//	printf("\tq4:\n");print_Element_2w_h0h7(q4);
+//	printf("\tp5:\n");print_Element_2w_h0h7(p5);
+//	printf("\tq5:\n");print_Element_2w_h0h7(q5);
+//	printf("\tp6:\n");print_Element_2w_h0h7(p6);
+//	printf("\tq6:\n");print_Element_2w_h0h7(q6);
+/*    X3 = p4 - q4;     		      Y3 = p5 + q5; */
+	sub_Element_2w_h0h7(X3,p4,q4);    add_Element_2w_h0h7(Y3,p5,q5);
+/*    Z3 = p6 + q6;                                 */
+	add_Element_2w_h0h7(Z3,p6,q6);
 }
 
 /**

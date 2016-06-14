@@ -3,8 +3,10 @@
 
 #include <stdint.h>
 #include "ecc.h"
-#define NUM_LUT (28)
-#define SIZE_POINT (3*384/8)
+
+
+#define NUM_LUT (48)
+#define SIZE_POINT (2*384/8)
 #define SIZE_ONE_LUT (8*SIZE_POINT)
 #define SIZE_ALL_LUT (NUM_LUT*SIZE_POINT)
 
@@ -13,7 +15,8 @@ void word64_multiplier(uint64_t*C,const uint64_t*A, int numA,const uint64_t*B, i
 int recoding(int8_t * K,const uint8_t *p8_r, int w);
 void recoding_signed_scalar_fold2w4(uint64_t *list_signs, uint64_t *list_digits, uint8_t *r);
 void query_table(Point_XY_2way *P, const uint8_t * table,uint64_t * secret_signs,uint64_t *secret_digits);
-void fixed_point_multiplication(Point_XY_1way* kP, uint8_t *k);
+
+void fixed_point_multiplication(Point_XY_1way * kP,uint8_t *k);
 
 #define OMEGA_FIXED 6
 void read_point_protected(Point_XYZ_1way * P,int8_t index,Point_XYZ_1way * Table);

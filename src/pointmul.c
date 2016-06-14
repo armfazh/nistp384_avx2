@@ -62,27 +62,27 @@ void recoding_signed_scalar_fold2w4(uint64_t *list_signs, uint64_t *list_digits,
 
 	for(i=0;i<2;i++)
 	{
-		for(j=0;j<28;j++)
+		for(j=0;j<24;j++)
 		{
-			nibble_low = r[28*i+j] & 0xF;
+			nibble_low = r[24*i+j] & 0xF;
 			value = nibble_low + carry;
 			carry = value >= (1 << (OMEGA - 1));
 			digit = ((value^(-carry))+carry)&0xF;
 
-			list_digits[56*i+2*j+0] = (int64_t) digit;
-			list_signs [56*i+2*j+0] = (int64_t) -carry;
+			list_digits[48*i+2*j+0] = (int64_t) digit;
+			list_signs [48*i+2*j+0] = (int64_t) -carry;
 //			printf("%s%x,",-carry?"-":"+",digit);
 
-			nibble_hig = (r[28*i+j] >> 4) & 0xF;
+			nibble_hig = (r[24*i+j] >> 4) & 0xF;
 			value = nibble_hig + carry;
 			carry = value >= (1 << (OMEGA - 1));
 			digit = ((value^(-carry))+carry)&0xF;
 
-			list_digits[56*i+2*j+1] = (int64_t) digit;
-			list_signs [56*i+2*j+1] = (int64_t) -carry;
+			list_digits[48*i+2*j+1] = (int64_t) digit;
+			list_signs [48*i+2*j+1] = (int64_t) -carry;
 //			printf("%s%x,",-carry?"-":"+",digit);
 		}
-	}//list_digits[112] = carry;//This is always equal to 0 iff r < 2**447
+	}//list_digits[96] = carry;//This is always equal to 0 iff r < 2**447
 }
 
 
@@ -372,7 +372,7 @@ void variable_point_multiplication(
 	{
 		_k[i] = (p64k[i]&mask)^(_k[i]&(~mask));
 	}
-	len = recoding(L,_k,OMEGA_FIXED);
+	len = recoding(L,(uint8_t*)_k,OMEGA_FIXED);
 	precompute_points(Table,P,OMEGA_FIXED);
 	read_point_protected(&Q,L[len-1],Table);
 	for(i=len-2;i>=0;i--)
@@ -414,36 +414,28 @@ void join_points_1w_H0H7(Point_XYZ_1way *Q0, Point_XYZ_2way *Q)
  * Ensuring that B is the generator of NIST-P384
  *
  * This function will use a pre-computed table of 36.75KB.
- * Folding 4 means four queries at the same time.
- * Using w=4, means that scalar will be partitioned in
- * 4-bit signed digits.
- * This produces to compute 28 iterations in the main loop.
- * as follows:
- *		S_0 = r_0 + 16^4 r_4 + 16^8 r_8  + ... + 16^108 r_108
- *		S_1 = r_1 + 16^4 r_5 + 16^8 r_9  + ... + 16^108 r_109
- *		S_2 = r_2 + 16^4 r_6 + 16^8 r_10 + ... + 16^108 r_110
- *		S_3 = r_3 + 16^4 r_7 + 16^8 r_11 + ... + 16^108 r_111
- * Then recombining partial sums with:
- *		S = S_0 + 16^1 S_1 + 16^2 S_2 + 16^3 S_3.
+ * Folding 2 means four queries at the same time.
  */
 static void fixed_point_multiplication_fold2w4(Point_XY_1way* kP, uint8_t *k)
 {
 	int i;
 	Point_XYZ_2way Q;
 	Point_XY_2way P;
-	ALIGN uint64_t K[112];
-	ALIGN uint64_t S[112];
+	ALIGN uint64_t K[100];
+	ALIGN uint64_t S[100];
 	recoding_signed_scalar_fold2w4(S,K,k);
 
-//	Q.Z[0] = SET1_64(2);
-	for(i=1;i<NUM_WORDS_128B_NISTP384;i++)
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
 	{
-//		Q.Z[i] = ZERO;
+		Q.X[i] = ZERO;
+		Q.Y[i] = ZERO;
+		Q.Z[i] = ZERO;
 	}
+	Q.Y[0] = _mm256_set_epi64x(0,1,0,1);
 
 	for(i=0;i<NUM_LUT;i++)
 	{
-		query_table_fold2w4(&P, ((uint8_t*)TableSign_w4_3675k)+SIZE_ONE_LUT*i,S+4*i,K+4*i);
+		query_table_fold2w4(&P, ((uint8_t*)TableSign_w4_36k)+SIZE_ONE_LUT*i,S+4*i,K+4*i);
 		_2way_mix_addition_law(&Q, &P);
 	}
 //	join_points_1w_H0H7(&Q0, &Q);
