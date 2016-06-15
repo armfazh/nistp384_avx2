@@ -53,7 +53,7 @@ void word64_multiplier(
  * K[60,61,62,63] = [n_60, n_61, n_62, n_63]
  *
  */
-void recoding_signed_scalar_w4(uint8_t *list_digits, uint8_t *r)
+int8_t recoding_signed_scalar_w4(int8_t *list_digits, uint8_t *r)
 {
 	const int OMEGA = 4;
 	int i,j;
@@ -68,20 +68,21 @@ void recoding_signed_scalar_w4(uint8_t *list_digits, uint8_t *r)
 			nibble_low = r[24*i+j] & 0xF;
 			value = nibble_low + carry;
 			carry = value >= (1 << (OMEGA - 1));
-			digit = ((value^(-carry))+carry)&0xF;
+			digit = value-((1 << OMEGA)&(-carry));
 
-			list_digits[48*i+2*j+0] = (int64_t) digit;
-//			printf("%s%x,",-carry?"-":"+",digit);
+			list_digits[48*i+2*j+0] = digit;
+//			printf("(i:%d,v:%x,c:%x,d:%d), ",24*i+j,value,carry,digit);
 
 			nibble_hig = (r[24*i+j] >> 4) & 0xF;
 			value = nibble_hig + carry;
 			carry = value >= (1 << (OMEGA - 1));
-			digit = ((value^(-carry))+carry)&0xF;
-
-			list_digits[48*i+2*j+1] = (int64_t) digit;
-//			printf("%s%x,",-carry?"-":"+",digit);
+			digit = value-((1 << OMEGA)&(-carry));
+			list_digits[48*i+2*j+1] = digit;
+//			printf("(i:%d,v:%x,c:%x,d:%d), ",24*i+j,value,carry,digit);
 		}
-	}//list_digits[96] = carry;//This is always equal to 0 iff r < 2**447
+	}
+	list_digits[48*i] = carry;//This is could be equal to 1 iff |r| = 384
+	return carry;
 }
 
 
@@ -302,7 +303,7 @@ void query_table(Point_XYZ_1way *Q, const uint8_t * table,int8_t digit)
 
 	digit = (digit&((1<<(OMEGA_FIXED_PMUL-1))-1))-(digit&(1<<(OMEGA_FIXED_PMUL-1)));
 	abs_digit = digit<0? -digit:digit;
-	printf("%d, ",digit);
+	//printf("%d, ",digit);
 
 	/* Set Point at Infinity in Affine coord. */
 	for(i=0;i<12;i++)
@@ -348,6 +349,28 @@ void query_table(Point_XYZ_1way *Q, const uint8_t * table,int8_t digit)
 	Q->ZZ[0] = _mm256_set_epi64x(0,digit!=0,0,digit!=0);
 }
 
+
+ALIGN Point_XYZ_1way CONST_2_384G_XY ={
+		{
+				0x7dc885c,0xa5127bf,0xfbc853f,0x2cc2064,
+				0xed2ff2a,0xf1383e8,0xfe7d204,0xa6509a5,
+				0x8e1fad8,0xc96f1b9,0x293457b,0x0b5e4a2,
+				0xe34b12f,0x7ad61d6,0x078a216,0xbe5a278,
+				0x5ceb499,0xdae509e,0x1ce20ad,0x64622ae,
+				0x3937d20,0x67cf514,0x419011a,0x41a0a35,
+				0x67eb2ff,0x007fbbe,0x2371038,0x000c755
+		},
+		{
+		0x1,0x0,0x1,0x0,
+		0x0,0x0,0x0,0x0,
+		0x0,0x0,0x0,0x0,
+		0x0,0x0,0x0,0x0,
+		0x0,0x0,0x0,0x0,
+		0x0,0x0,0x0,0x0,
+		0x0,0x0,0x0,0x0
+		}
+};
+
 /**
  * Given:
  *      STR_BYTES r
@@ -361,33 +384,49 @@ void query_table(Point_XYZ_1way *Q, const uint8_t * table,int8_t digit)
 void fixed_point_multiplication(Point_XY_1way* kP, uint8_t *k)
 {
 	int i;
+	__m256i mask;
+	int64_t carry;
+	int8_t K[98];
+	Point_XYZ_1way * _2384G = &CONST_2_384G_XY;
 	Point_XYZ_1way P,Q;
 
-	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
-	{
-		Q.XY[i] = ZERO;
-		Q.ZZ[i] = ZERO;
-	}
-	Q.XY[0] = _mm256_set_epi64x(0,1,0,0);
+	/* Obatining a singed digit representation */
+	carry = (int64_t)recoding_signed_scalar_w4(K,k);
 
+	/* Iterating over the odd digits */
+	i=0;
+	uint8_t *Table = ((uint8_t*)TableSign_w4_36k)+SIZE_ONE_LUT*i;
+	query_table(&Q, Table, K[2*i+1]);
+	for(i=1;i<NUM_LUT;i++)
+	{
+		uint8_t *Table = ((uint8_t*)TableSign_w4_36k)+SIZE_ONE_LUT*i;
+		query_table(&P, Table, K[2*i+1]);
+		_1way_full_addition_law(&Q, &P);
+	}
+
+	/* Computing Q = (2**4)Q */
+	_1way_doubling(&Q);	_1way_doubling(&Q);
+	_1way_doubling(&Q);	_1way_doubling(&Q);
+
+	/* Iterating over the even digits */
 	for(i=0;i<NUM_LUT;i++)
 	{
 		uint8_t *Table = ((uint8_t*)TableSign_w4_36k)+SIZE_ONE_LUT*i;
-		query_table(&P, Table, (k[i]>>4)&0x0F);
+		query_table(&P, Table, K[2*i+0]);
 		_1way_full_addition_law(&Q, &P);
 	}
-	_1way_doubling(&Q);
-	_1way_doubling(&Q);
-	_1way_doubling(&Q);
-	_1way_doubling(&Q);
-	printf("\n");
-	for(i=0;i<NUM_LUT;i++)
+
+	/* if carry==1 then Q+= (2**384)P */
+	mask = _mm256_set1_epi64x(-carry);
+	P.XY[0] = XOR(AND(mask,_2384G->XY[0]),ANDNOT(mask,_mm256_set_epi64x(0,1,0,0)));
+	P.ZZ[0] = AND(mask,_2384G->ZZ[0]);
+	for(i=1;i<NUM_WORDS_128B_NISTP384;i++)
 	{
-		uint8_t *Table = ((uint8_t*)TableSign_w4_36k)+SIZE_ONE_LUT*i;
-		query_table(&P, Table, k[i]&0x0F);
-		_1way_full_addition_law(&Q, &P);
+		P.XY[i] = AND(mask,_2384G->XY[i]);
+		P.ZZ[i] = _2384G->ZZ[i];
 	}
-	printf("\n");
+	_1way_full_addition_law(&Q, &P);
+
 	/* convert to affine coordinates */
 	toAffine(kP,&Q);
 }

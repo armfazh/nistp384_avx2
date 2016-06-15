@@ -320,23 +320,17 @@ def print_tableFixed_pmul():
 	global E,Gx,Gy
 	G = E([Gx,Gy,Fp(1)])
 	OMEGA = 4
+	fold = 2
 	num_tables = 48
 	for i in range(num_tables):
 		for j in range(1<<(OMEGA-1)):
-			P = ((j+1)*2**(4*i))*G
-			print("/* {0}*2^(4*{1})*G */".format(j+1,i))
+			P = ((j+1)*2**(fold*OMEGA*i))*G
+			print("/* {0}*2^({1}*{2}*{3})*G */".format(j+1,fold,OMEGA,i))
 			#print("{0},".format(toC_interleaved(int(P[0]),int(P[1]),64)))
 			print("{0},".format(toC(int(P[0]),64)))
 			print("{0},".format(toC(int(P[1]),64)))
 
 
-##################
-# Main
-
-print("Testing: add.sage")
-#print("ecc: {0}".format(test_ecc()))
-#print("double_pmul: {0}".format(testing_double_pmul()))
-#print("double_pmul: {0}".format(testing_variable_pmul()))
 
 def toBin(x):
 	return map(int,list(bin(x)[2:][::-1]))
@@ -387,4 +381,34 @@ def eval_mlsb_set(w,v,t,T,S,Tab):
 		for j in range(0,v):
 			n = n + S[j][i]*Tab[T[j][i]][j]
 	return n
+
+def signed_int(k,w):
+	K = []
+	carry = 0
+	while k>0:
+		value = k%(2**w)+carry
+		carry = value >= 2**(w-1)
+		digit = value-carry*2**w
+		K += [digit]
+		k >>= w
+	K += [carry*1]
+	return K
+
+def eval_scalar(K,w):
+	return sum([ x*2**(i*w) for i,x in enumerate(K)])
+	
+
+##################
+# Main
+
+print("Testing: add.sage")
+#print("ecc: {0}".format(test_ecc()))
+#print("double_pmul: {0}".format(testing_double_pmul()))
+#print("double_pmul: {0}".format(testing_variable_pmul()))
+
+0x40fOMEGA=4
+a = randrange(ecc_order)
+L = signed_int(a,OMEGA)
+
+
 

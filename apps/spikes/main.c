@@ -302,10 +302,20 @@ int main()
 
 #if 1 /* Fixed point mult */
 	Point_XY_1way kP;
-	STR_BYTES k={0};
-//	random_str_bytes(k);
-	k[0] = 0xF0;
+	STR_BYTES k;
+	int8_t K[98],len;
+
+	random_str_bytes(k);
+	k[47] = 0x6F;
 	printf("k:\n");print_str_bytes(k);
+	len = recoding_signed_scalar_w4(K,k);
+	for(i=0;i<96;i++)
+	{
+		printf("%d, ",K[i]);
+		if(i%24==23)printf(" \n");
+	}
+	if(len)
+	printf("%d \n",K[i]);
 	fixed_point_multiplication(&kP, k);
 	printf("P.XY:\n");
 	print_Element_2w_h0h7(kP.XY);

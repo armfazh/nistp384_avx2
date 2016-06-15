@@ -13,7 +13,7 @@
 void div4(unsigned char * number_div_4,const unsigned char * number);
 void word64_multiplier(uint64_t*C,const uint64_t*A, int numA,const uint64_t*B, int numB);
 int recoding(int8_t * K,const uint8_t *p8_r, int w);
-void recoding_signed_scalar_w4(uint8_t *list_digits, uint8_t *r);
+int8_t recoding_signed_scalar_w4(int8_t *list_digits, uint8_t *r);
 void query_table(Point_XYZ_1way *P, const uint8_t * table,int8_t digit);
 
 #define OMEGA_FIXED_PMUL 4
