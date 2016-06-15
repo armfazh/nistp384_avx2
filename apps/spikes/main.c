@@ -5,7 +5,7 @@
 #include <string.h>
 #include "element_1w_h0h7.h"
 #include "element_2w_h0h7.h"
-
+extern uint64_t TableSign_w4_36k[NUM_LUT*8*2*6];
 int main()
 {
 	int i=0;
@@ -152,7 +152,7 @@ int main()
 		exp[i] = 0;
 	}
 	print_str_bytes(a);
-	len = recoding(exp,a,OMEGA_FIXED);
+	len = recoding(exp,a,OMEGA_VAR_PMUL);
 	printf("[");
 	for(i=0;i<len;i++)
 	{
@@ -182,11 +182,11 @@ int main()
 #if 0 /* reading point protected */
 
 	Point_XY_1way P;
-	Point_XYZ_1way Q, Tab[1<<(OMEGA_FIXED-2)];
-	int num_points= 1<<(OMEGA_FIXED-2);
+	Point_XYZ_1way Q, Tab[1<<(OMEGA_VAR_PMUL-2)];
+	int num_points= 1<<(OMEGA_VAR_PMUL-2);
 
 	getGenerator(&P);
-	precompute_points(Tab,&P,OMEGA_FIXED);
+	precompute_points(Tab,&P,OMEGA_VAR_PMUL);
 //	for(i=0;i<num_points;i++)
 //	{
 //		printf("%dP\n",2*i+1);
@@ -238,7 +238,8 @@ int main()
 	print_Element_2w_h0h7(k0G_k1Q.XY);
 
 #endif
-#if 1 /* testing 2way full addition */
+
+#if 0 /* testing 2way full addition */
 	Point_XYZ_2way P,Q;
 	Point_XY_1way G,k0G,k1G,k2G,k3G;
 	STR_BYTES k0,k1,k2,k3;
@@ -282,9 +283,34 @@ int main()
 	printf("P+Q.Y:\n");print_Element_2w_h0h7(P.Y);
 	printf("P+Q.Z:\n");print_Element_2w_h0h7(P.Z);
 
+#endif
+
+#if 0  /* Query to table for fixed point multiplication */
+
+	Point_XYZ_1way P;
+	int index;
+	i = 14;
+	uint8_t *Table = (uint8_t *)TableSign_w4_36k+SIZE_ONE_LUT*i;
+
+	index = -5;
+	query_table(&P,Table,index);
+	printf("P.XY:\n");
+	print_Element_2w_h0h7(P.XY);
+	print_Element_2w_h0h7(P.ZZ);
 
 #endif
 
+#if 1 /* Fixed point mult */
+	Point_XY_1way kP;
+	STR_BYTES k={0};
+//	random_str_bytes(k);
+	k[0] = 0xF0;
+	printf("k:\n");print_str_bytes(k);
+	fixed_point_multiplication(&kP, k);
+	printf("P.XY:\n");
+	print_Element_2w_h0h7(kP.XY);
+
+#endif
 	return 0*i;
 
 }

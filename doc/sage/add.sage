@@ -306,6 +306,7 @@ def toC_interleaved(numA,numB,word_size):
 	return ",".join([ "0x{num:0{width}x}".format(num=nn,width=word_size>>2) for n in zip(wA,wB) for nn in n ])
 
 def print_tableSta():
+	global E
 	G = E([Gx,Gy,Fp(1)])
 	OMEGA_STA = 7
 	for i in range(1<<(OMEGA_STA-2)):
@@ -314,6 +315,19 @@ def print_tableSta():
 		#print("{0},".format(toC_interleaved(int(P[0]),int(P[1]),64)))
 		print("{0},".format(toC(int(P[0]),64)))
 		print("{0},".format(toC(int(P[1]),64)))
+
+def print_tableFixed_pmul():
+	global E,Gx,Gy
+	G = E([Gx,Gy,Fp(1)])
+	OMEGA = 4
+	num_tables = 48
+	for i in range(num_tables):
+		for j in range(1<<(OMEGA-1)):
+			P = ((j+1)*2**(4*i))*G
+			print("/* {0}*2^(4*{1})*G */".format(j+1,i))
+			#print("{0},".format(toC_interleaved(int(P[0]),int(P[1]),64)))
+			print("{0},".format(toC(int(P[0]),64)))
+			print("{0},".format(toC(int(P[1]),64)))
 
 
 ##################
@@ -373,17 +387,4 @@ def eval_mlsb_set(w,v,t,T,S,Tab):
 		for j in range(0,v):
 			n = n + S[j][i]*Tab[T[j][i]][j]
 	return n
-	
-
-w = 7
-v = 6
-t = 120
-Tab = mlsb_set_table(w,v)
-
-for _ in range(10000):
-	n = randrange(2**t)
-	n += n%2==0 
-	K,T,S = mlsb_set(n,w,v,t)
-	b = eval_mlsb_set(w,v,t,T,S,Tab)
-	assert n==b
 

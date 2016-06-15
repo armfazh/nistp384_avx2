@@ -4,6 +4,7 @@
 #include "table_sign.h"
 #include "table_verif.h"
 #include <stdio.h>
+
 void word64_multiplier(
 		uint64_t*C,
 		const uint64_t*A, int numA,
@@ -52,7 +53,7 @@ void word64_multiplier(
  * K[60,61,62,63] = [n_60, n_61, n_62, n_63]
  *
  */
-void recoding_signed_scalar_fold2w4(uint64_t *list_signs, uint64_t *list_digits, uint8_t *r)
+void recoding_signed_scalar_w4(uint8_t *list_digits, uint8_t *r)
 {
 	const int OMEGA = 4;
 	int i,j;
@@ -70,7 +71,6 @@ void recoding_signed_scalar_fold2w4(uint64_t *list_signs, uint64_t *list_digits,
 			digit = ((value^(-carry))+carry)&0xF;
 
 			list_digits[48*i+2*j+0] = (int64_t) digit;
-			list_signs [48*i+2*j+0] = (int64_t) -carry;
 //			printf("%s%x,",-carry?"-":"+",digit);
 
 			nibble_hig = (r[24*i+j] >> 4) & 0xF;
@@ -79,115 +79,11 @@ void recoding_signed_scalar_fold2w4(uint64_t *list_signs, uint64_t *list_digits,
 			digit = ((value^(-carry))+carry)&0xF;
 
 			list_digits[48*i+2*j+1] = (int64_t) digit;
-			list_signs [48*i+2*j+1] = (int64_t) -carry;
 //			printf("%s%x,",-carry?"-":"+",digit);
 		}
 	}//list_digits[96] = carry;//This is always equal to 0 iff r < 2**447
 }
 
-
-void query_table_fold2w4(Point_XY_2way *P, const uint8_t * table,uint64_t * secret_signs,uint64_t *secret_digits)
-{
-	const __m256i _P[16] = {
-			SET1_64(0xfffffff),	SET1_64(0xffffffe),
-			SET1_64(0xfffffff),	SET1_64(0xfffffff),
-			SET1_64(0xfffffff),	SET1_64(0xfffffff),
-			SET1_64(0xfffffff),	SET1_64(0xfffffff),
-			SET1_64(0xfffffff),	SET1_64(0xfffffff),
-			SET1_64(0xfffffff),	SET1_64(0xfffffff),
-			SET1_64(0xfffffff),	SET1_64(0xfffffff),
-			SET1_64(0xfffffff),	SET1_64(0xfffffff)
-	};
-	const __m256i one = SET1_64(1);
-	int i,j;
-	__m256i mask[9];
-	__m256i P_addYX[7], P_subYX[7];
-	__m256i digits = LOAD(secret_digits);
-	__m256i signs  = LOAD(secret_signs);
-	__m256i iiii = ZERO;
-	uint64_t * p64Table = (uint64_t*)table;
-
-	/* create a set of masks */
-	for(i=0;i<9;i++)
-	{
-		/**
-		 * Determine if iiii is different from digits
-		 * using they following relation:
-		 *    mask = (x-y) OR (y-x)
-		 *    63th bit = 1   if X   equal   Y
-		 *    63th bit = 0   if X not equal Y
-		 * */
-		mask[i] = OR(SUB(digits,iiii),SUB(iiii,digits));
-		/* propagate 63th bit to the whole 64-bit word. */
-		mask[i] = _mm256_shuffle_epi32(_mm256_srai_epi32(mask[i],32),0xE5);
-		iiii = ADD(iiii,one);
-	}
-	/**
-	 * Queries to the table for points 1B,2B,3B,...,8B.
-	 * acc = \sum 1B&¬mask[1] + 2B&¬mask[2] + 3B&¬mask[3] + ... + 8B&¬mask[8]
-	 * if mask[i] == all_zeros for some i € {1,2,...,8}
-	 * 	     then iB was selected
-	 * if mask[i] == all_ones for all i
-	 * 	     then no point was selected
-	 */
-	for(j=0;j<7;j++)//num of 64-bit words
-	{
-		P_addYX[j] = ZERO;
-		P_subYX[j] = ZERO;
-		for(i=0;i<8;i++)//num of multiples {1B,2B,3B,...,8B}
-		{
-			__m256i addYX,subYX;
-			BROADCASTQ(addYX,p64Table+24*j+2*i+0);
-			BROADCASTQ(subYX,p64Table+24*j+2*i+1);
-
-			P_addYX[j] = XOR(P_addYX[j],ANDNOT(mask[i+1],addYX));
-			P_subYX[j] = XOR(P_subYX[j],ANDNOT(mask[i+1],subYX));
-		}
-	}
-	/**
-	 * In case that the multiple queried be the 0B,
-	 * then to construct the point at infinity
-	 * we just append a 1 (one).
-	 */
-	P_addYX[0] = XOR(P_addYX[0], ANDNOT(mask[0],XOR(P_addYX[0],one)));
-	P_subYX[0] = XOR(P_subYX[0], ANDNOT(mask[0],XOR(P_subYX[0],one)));
-	/**
-	 * Point Sign Verification (Part 1/2)
-	 * if secret_sign == 1
-	 *    addYX <- subYX
-	 *    subYX <- addYX
-	 * otherwise
-	 *    they remain unchanged
-	 */
-	for(j=0;j<7;j++)
-	{
-		__m256i swap = AND(XOR(P_addYX[j], P_subYX[j]), signs);
-		P_addYX[j] = XOR(P_addYX[j], swap);
-		P_subYX[j] = XOR(P_subYX[j], swap);
-	}
-
-//	str_bytes_to_Element_2w_h0h7(P->X,P_addYX);
-//	str_bytes_to_Element_2w_h0h7(P->Y,P_subYX);
-
-	/**
-	 * Point Sign Verification (Part 2/2)
-	 * if signs == 111111111
-	 *    _2dYX <-- -_2dYX + P
-	 * otherwise
-	 *    _2dYX <--  _2dYX + P
-	 */
-	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
-	{
-		P->X[i] = ADD( XOR(P->X[i],signs), SUB(_P[i],signs));
-	}
-}
-
-
-
-void query_table(Point_XY_2way *P, const uint8_t * table,uint64_t * secret_signs,uint64_t *secret_digits)
-{
-	query_table_fold2w4(P,table,secret_signs,secret_digits);
-}
 
 
 #define copy_Element_1w_h0h7(C,A)\
@@ -295,7 +191,7 @@ void read_point_protected(Point_XYZ_1way * P,int8_t index,Point_XYZ_1way * Table
 {
 	Point_XYZ_1way _Q;
 	uint64_t i,j,num_points,abs_index;
-	num_points = 1<<(OMEGA_FIXED-2);
+	num_points = 1<<(OMEGA_VAR_PMUL-2);
 	abs_index = index<0?-index:index;
 	abs_index >>=1;
 
@@ -358,7 +254,7 @@ void variable_point_multiplication(
 	int len,i,j;
 	uint64_t _k[6];
 	Point_XYZ_1way _Q,Q,R;
-	Point_XYZ_1way Table[1<<(OMEGA_FIXED-2)];
+	Point_XYZ_1way Table[1<<(OMEGA_VAR_PMUL-2)];
 	uint64_t * p64k = (uint64_t*)k;
 
 	const uint64_t ecc_order[6] = {
@@ -372,12 +268,12 @@ void variable_point_multiplication(
 	{
 		_k[i] = (p64k[i]&mask)^(_k[i]&(~mask));
 	}
-	len = recoding(L,(uint8_t*)_k,OMEGA_FIXED);
-	precompute_points(Table,P,OMEGA_FIXED);
+	len = recoding(L,(uint8_t*)_k,OMEGA_VAR_PMUL);
+	precompute_points(Table,P,OMEGA_VAR_PMUL);
 	read_point_protected(&Q,L[len-1],Table);
 	for(i=len-2;i>=0;i--)
 	{
-		for(j=0;j<(OMEGA_FIXED-1);j++)
+		for(j=0;j<(OMEGA_VAR_PMUL-1);j++)
 		{
 			_1way_doubling(&Q);
 		}
@@ -395,15 +291,61 @@ void variable_point_multiplication(
 }
 
 
-/**
- * Given Q = [P3,P2,P1,P0]
- * Computes Q0 as:
- * 		Q0 = 16^3 ( 16^2 ( 16^1 P3 + P2) + P1) + P0
- *
- */
-void join_points_1w_H0H7(Point_XYZ_1way *Q0, Point_XYZ_2way *Q)
+void query_table(Point_XYZ_1way *Q, const uint8_t * table,int8_t digit)
 {
+	int i;
+	const int num_points = 1<<(OMEGA_FIXED_PMUL-1);
+	ALIGN uint8_t XY[2*SIZE_STR_BYTES];
+	__m256i * strQ = (__m256i*)XY;
+	Element_1w_H0H7 X,Y,_Y;
+	int8_t abs_digit;
 
+	digit = (digit&((1<<(OMEGA_FIXED_PMUL-1))-1))-(digit&(1<<(OMEGA_FIXED_PMUL-1)));
+	abs_digit = digit<0? -digit:digit;
+	printf("%d, ",digit);
+
+	/* Set Point at Infinity in Affine coord. */
+	for(i=0;i<12;i++)
+	{
+		((uint64_t*)strQ)[i] = 0;
+	}
+	((uint64_t*)strQ)[6] = (digit==0);
+
+	/* Pass over the Look-up table. */
+	for(i=0;i<num_points;i++)
+	{
+		uint64_t bit = ((i+1)^abs_digit)>0;
+		__m256i mask = _mm256_set1_epi64x(bit-1);
+		__m256i P0 = LOAD(table+3*i+0);
+		__m256i P1 = LOAD(table+3*i+1);
+		__m256i P2 = LOAD(table+3*i+2);
+		strQ[0] = XOR(strQ[0],AND(P0,mask));
+		strQ[1] = XOR(strQ[1],AND(P1,mask));
+		strQ[2] = XOR(strQ[2],AND(P2,mask));
+	}
+	/* Convert to vector representation */
+	str_bytes_To_Element_1w_h0h7(X,XY+0);
+	str_bytes_To_Element_1w_h0h7(Y,XY+SIZE_STR_BYTES);
+
+	/* Determine P or -P using the sign of digit */
+	for(i=0;i<NUM_WORDS_64B_NISTP384;i++)
+		_Y[i] = Y[i];
+	neg_Element_1w_h0h7(_Y);
+	compress_Element_1w_h0h7(_Y);
+
+	int64_t mask = ((int64_t)digit)>>63;
+	for(i=0;i<NUM_WORDS_64B_NISTP384;i++)
+	{
+		Y[i] = (Y[i]&(~mask))^(_Y[i]&mask);
+	}
+
+	/* Package X,Y,Z=1 coordinates. */
+	interleave(Q->XY,X,Y);
+	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
+	{
+		Q->ZZ[i] = ZERO;
+	}
+	Q->ZZ[0] = _mm256_set_epi64x(0,digit!=0,0,digit!=0);
 }
 
 /**
@@ -416,37 +358,38 @@ void join_points_1w_H0H7(Point_XYZ_1way *Q0, Point_XYZ_2way *Q)
  * This function will use a pre-computed table of 36.75KB.
  * Folding 2 means four queries at the same time.
  */
-static void fixed_point_multiplication_fold2w4(Point_XY_1way* kP, uint8_t *k)
+void fixed_point_multiplication(Point_XY_1way* kP, uint8_t *k)
 {
 	int i;
-	Point_XYZ_2way Q;
-	Point_XY_2way P;
-	ALIGN uint64_t K[100];
-	ALIGN uint64_t S[100];
-	recoding_signed_scalar_fold2w4(S,K,k);
+	Point_XYZ_1way P,Q;
 
 	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
 	{
-		Q.X[i] = ZERO;
-		Q.Y[i] = ZERO;
-		Q.Z[i] = ZERO;
+		Q.XY[i] = ZERO;
+		Q.ZZ[i] = ZERO;
 	}
-	Q.Y[0] = _mm256_set_epi64x(0,1,0,1);
+	Q.XY[0] = _mm256_set_epi64x(0,1,0,0);
 
 	for(i=0;i<NUM_LUT;i++)
 	{
-		query_table_fold2w4(&P, ((uint8_t*)TableSign_w4_36k)+SIZE_ONE_LUT*i,S+4*i,K+4*i);
-		_2way_mix_addition_law(&Q, &P);
+		uint8_t *Table = ((uint8_t*)TableSign_w4_36k)+SIZE_ONE_LUT*i;
+		query_table(&P, Table, (k[i]>>4)&0x0F);
+		_1way_full_addition_law(&Q, &P);
 	}
-//	join_points_1w_H0H7(&Q0, &Q);
-
+	_1way_doubling(&Q);
+	_1way_doubling(&Q);
+	_1way_doubling(&Q);
+	_1way_doubling(&Q);
+	printf("\n");
+	for(i=0;i<NUM_LUT;i++)
+	{
+		uint8_t *Table = ((uint8_t*)TableSign_w4_36k)+SIZE_ONE_LUT*i;
+		query_table(&P, Table, k[i]&0x0F);
+		_1way_full_addition_law(&Q, &P);
+	}
+	printf("\n");
 	/* convert to affine coordinates */
-	//toAffine(kP,&Q);
-}
-
-void fixed_point_multiplication(Point_XY_1way* kP, uint8_t *k)
-{
-	fixed_point_multiplication_fold2w4(kP,k);
+	toAffine(kP,&Q);
 }
 
 void precompute_points(Point_XYZ_1way * table, Point_XY_1way * P,const int OMEGA)
