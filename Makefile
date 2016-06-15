@@ -26,6 +26,9 @@ testall: $(TARGET)
 main: $(TARGET)
 	make -C apps/spikes main
 
+ssl: $(TARGET)
+	make -C apps/spikes ssl
+
 $(BIN)/%_$(CC): $(TARGET) apps/%
 	make -C apps/$*
 

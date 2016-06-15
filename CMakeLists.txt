@@ -11,7 +11,7 @@ set(TARGET nistp384_avx2)
 set(SRC ./src)
 enable_language(ASM-ATT)
 
-set(CMAKE_C_FLAGS "-Wall -DPROCESSOR=HASWELL -Wextra -I./include -L./lib -O3 -march=haswell -mtune=intel -mno-vzeroupper -lm")
+set(CMAKE_C_FLAGS "-Wall -DPROCESSOR=HASWELL -Wextra -I./include -L./lib -O3 -march=haswell -mtune=intel -mno-vzeroupper -lm -lcrypto")
 
 add_library(${TARGET} STATIC ${SRC}/${TARGET}.c src/element_1w_h0h7.c include/element_1w_h0h7.h)
 add_library(${TARGET}_all STATIC ${SRC}/str_bytes.c
@@ -36,6 +36,7 @@ add_executable(test_all apps/test/test_all.c
 				apps/test/test_Element_2w_h0h7.c
 				${SRC}/random.c)
 add_executable(main apps/spikes/main.c ${SRC}/random.c)
+add_executable(ssl apps/spikes/ssl.c ${SRC}/random.c)
 
 # target_link_libraries(
 #         bench

@@ -406,7 +406,7 @@ print("Testing: add.sage")
 #print("double_pmul: {0}".format(testing_double_pmul()))
 #print("double_pmul: {0}".format(testing_variable_pmul()))
 
-0x40fOMEGA=4
+OMEGA=4
 a = randrange(ecc_order)
 L = signed_int(a,OMEGA)
 
