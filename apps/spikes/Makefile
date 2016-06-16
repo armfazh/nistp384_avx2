@@ -10,7 +10,7 @@ all: main
 main: $(BIN)/main_$(CC)
 ssl: $(BIN)/ssl_$(CC)
 
-$(BIN)/%_$(CC): %.c $(SRC)/random.c
+$(BIN)/%_$(CC): %.c $(SRC)/random.o ../bench/clocks.o
 	$(CC) -o $@  $(CFLAGS) $^ $(LDFLAGS)
 
 clean: 
