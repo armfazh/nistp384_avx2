@@ -374,8 +374,7 @@ ALIGN uint64_t CONST_2_384G_XY[NUM_WORDS_64B_NISTP384*2*2] = {
  *      rB = [r]B
  * Ensuring that B is the generator of NIST-P384
  *
- * This function will use a pre-computed table of 36.75KB.
- * Folding 2 means four queries at the same time.
+ * This function will use a pre-computed table of 36KB.
  */
 void fixed_point_multiplication(Point_XY_1way* kP, uint8_t *k)
 {
@@ -386,7 +385,7 @@ void fixed_point_multiplication(Point_XY_1way* kP, uint8_t *k)
 	Point_XYZ_1way * _2384G = (Point_XYZ_1way *) CONST_2_384G_XY;
 	Point_XYZ_1way P,Q;
 
-	/* Obatining a singed digit representation */
+	/* Obtaining a signed digit representation */
 	carry = (int64_t)recoding_signed_scalar_w4(K,k);
 
 	/* Iterating over the odd digits */
