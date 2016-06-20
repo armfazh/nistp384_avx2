@@ -150,7 +150,7 @@ void _2way_full_addition_law(Point_XYZ_2way * Q,  Point_XYZ_2way *P)
 /*    l5 = p3 - p0;     		      r5 = l4 - q3; */
 	sub_Element_2w_h0h7(l5,p3,p0);    sub_Element_2w_h0h7(r5,l4,q3);
 /*    l6 = l5 - r0;     		      r6 = r5; */
-	sub_Element_2w_h0h7(l6,l5,r0);    argElement_2w_H0H7 r6 = &r5;
+	sub_Element_2w_h0h7(l6,l5,r0);    argElement_2w_H0H7 r6 = r5;
 /*    l7 = 3*l6;     		          r7 = 3*r6; */
 	add_Element_2w_h0h7(l7,l6,l6);    add_Element_2w_h0h7(r7,r6,r6);
 	add_Element_2w_h0h7(l7,l7,l6);    add_Element_2w_h0h7(r7,r7,r6);
@@ -202,30 +202,6 @@ void _2way_full_addition_law(Point_XYZ_2way * Q,  Point_XYZ_2way *P)
 	sub_Element_2w_h0h7(X3,p4,q4);    add_Element_2w_h0h7(Y3,p5,q5);
 /*    Z3 = p6 + q6;                                 */
 	add_Element_2w_h0h7(Z3,p6,q6);
-}
-
-/**
- *
- */
-void _2way_mix_addition_law(Point_XYZ_2way *Q, Point_XY_2way *P)
-{
-//	__m256i * X1 = Q->X;
-//	__m256i * Y1 = Q->Y;
-//	__m256i * Z1 = Q->Z;
-//	__m256i * X2 = P->X;
-//	__m256i * Y2 = P->Y;
-
-}
-
-/**
- *
- */
-void _2way_doubling(Point_XYZ_2way *P)
-{
-//	__m256i * X1 = P->X;
-//	__m256i * Y1 = P->Y;
-//	__m256i * Z1 = P->Z;
-
 }
 
 /**
@@ -657,24 +633,6 @@ void _1way_doubling(Point_XYZ_1way *P)
 	compress_Element_2w_h0h7(P->ZZ);
 //	printf("\tP->XY:\n");print_Element_2w_h0h7(P->XY);
 //	printf("\tP->Z :\n");print_Element_2w_h0h7(P->Z );
-}
-/**
- * Computes the doubling of ONE point
- * stored in P = {XY,ZT}
- **/
-void doubling_2w_H0H7(PointXYZT_2w_H0H7 * P)
-{
-
-}
-
-void fulladdition_2w_H0H7(PointXYZT_2w_H0H7 *Q, PointXYZT_2w_H0H7 *P)
-{
-
-}
-
-void mixaddition_2w_H0H7(PointXYZT_2w_H0H7 *Q, PointXYZT_precompute_2w_H0H7 *P)
-{
-
 }
 
 
