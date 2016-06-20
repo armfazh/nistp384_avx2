@@ -45,8 +45,6 @@ void _1way_mix_addition_law(Point_XYZ_1way * Q, Point_XY_1way *P);
 void _1way_doubling(Point_XYZ_1way *P);
 
 void _2way_full_addition_law(Point_XYZ_2way *Q, Point_XYZ_2way *P);
-void _2way_mix_addition_law(Point_XYZ_2way * Q, Point_XY_2way *P);
-void _2way_doubling(Point_XYZ_2way *P);
 
 
 /******************************
@@ -63,7 +61,4 @@ typedef ALIGN struct pointxytz_2w_h0h7{
 	Element_2w_H0H7 TZ;
 } PointXYZT_2w_H0H7;
 
-void doubling_2w_H0H7(PointXYZT_2w_H0H7 * P);
-void mixaddition_2w_H0H7(PointXYZT_2w_H0H7 *Q, PointXYZT_precompute_2w_H0H7 *P);
-void fulladdition_2w_H0H7(PointXYZT_2w_H0H7 *Q, PointXYZT_2w_H0H7 *P);
 #endif /* _ECC_H_ */

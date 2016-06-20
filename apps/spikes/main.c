@@ -300,7 +300,7 @@ int main()
 
 #endif
 
-#if 0 /* Fixed point mult */
+#if 1 /* Fixed point mult */
 	Point_XY_1way kP;
 	STR_BYTES k={
 			0x11,0x8f,0x32,0x38,0x56,0x91,0xe8,0xb2,
