@@ -253,13 +253,13 @@ inline void addsub_Element_2w_h0h7(
 	b1 = b0; 								\
 	b0 = SHLi_128(tmp, 8);					\
 	a13 = SHRi_128(tmp, 8);					\
-	b0 = ADD(b0, SHL(AND(mask20, a13), 8)); \
+	b0 = ADD(b0, SHLi_128(AND(a13, mask20), 1)); \
 	b1 = ADD(b1, SHR(a13, 20));				\
-	b1 = SUB(b1, SHL(AND(mask16, a13), 12));\
-	b2 = SUB(b2, SHR(a13, 16));				\
-	b3 = ADD(b3, SHL(AND(mask8, a13), 20)); \
-	b4 = ADD(b4, SHR(a13, 8));				\
-	b4 = ADD(b4, SHL(AND(mask4, a13), 24)); \
+	b1 = SUB(b1, SHL(AND(a13,mask16), 12));\
+	b2 = SUB(b2, SHRi_128(a13, 2));				\
+	b3 = ADD(b3, SHL(AND(a13,mask8), 20)); \
+	b4 = ADD(b4, SHRi_128(a13, 1));				\
+	b4 = ADD(b4, SHLi_128(AND(a13,mask4), 3)); \
 	b5 = ADD(b5, SHR(a13, 4));
 
 /**
@@ -325,13 +325,165 @@ void mul_Element_2w_h0h7(__m256i *  C, __m256i * A, __m256i *  B)
 
 void sqr_Element_2w_h0h7(__m256i *  C)
 {
-	int i;
-	Element_2w_H0H7 A,B;
-	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
-	{
-		A[i] = B[i] = C[i];
-	}
-	mul_Element_2w_h0h7(C,A,B);
+	const __m256i mask20 = _mm256_set_epi64x(0x0,((uint64_t)1<<20)-1,0x0,((uint64_t)1<<20)-1);
+	const __m256i mask16 = _mm256_set_epi64x(0x0,((uint64_t)1<<16)-1,0x0,((uint64_t)1<<16)-1);
+	const __m256i mask8  = _mm256_set_epi64x(0x0,((uint64_t)1<< 8)-1,0x0,((uint64_t)1<< 8)-1);
+	const __m256i mask4  = _mm256_set_epi64x(0x0,((uint64_t)1<< 4)-1,0x0,((uint64_t)1<< 4)-1);
+
+	__m256i ai,tmp,a13;
+	__m256i b0,b1,b2,b3,b4,b5,b6;
+	__m256i c0,c1,c2,c3,c4,c5,c6;
+
+	b0 = LOAD(C+0);
+	b1 = LOAD(C+1);
+	b2 = LOAD(C+2);
+	b3 = LOAD(C+3);
+	b4 = LOAD(C+4);
+	b5 = LOAD(C+5);
+	b6 = LOAD(C+6);
+
+	ai = _mm256_shuffle_epi32(LOAD(C + 0), 0x44);
+	c0 = MUL(b0, ai);
+	c1 = MUL(b1, ai);
+	c2 = MUL(b2, ai);
+	c3 = MUL(b3, ai);
+	c4 = MUL(b4, ai);
+	c5 = MUL(b5, ai);
+	c6 = MUL(b6, ai);
+	PI_2w();
+
+	ai = _mm256_shuffle_epi32(LOAD(C + 1), 0x44);
+	c0 = ADD(c0, MUL(b0, ai));
+	c1 = ADD(c1, MUL(b1, ai));
+	c2 = ADD(c2, MUL(b2, ai));
+	c3 = ADD(c3, MUL(b3, ai));
+	c4 = ADD(c4, MUL(b4, ai));
+	c5 = ADD(c5, MUL(b5, ai));
+	c6 = ADD(c6, MUL(b6, ai));
+	PI_2w();
+
+	ai = _mm256_shuffle_epi32(LOAD(C + 2), 0x44);
+	c0 = ADD(c0, MUL(b0, ai));
+	c1 = ADD(c1, MUL(b1, ai));
+	c2 = ADD(c2, MUL(b2, ai));
+	c3 = ADD(c3, MUL(b3, ai));
+	c4 = ADD(c4, MUL(b4, ai));
+	c5 = ADD(c5, MUL(b5, ai));
+	c6 = ADD(c6, MUL(b6, ai));
+	PI_2w();
+
+	ai = _mm256_shuffle_epi32(LOAD(C + 3), 0x44);
+	c0 = ADD(c0, MUL(b0, ai));
+	c1 = ADD(c1, MUL(b1, ai));
+	c2 = ADD(c2, MUL(b2, ai));
+	c3 = ADD(c3, MUL(b3, ai));
+	c4 = ADD(c4, MUL(b4, ai));
+	c5 = ADD(c5, MUL(b5, ai));
+	c6 = ADD(c6, MUL(b6, ai));
+	PI_2w();
+
+	ai = _mm256_shuffle_epi32(LOAD(C + 4), 0x44);
+	c0 = ADD(c0, MUL(b0, ai));
+	c1 = ADD(c1, MUL(b1, ai));
+	c2 = ADD(c2, MUL(b2, ai));
+	c3 = ADD(c3, MUL(b3, ai));
+	c4 = ADD(c4, MUL(b4, ai));
+	c5 = ADD(c5, MUL(b5, ai));
+	c6 = ADD(c6, MUL(b6, ai));
+	PI_2w();
+	ai = _mm256_shuffle_epi32(LOAD(C + 5), 0x44);
+	c0 = ADD(c0, MUL(b0, ai));
+	c1 = ADD(c1, MUL(b1, ai));
+	c2 = ADD(c2, MUL(b2, ai));
+	c3 = ADD(c3, MUL(b3, ai));
+	c4 = ADD(c4, MUL(b4, ai));
+	c5 = ADD(c5, MUL(b5, ai));
+	c6 = ADD(c6, MUL(b6, ai));
+	PI_2w();
+	ai = _mm256_shuffle_epi32(LOAD(C + 6), 0x44);
+	c0 = ADD(c0, MUL(b0, ai));
+	c1 = ADD(c1, MUL(b1, ai));
+	c2 = ADD(c2, MUL(b2, ai));
+	c3 = ADD(c3, MUL(b3, ai));
+	c4 = ADD(c4, MUL(b4, ai));
+	c5 = ADD(c5, MUL(b5, ai));
+	c6 = ADD(c6, MUL(b6, ai));
+	PI_2w();
+
+	ai = _mm256_shuffle_epi32(LOAD(C + 0), 0xEE);
+	c0 = ADD(c0, MUL(b0, ai));
+	c1 = ADD(c1, MUL(b1, ai));
+	c2 = ADD(c2, MUL(b2, ai));
+	c3 = ADD(c3, MUL(b3, ai));
+	c4 = ADD(c4, MUL(b4, ai));
+	c5 = ADD(c5, MUL(b5, ai));
+	c6 = ADD(c6, MUL(b6, ai));
+	PI_2w();
+
+	ai = _mm256_shuffle_epi32(LOAD(C + 1), 0xEE);
+	c0 = ADD(c0, MUL(b0, ai));
+	c1 = ADD(c1, MUL(b1, ai));
+	c2 = ADD(c2, MUL(b2, ai));
+	c3 = ADD(c3, MUL(b3, ai));
+	c4 = ADD(c4, MUL(b4, ai));
+	c5 = ADD(c5, MUL(b5, ai));
+	c6 = ADD(c6, MUL(b6, ai));
+	PI_2w();
+
+	ai = _mm256_shuffle_epi32(LOAD(C + 2), 0xEE);
+	c0 = ADD(c0, MUL(b0, ai));
+	c1 = ADD(c1, MUL(b1, ai));
+	c2 = ADD(c2, MUL(b2, ai));
+	c3 = ADD(c3, MUL(b3, ai));
+	c4 = ADD(c4, MUL(b4, ai));
+	c5 = ADD(c5, MUL(b5, ai));
+	c6 = ADD(c6, MUL(b6, ai));
+	PI_2w();
+
+	ai = _mm256_shuffle_epi32(LOAD(C + 3), 0xEE);
+	c0 = ADD(c0, MUL(b0, ai));
+	c1 = ADD(c1, MUL(b1, ai));
+	c2 = ADD(c2, MUL(b2, ai));
+	c3 = ADD(c3, MUL(b3, ai));
+	c4 = ADD(c4, MUL(b4, ai));
+	c5 = ADD(c5, MUL(b5, ai));
+	c6 = ADD(c6, MUL(b6, ai));
+	PI_2w();
+
+	ai = _mm256_shuffle_epi32(LOAD(C + 4), 0xEE);
+	c0 = ADD(c0, MUL(b0, ai));
+	c1 = ADD(c1, MUL(b1, ai));
+	c2 = ADD(c2, MUL(b2, ai));
+	c3 = ADD(c3, MUL(b3, ai));
+	c4 = ADD(c4, MUL(b4, ai));
+	c5 = ADD(c5, MUL(b5, ai));
+	c6 = ADD(c6, MUL(b6, ai));
+	PI_2w();
+	ai = _mm256_shuffle_epi32(LOAD(C + 5), 0xEE);
+	c0 = ADD(c0, MUL(b0, ai));
+	c1 = ADD(c1, MUL(b1, ai));
+	c2 = ADD(c2, MUL(b2, ai));
+	c3 = ADD(c3, MUL(b3, ai));
+	c4 = ADD(c4, MUL(b4, ai));
+	c5 = ADD(c5, MUL(b5, ai));
+	c6 = ADD(c6, MUL(b6, ai));
+	PI_2w();
+	ai = _mm256_shuffle_epi32(LOAD(C + 6), 0xEE);
+	c0 = ADD(c0, MUL(b0, ai));
+	c1 = ADD(c1, MUL(b1, ai));
+	c2 = ADD(c2, MUL(b2, ai));
+	c3 = ADD(c3, MUL(b3, ai));
+	c4 = ADD(c4, MUL(b4, ai));
+	c5 = ADD(c5, MUL(b5, ai));
+	c6 = ADD(c6, MUL(b6, ai));
+	
+	STORE(C+0, c0);
+	STORE(C+1, c1);
+	STORE(C+2, c2);
+	STORE(C+3, c3);
+	STORE(C+4, c4);
+	STORE(C+5, c5);
+	STORE(C+6, c6);
 }
 
 

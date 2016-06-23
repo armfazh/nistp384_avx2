@@ -288,13 +288,13 @@ inline void naddsub_Element_1w_h0h7(uint64_t *pC, uint64_t *pD, uint64_t *pA, ui
 	b1 = b0;	\
 	b0 = _mm_slli_si128(tmp, 8);											\
 	a13 = _mm_srli_si128(tmp, 8);											\
-	b0 = _mm_add_epi64(b0, _mm_slli_epi64(_mm_and_si128(mask20, a13), 8));	\
+	b0 = _mm_add_epi64(b0, _mm_slli_si128(_mm_and_si128(mask20, a13), 1));	\
 	b1 = _mm_add_epi64(b1, _mm_srli_epi64(a13, 20));						\
 	b1 = _mm_sub_epi64(b1, _mm_slli_epi64(_mm_and_si128(mask16, a13), 12));	\
-	b2 = _mm_sub_epi64(b2, _mm_srli_epi64(a13, 16));						\
+	b2 = _mm_sub_epi64(b2, _mm_srli_si128(a13, 2));						\
 	b3 = _mm_add_epi64(b3, _mm_slli_epi64(_mm_and_si128(mask8, a13), 20));	\
-	b4 = _mm_add_epi64(b4, _mm_srli_epi64(a13, 8));						    \
-	b4 = _mm_add_epi64(b4, _mm_slli_epi64(_mm_and_si128(mask4, a13), 24));	\
+	b4 = _mm_add_epi64(b4, _mm_srli_si128(a13, 1));						    \
+	b4 = _mm_add_epi64(b4, _mm_slli_si128(_mm_and_si128(mask4, a13), 3));	\
 	b5 = _mm_add_epi64(b5, _mm_srli_epi64(a13, 4));
 
 static void mul_schoolbook_Element_1w_h0h7(uint64_t *C, uint64_t *A, uint64_t *B)
@@ -364,7 +364,12 @@ inline void mul_Element_1w_h0h7(uint64_t *pC, uint64_t *pA, uint64_t *pB)
 
 void sqrn_Element_1w_h0h7(uint64_t *  C,int times)
 {
-
+	int i;
+	for(i=0;i<times;i++)
+	{
+		sqr_Element_1w_h0h7(C);
+		compress_Element_1w_h0h7(C);
+	}
 }
 #define copy_Element_1w_h0h7(C,A)\
 	STORE(C+0,LOAD(A+0));\
@@ -374,9 +379,165 @@ void sqrn_Element_1w_h0h7(uint64_t *  C,int times)
 
 inline void sqr_Element_1w_h0h7(uint64_t *  C)
 {
-	Element_1w_H0H7 A;
-	copy_Element_1w_h0h7(A,C);
-	mul_Element_1w_h0h7(C,A,A);
+	const __m128i mask20 = _mm_set_epi64x(0x0,((uint64_t)1<<20)-1);
+	const __m128i mask16 = _mm_set_epi64x(0x0,((uint64_t)1<<16)-1);
+	const __m128i mask8  = _mm_set_epi64x(0x0,((uint64_t)1<< 8)-1);
+	const __m128i mask4  = _mm_set_epi64x(0x0,((uint64_t)1<< 4)-1);
+
+	__m128i ai,tmp,a13;
+	__m128i b0,b1,b2,b3,b4,b5,b6;
+	__m128i c0,c1,c2,c3,c4,c5,c6;
+
+	b0 = _mm_load_si128((__m128i*)C+0);
+	b1 = _mm_load_si128((__m128i*)C+1);
+	b2 = _mm_load_si128((__m128i*)C+2);
+	b3 = _mm_load_si128((__m128i*)C+3);
+	b4 = _mm_load_si128((__m128i*)C+4);
+	b5 = _mm_load_si128((__m128i*)C+5);
+	b6 = _mm_load_si128((__m128i*)C+6);
+
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i*)C + 0), 0x44);
+	c0 = _mm_mul_epi32(b0, ai);
+	c1 = _mm_mul_epi32(b1, ai);
+	c2 = _mm_mul_epi32(b2, ai);
+	c3 = _mm_mul_epi32(b3, ai);
+	c4 = _mm_mul_epi32(b4, ai);
+	c5 = _mm_mul_epi32(b5, ai);
+	c6 = _mm_mul_epi32(b6, ai);
+	PI_1w();
+
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i*)C + 1), 0x44);
+	c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai));
+	c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));
+	c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));
+	c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));
+	c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));
+	c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));
+	c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));
+	PI_1w();
+
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i*)C + 2), 0x44);
+	c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai));
+	c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));
+	c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));
+	c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));
+	c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));
+	c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));
+	c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));
+	PI_1w();
+
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i*)C + 3), 0x44);
+	c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai));
+	c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));
+	c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));
+	c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));
+	c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));
+	c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));
+	c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));
+	PI_1w();
+
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i*)C + 4), 0x44);
+	c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai));
+	c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));
+	c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));
+	c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));
+	c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));
+	c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));
+	c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));
+	PI_1w();
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i*)C + 5), 0x44);
+	c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai));
+	c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));
+	c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));
+	c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));
+	c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));
+	c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));
+	c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));
+	PI_1w();
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i*)C + 6), 0x44);
+	c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai));
+	c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));
+	c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));
+	c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));
+	c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));
+	c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));
+	c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));
+	PI_1w();
+
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i*)C + 0), 0xEE);
+	c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai));
+	c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));
+	c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));
+	c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));
+	c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));
+	c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));
+	c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));
+	PI_1w();
+
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i*)C + 1), 0xEE);
+	c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai));
+	c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));
+	c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));
+	c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));
+	c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));
+	c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));
+	c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));
+	PI_1w();
+
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i*)C + 2), 0xEE);
+	c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai));
+	c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));
+	c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));
+	c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));
+	c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));
+	c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));
+	c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));
+	PI_1w();
+
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i*)C + 3), 0xEE);
+	c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai));
+	c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));
+	c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));
+	c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));
+	c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));
+	c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));
+	c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));
+	PI_1w();
+
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i*)C + 4), 0xEE);
+	c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai));
+	c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));
+	c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));
+	c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));
+	c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));
+	c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));
+	c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));
+	PI_1w();
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i*)C + 5), 0xEE);
+	c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai));
+	c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));
+	c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));
+	c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));
+	c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));
+	c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));
+	c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));
+	PI_1w();
+	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i*)C + 6), 0xEE);
+	c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai));
+	c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));
+	c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));
+	c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));
+	c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));
+	c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));
+	c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));
+
+	_mm_store_si128((__m128i*)C+0, c0);
+	_mm_store_si128((__m128i*)C+1, c1);
+	_mm_store_si128((__m128i*)C+2, c2);
+	_mm_store_si128((__m128i*)C+3, c3);
+	_mm_store_si128((__m128i*)C+4, c4);
+	_mm_store_si128((__m128i*)C+5, c5);
+	_mm_store_si128((__m128i*)C+6, c6);
 }
 
 inline void sqr_complex_Element_1w_h0h7(uint64_t *A)

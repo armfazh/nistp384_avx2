@@ -134,9 +134,22 @@ int main()
 	print_str_bytes(shared_secret);
 
 	ECDSA_SIG *sig=NULL;
-	char message [128];
+	uint8_t message[128];
 	long BENCH=200;
 
+	BN_CTX *ctx = BN_CTX_new();
+	BIGNUM *c =BN_new();
+	BIGNUM *a =BN_new();
+	const BIGNUM *prime = BN_get0_nist_prime_384();
+
+	CLOCKS_RANDOM(
+			BN_rand_range(a,prime),
+			BN_mod_inverse(c,a,prime,ctx)
+	);
+
+	BN_free(a);
+	BN_free(c);
+	BN_CTX_free(ctx);
 
 	printf("Variable point:\n");
 	CLOCKS_RANDOM(
@@ -184,7 +197,6 @@ int main()
 	ECDSA_SIG_free(sig);
 
 
-end:
 	free(shared_secret);
 	BN_free(n);
 	BN_free(m);
