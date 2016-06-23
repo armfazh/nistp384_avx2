@@ -253,13 +253,13 @@ inline void addsub_Element_2w_h0h7(
 	b1 = b0; 								\
 	b0 = SHLi_128(tmp, 8);					\
 	a13 = SHRi_128(tmp, 8);					\
-	b0 = ADD(b0, SHL(AND(mask20, a13), 8)); \
+	b0 = ADD(b0, SHLi_128(AND(a13, mask20), 1)); \
 	b1 = ADD(b1, SHR(a13, 20));				\
-	b1 = SUB(b1, SHL(AND(mask16, a13), 12));\
-	b2 = SUB(b2, SHR(a13, 16));				\
-	b3 = ADD(b3, SHL(AND(mask8, a13), 20)); \
-	b4 = ADD(b4, SHR(a13, 8));				\
-	b4 = ADD(b4, SHL(AND(mask4, a13), 24)); \
+	b1 = SUB(b1, SHL(AND(a13,mask16), 12));\
+	b2 = SUB(b2, SHRi_128(a13, 2));				\
+	b3 = ADD(b3, SHL(AND(a13,mask8), 20)); \
+	b4 = ADD(b4, SHRi_128(a13, 1));				\
+	b4 = ADD(b4, SHLi_128(AND(a13,mask4), 3)); \
 	b5 = ADD(b5, SHR(a13, 4));
 
 /**

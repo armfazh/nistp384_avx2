@@ -288,13 +288,13 @@ inline void naddsub_Element_1w_h0h7(uint64_t *pC, uint64_t *pD, uint64_t *pA, ui
 	b1 = b0;	\
 	b0 = _mm_slli_si128(tmp, 8);											\
 	a13 = _mm_srli_si128(tmp, 8);											\
-	b0 = _mm_add_epi64(b0, _mm_slli_epi64(_mm_and_si128(mask20, a13), 8));	\
+	b0 = _mm_add_epi64(b0, _mm_slli_si128(_mm_and_si128(mask20, a13), 1));	\
 	b1 = _mm_add_epi64(b1, _mm_srli_epi64(a13, 20));						\
 	b1 = _mm_sub_epi64(b1, _mm_slli_epi64(_mm_and_si128(mask16, a13), 12));	\
-	b2 = _mm_sub_epi64(b2, _mm_srli_epi64(a13, 16));						\
+	b2 = _mm_sub_epi64(b2, _mm_srli_si128(a13, 2));						\
 	b3 = _mm_add_epi64(b3, _mm_slli_epi64(_mm_and_si128(mask8, a13), 20));	\
-	b4 = _mm_add_epi64(b4, _mm_srli_epi64(a13, 8));						    \
-	b4 = _mm_add_epi64(b4, _mm_slli_epi64(_mm_and_si128(mask4, a13), 24));	\
+	b4 = _mm_add_epi64(b4, _mm_srli_si128(a13, 1));						    \
+	b4 = _mm_add_epi64(b4, _mm_slli_si128(_mm_and_si128(mask4, a13), 3));	\
 	b5 = _mm_add_epi64(b5, _mm_srli_epi64(a13, 4));
 
 static void mul_schoolbook_Element_1w_h0h7(uint64_t *C, uint64_t *A, uint64_t *B)
