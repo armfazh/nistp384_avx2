@@ -26,7 +26,10 @@ testall: $(TARGET)
 main: $(TARGET)
 	make -C apps/spikes main
 
-ssl: 
+boringssl:
+	make -C apps/spikes boringssl
+
+ssl:
 	make -C apps/spikes ssl
 
 nettle:

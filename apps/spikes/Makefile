@@ -2,6 +2,7 @@
 include ../../common.mk
 
 .PHONY: main ssl
+BORINGSSL_PATH=/home/armfazh/Downloads/boringssl/build
 
 all: main
 
@@ -11,7 +12,10 @@ nettle: nettle.c ../bench/clocks.o
 	$(CC) -o $(BIN)/nettle_$(CC)  $(CFLAGS) $^ -lhogweed -lnettle -lgmp
 
 ssl: ssl.c ../bench/clocks.o
-	$(CC) -o $(BIN)/ssl_$(CC)  $(CFLAGS) $^ -lssl -lcrypto 
+	$(CC) -o $(BIN)/ssl_$(CC)  $(CFLAGS) $^ -lssl -lcrypto
+
+boringssl: boringssl.c ../bench/clocks.o
+	$(CC) --verbose -o $(BIN)/boringssl_$(CC)  $(CFLAGS) $^ -lpthread -L$(BORINGSSL_PATH)/crypto -L$(BORINGSSL_PATH)//ssl -lcrypto -lssl
 
 $(BIN)/%_$(CC): %.c $(SRC)/random.o ../bench/clocks.o
 	$(CC) -o $@  $(CFLAGS) $^ $(LDFLAGS)
