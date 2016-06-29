@@ -26,8 +26,11 @@ testall: $(TARGET)
 main: $(TARGET)
 	make -C apps/spikes main
 
-ssl: $(TARGET)
+ssl: 
 	make -C apps/spikes ssl
+
+nettle:
+	make -C apps/spikes nettle
 
 $(BIN)/%_$(CC): $(TARGET) apps/%
 	make -C apps/$*
