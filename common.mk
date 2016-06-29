@@ -46,7 +46,7 @@ endif
 
 TARGET = nistp384_avx2
 
-CFLAGS+=-g -O3 -Wall -Wextra -I$(INCLUDE) -L$(LIB) -lm -lcrypto
+CFLAGS+=-O3 -Wall -Wextra -I$(INCLUDE) -L$(LIB) -lm -lcrypto
 LDFLAGS+= -l$(TARGET)_$(CC)
 #ASFLAGS=--defsym IACA_MARKS_OFF=0x1
 	

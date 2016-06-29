@@ -38,6 +38,7 @@ add_executable(test_all apps/test/test_all.c
 add_executable(main apps/spikes/main.c ${SRC}/random.c include/random.h)
 add_executable(ssl apps/spikes/ssl.c ${SRC}/random.c apps/bench/clocks.c apps/bench/clocks.h)
 add_executable(boringssl apps/spikes/boringssl.c ${SRC}/random.c apps/bench/clocks.c apps/bench/clocks.h)
+add_executable(mbed apps/spikes/mbed.c ${SRC}/random.c apps/bench/clocks.c apps/bench/clocks.h)
 
 # target_link_libraries(
 #         bench

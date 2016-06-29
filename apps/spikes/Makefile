@@ -17,6 +17,9 @@ ssl: ssl.c ../bench/clocks.o
 boringssl: boringssl.c ../bench/clocks.o
 	$(CC) --verbose -o $(BIN)/boringssl_$(CC)  $(CFLAGS) $^ -lpthread -L$(BORINGSSL_PATH)/crypto -L$(BORINGSSL_PATH)//ssl -lcrypto -lssl
 
+mbed: mbed.c ../bench/clocks.o
+	$(CC) -o $(BIN)/mbed_$(CC)  $(CFLAGS) $^ -L/usr/local/lib -lmbedcrypto -lmbedtls
+
 $(BIN)/%_$(CC): %.c $(SRC)/random.o ../bench/clocks.o
 	$(CC) -o $@  $(CFLAGS) $^ $(LDFLAGS)
 

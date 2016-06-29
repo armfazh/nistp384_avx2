@@ -32,6 +32,9 @@ boringssl:
 ssl:
 	make -C apps/spikes ssl
 
+mbed:
+	make -C apps/spikes mbed
+
 nettle:
 	make -C apps/spikes nettle
 
