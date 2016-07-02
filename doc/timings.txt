@@ -1,0 +1,32 @@
+Haswell
+openssl
+var:  2136245
+fix:   451134
+dou:  2461585
+ecdh: 2124981
+sign:  655082
+veri: 2602646
+
+nettle
+var:  1437670
+fix:   628813
+dou:  
+ecdh:  
+sign:  773116
+veri: 2069470
+
+boringssl
+var:  3607914
+fix:  3603083
+dou:  4169029 
+ecdh: 3608697
+sign: 3789887
+veri: 4477232
+
+mbed
+var:  18811598
+fix:   5866867
+dou:  25492773 
+ecdh: 18746199
+sign:  7105789
+veri: 26499464
