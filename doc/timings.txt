@@ -30,3 +30,39 @@ dou:  25492773
 ecdh: 18746199
 sign:  7105789
 veri: 26499464
+
+Skylake
+openssl
+var:  2054594
+fix:   424424
+dou:  2366732
+ecdh: 2038220
+sign:  629610
+veri: 2492368
+
+nettle
+var:  1080346
+fix:   505545
+dou:  
+ecdh: 
+sign:  627758
+veri: 1571902
+
+
+boringssl
+var:  3479762
+fix:  3473451
+dou:  4020533
+ecdh: 3437380
+sign: 3678254
+veri: 4339882
+
+
+mbed
+var:  18112785 
+fix:   5525225
+dou:  24461247
+ecdh: 17907899
+sign:  6729841
+veri: 25257404
+
