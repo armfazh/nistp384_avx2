@@ -40,30 +40,30 @@ void getGenerator(Point_XY_1way *G)
 		G->XY[i] = LOAD(BASE_G+i);
 	}
 }
-
+extern BN_CTX *ctx;
+ 
 void toAffine(Point_XY_1way *aP, Point_XYZ_1way *pP)
 {
 	Element_1w_H0H7 invZ,Z;
 	Element_2w_H0H7 invZ_2w;
 	deinterleave(invZ,Z,pP->ZZ);
-#if OPENSSL_HELP
-		BN_CTX *ctx = BN_CTX_new();
+//#if OPENSSL_HELP
 		STR_BYTES str_Z;
 		BIGNUM *c = BN_new();
 		BIGNUM *a = BN_new();
 		const BIGNUM *prime = BN_get0_nist_prime_384();
 
 		BN_bin2bn(str_Z,SIZE_STR_BYTES,a);
-		BN_mod_inverse(c,a,prime,ctx);
+		//BN_mod_inverse(c,a,prime,ctx);
 		BN_bn2bin(c,str_Z);
 
 		str_bytes_To_Element_1w_h0h7(invZ,str_Z);
 		BN_free(a);
 		BN_free(c);
-		BN_CTX_free(ctx);
-#else
-	inv_Element_1w_h0h7(invZ,Z);
-#endif
+//		BN_CTX_free(ctx);
+//#else
+//	inv_Element_1w_h0h7(invZ,Z);
+//#endif
 	interleave(invZ_2w,invZ,invZ);
 	mul_Element_2w_h0h7(aP->XY,invZ_2w,pP->XY);
 	compress_Element_2w_h0h7(aP->XY);

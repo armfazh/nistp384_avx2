@@ -140,24 +140,55 @@ int main()
 	BN_CTX *ctx = BN_CTX_new();
 	BIGNUM *c =BN_new();
 	BIGNUM *a =BN_new();
+	BIGNUM *b =BN_new();
 	const BIGNUM *prime = BN_get0_nist_prime_384();
 
+	 BENCH=1000;
+
+
+	printf("Mod add:\n");
+	CLOCKS_RANDOM(			
+			BN_rand_range(a,prime),
+			BN_mod_add(c,a,b,prime,ctx)
+	);
+	printf("Mod sub:\n");
+	CLOCKS_RANDOM(			
+			BN_rand_range(a,prime),
+			BN_mod_sub(c,a,b,prime,ctx)
+	);
+	printf("Mod mult:\n");
+	CLOCKS_RANDOM(			
+			BN_rand_range(a,prime),
+			ec_GFp_simple_field_mul(ec_group,c,a,b,ctx)
+	);
+	printf("Mod sqr:\n");
+	CLOCKS_RANDOM(			
+			BN_rand_range(a,prime),
+			ec_GFp_simple_field_sqr(ec_group,c,a,ctx)
+	);
+	 BENCH=200;
+	printf("Mod inv:\n");
 	CLOCKS_RANDOM(
 			BN_rand_range(a,prime),
 			BN_mod_inverse(c,a,prime,ctx)
 	);
 
 	BN_free(a);
+	BN_free(b);
 	BN_free(c);
 	BN_CTX_free(ctx);
-
 	printf("Variable point:\n");
-	CLOCKS_RANDOM(
+/*	CLOCKS_RANDOM(
 			BN_rand_range(k, ec_order),
 			EC_POINT_mul(ec_group, kG, NULL, kG, k, NULL);
 					EC_POINT_get_affine_coordinates_GFp(ec_group, kG, n, m, NULL)
 	);
-
+*/
+	printf("Scalar mult_G:\n");
+	CLOCKS_RANDOM(
+			BN_rand_range(k, ec_order),
+			EC_POINT_mul(ec_group, kG, k, NULL, NULL, NULL);
+	);
 	printf("Fixed point:\n");
 	CLOCKS_RANDOM(
 			BN_rand_range(k, ec_order),
@@ -165,19 +196,19 @@ int main()
 					EC_POINT_get_affine_coordinates_GFp(ec_group, kG, n, m, NULL)
 	);
 
-	oper_second(
+/*	oper_second(
 			BN_rand_range(k, ec_order),
 			EC_POINT_mul(ec_group, kG, k, NULL, NULL, NULL);
 					EC_POINT_get_affine_coordinates_GFp(ec_group, kG, n, m, NULL)
 	);
-
-	printf("Double point:\n");
+*/
+/*	printf("Double point:\n");
 	CLOCKS_RANDOM(
 			BN_rand_range(k, ec_order),
 			EC_POINT_mul(ec_group, kG, k, _3G, m, NULL);
 					EC_POINT_get_affine_coordinates_GFp(ec_group, kG, n, m, NULL)
 	);
-
+*/
 	EC_POINT *pubKey = EC_KEY_get0_public_key(ec_key);
 	printf("ECDH Key:\n");
 	CLOCKS(
@@ -189,12 +220,15 @@ int main()
 			ECDSA_SIG_free(sig);
 	);
 
-	printf("ECDSA Sign:\n");
+/*
+printf("ECDSA Verif:\n");
 	CLOCKS_RANDOM(
 			sig = ECDSA_do_sign(message,128,ec_key),
 			ECDSA_do_verify(message, 128, sig, ec_key);
 	);
 	ECDSA_SIG_free(sig);
+
+*/
 
 
 	free(shared_secret);
