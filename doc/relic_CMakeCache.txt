@@ -27,7 +27,7 @@ AMALG:BOOL=OFF
 ARCH:STRING=X64
 
 //Arithmetic backend
-ARITH:STRING=easy
+ARITH:STRING=gmp
 
 //Number of times each benchmark is ran.
 BENCH:STRING=100
@@ -48,7 +48,7 @@ BN_METHD:STRING=COMBA;COMBA;MONTY;SLIDE;BASIC;BASIC
 BN_PRECI:STRING=1024
 
 //Build with error-checking support
-CHECK:BOOL=ON
+CHECK:BOOL=OFF
 
 //Path to a program.
 CMAKE_AR:FILEPATH=/usr/bin/ar
@@ -333,6 +333,12 @@ FP_QNRES:BOOL=OFF
 //Width of window processing for exponentiation methods.
 FP_WIDTH:STRING=4
 
+//Path to a file.
+GMP_INCLUDE_DIR:PATH=/usr/local/include
+
+//Path to a library.
+GMP_LIBRARIES:FILEPATH=/usr/local/lib/libgmp.so
+
 //Build label
 LABEL:STRING=
 
@@ -409,10 +415,10 @@ WITH:STRING=ALL
 WORD:STRING=64
 
 //Dependencies for the target
-relic_LIB_DEPENDS:STATIC=general;rt;
+relic_LIB_DEPENDS:STATIC=general;/usr/local/lib/libgmp.so;general;rt;
 
 //Dependencies for the target
-relic_s_LIB_DEPENDS:STATIC=general;rt;
+relic_s_LIB_DEPENDS:STATIC=general;/usr/local/lib/libgmp.so;general;rt;
 
 
 ########################
@@ -421,6 +427,10 @@ relic_s_LIB_DEPENDS:STATIC=general;rt;
 
 //MODIFIED property for variable: ALIGN
 ALIGN-MODIFIED:INTERNAL=ON
+//MODIFIED property for variable: ARITH
+ARITH-MODIFIED:INTERNAL=ON
+//MODIFIED property for variable: CHECK
+CHECK-MODIFIED:INTERNAL=ON
 //ADVANCED property for variable: CMAKE_AR
 CMAKE_AR-ADVANCED:INTERNAL=1
 //This is the directory where this CMakeCache.txt was created
@@ -560,6 +570,10 @@ FIND_PACKAGE_MESSAGE_DETAILS_Doxygen:INTERNAL=[/usr/bin/doxygen][v1.8.11()]
 FP_PMERS-MODIFIED:INTERNAL=ON
 //MODIFIED property for variable: FP_PRIME
 FP_PRIME-MODIFIED:INTERNAL=ON
+//ADVANCED property for variable: GMP_INCLUDE_DIR
+GMP_INCLUDE_DIR-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: GMP_LIBRARIES
+GMP_LIBRARIES-ADVANCED:INTERNAL=1
 //MODIFIED property for variable: TESTS
 TESTS-MODIFIED:INTERNAL=ON
 //MODIFIED property for variable: TIMER
