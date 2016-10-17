@@ -228,6 +228,20 @@ def wnaf(k,w):
 			E += [0]
 		k>>=1;
 	return E
+	
+def wnaf_unsigned(k,w):
+	E = []
+	mods = lambda d,w :d if d<2**(w-1) else d-2**(w)
+	while(k>0):
+		if k%2 == 1:
+			#digit = mods(k%2**w,w)
+			digit = (k%2**w)
+			k -= digit
+			E += [ digit ]
+		else:
+			E += [0]
+		k>>=1;
+	return E
 
 def double_pmul(k0,w0,P,k1,w1,TabSta):
 	K0 = wnaf(k0,w0)
