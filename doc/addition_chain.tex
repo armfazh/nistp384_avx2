@@ -1,0 +1,105 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage{url}
+\usepackage{algorithmic}
+\usepackage[margin=2.5cm]{geometry}
+
+%opening
+\title{Multiplicative Inverse}
+\author{Armando Faz\\\footnotesize{\url{armfazh@ic.unicamp.br}}}
+\date{}
+\begin{document}
+\maketitle
+
+\section{Itoh-Tsujii}
+ In order to compute the multiplicative inverse 
+of an element $a\in \mathbb{F}_p^*$, the following identity is used: $a^{-1}\equiv 
+a^{p-2}\; (\textrm{mod }p)$; part of this exponentiation can be calculated using an addition chain as shown by Itoh-Tsujii.
+
+Let $x,y\in \mathbb{Z}^+$ and $x\leq y$, define the term $\bm{\alpha}_{x} = a^{2^x-1}$ and the relation $\bm{\alpha}_x\rightarrow \bm{\alpha}_y$ as $\bm{\alpha}_{y}=(\bm{\alpha}_x)^{2^{y-x}}\bm{\alpha}_{y-x}$.
+
+The cost for $\bm{\alpha}_x\rightarrow \bm{\alpha}_y$ is $y-x$ squares and 1 multiplication.
+
+
+\subsection{$p=2^{384}-2^{128}-2^{96}+2^{32}-1.$}
+This is the addition chain for NIST P-384 curve. We start with $
+\bm{\alpha}_{1} \rightarrow \bm{\alpha}_{2}  \rightarrow \bm{\alpha}_{3}  \rightarrow 
+\bm{\alpha}_{6} \rightarrow \bm{\alpha}_{12} \rightarrow \bm{\alpha}_{15} \rightarrow 
+\bm{\alpha}_{30}$. After that, we pre-compute $T_1 = a^{2^{32}-1}$, $T_2 = a^{2^{32}-3}$, $T_3 = a^{2^{31}-1}$.
+using the following:
+\begin{eqnarray*}
+ T_1 = a^{2^{32}-1} &=& (\bm{\alpha}_{30})^{2^2}a \\
+ T_2 = a^{2^{32}-3} &=& (\bm{\alpha}_{30})^{2^2}\bm{\alpha}_2 \\
+ T_3 = a^{2^{31}-1} &=& (\bm{\alpha}_{30})^{2}a 
+\end{eqnarray*}
+Then, define  $L_{0},\dots,L_{353}= 0$ and 
+\begin{eqnarray*}
+ L_{0  } &=& a^{T_2} \\
+ L_{96 } &=& a^{T_1} \\
+ L_{129} &=& a^{T_1} \\
+ L_{161} &=& a^{T_1} \\
+ L_{193} &=& a^{T_1} \\
+ L_{225} &=& a^{T_1} \\
+ L_{257} &=& a^{T_1} \\
+ L_{289} &=& a^{T_1} \\
+ L_{321} &=& a^{T_1} \\
+ L_{353} &=& a^{T_3} \\
+\end{eqnarray*}
+To obtain $c =a^{-1}$ compute:
+\begin{algorithmic}
+ \STATE $c = 1$
+ \FOR{$i=354$ \TO 0}
+	\STATE $c= c^2$
+	\IF{$L_i \neq 0$}
+		\STATE  $c = c\times L_i$
+	\ENDIF
+ \ENDFOR
+ \RETURN $c$
+\end{algorithmic}
+
+
+\subsection{$p=2^{255}-19.$}
+
+It was given an addition chain for $\mathbb{F}_{2^{255}-19}$, starting with $a^9=(a^2)^{2^2}\cdot a$ and $\bm{\alpha}_5=a^{31}=(a^2\cdot a^9)^2\cdot (a^9)$  compute   
+$
+\bm{\alpha}_{5} \rightarrow \bm{\alpha}_{10} \rightarrow \bm{\alpha}_{20} \rightarrow 
+\bm{\alpha}_{40} \rightarrow \bm{\alpha}_{50} \rightarrow \bm{\alpha}_{100} \rightarrow 
+\bm{\alpha}_{200} \rightarrow \bm{\alpha}_{250}
+$, the multiplicative inverse is obtained as 
+\begin{eqnarray*}
+a^{-1} &=& a^{2^{255}-21} \\
+       &=& (\bm{\alpha}_{250})^{2^5}\cdot a^{11}
+\end{eqnarray*}
+Cost: 11 multiplications and 254 squares.
+
+
+\subsection{$p=2^{448}-2^{224}-1.$} For $\mathbb{F}_{2^{448}-2^{224}-1}$, starting with  
+$
+\bm{\alpha}_{1} \rightarrow   \bm{\alpha}_{2}  \rightarrow
+\bm{\alpha}_{3}   \rightarrow \bm{\alpha}_{6}  \rightarrow \bm{\alpha}_{12} \rightarrow 
+\bm{\alpha}_{24}  \rightarrow \bm{\alpha}_{27} \rightarrow \bm{\alpha}_{54} \rightarrow 
+\bm{\alpha}_{108} \rightarrow \bm{\alpha}_{111}\rightarrow \bm{\alpha}_{222} \rightarrow 
+\bm{\alpha}_{223}
+$, the multiplicative inverse is obtained as $a^{-1} = b^{2^2}\cdot a$:
+\begin{eqnarray*}
+b &=& (\bm{\alpha}_{223})^{2^{223}}\cdot (\bm{\alpha}_{222})\\
+  &=& (a^{2^{223}}-1)^{2^{223}} (a^{2^{222}}-1)\\
+  &=& a^{2^{446}-2^{223}+2^{222}-1}\\
+  &=& a^{2^{446}-2^{222}-1}
+\end{eqnarray*}
+\begin{eqnarray*}
+a^{-1} &=& b^{2^2}\cdot a\\
+	   &=& (a^{2^{446}-2^{222}-1})^{2^2}a\\
+	   &=& a^{2^{448}-2^{222}-4+1}\\
+       &=& a^{2^{448}-2^{224}-3}\\
+\end{eqnarray*}
+
+Cost: 13 multiplications and 447 squares.
+
+\paragraph{Bonus:}  The value $b=2^{446}-2^{222}-1$ is used for computing square-roots ($b = \frac{p-3}{4}$); thus, there is only one addition chain used for both purposes.
+
+\end{document}
