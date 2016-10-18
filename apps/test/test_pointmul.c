@@ -176,7 +176,7 @@ void test_pointmul()
 			STR_BYTES buf;
 			char* s = NULL;
 			to_littleEndian(buf,k);
-			printf("TH_k : \n");print_str_bytes(str_k);
+			printf("\nTH_k : \n");print_str_bytes(str_k);
 			printf("TH_P : \n");print_affine_1way(&P);
 			printf("TH_kP: \n");print_affine_1way(&kG);
 			printf("OP_k : \n");print_str_bytes(buf);

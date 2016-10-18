@@ -1,26 +1,21 @@
 #include "clocks.h"
 #include "bench.h"
-#include <time.h>
-#include <stdlib.h>
 #include <stdio.h>
 #include <openssl/bn.h>
 #include <openssl/objects.h>
 #include <openssl/ec.h>
 #include <random.h>
 
-BN_CTX *ctx = NULL;
-
-
 int main(void)
 {
 	randomize();
 	printf("===== Benchmarking: NIST-P384_avx2 =====\n");
 
-	EC_GROUP *	ec_group = EC_KEY_get0_group(EC_KEY_new_by_curve_name(NID_secp384r1));
+	const EC_GROUP * ec_group = EC_KEY_get0_group(EC_KEY_new_by_curve_name(NID_secp384r1));
 
 long BENCH=1000;
-	ctx  = BN_CTX_new();
-	//BN_CTX_init(ctx);
+	BN_CTX * ctx = BN_CTX_new();
+	BN_CTX_init(ctx);
 	BIGNUM *c =BN_new();
 	BIGNUM *a =BN_new();
 	BIGNUM *b =BN_new();

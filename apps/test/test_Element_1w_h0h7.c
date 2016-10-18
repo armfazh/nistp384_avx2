@@ -7,7 +7,7 @@ void test_Element_1w_h0h7()
 {
 	int64_t i;
 	int64_t cnt =0 , test=0;
-	Element_1w_H0H7 a,b,c,e,f;
+	Element_1w_H0H7 a,b,c,d,e,f;
 
 	printf("===== 1-way =====\n");
 	/**
@@ -40,7 +40,7 @@ void test_Element_1w_h0h7()
 		cnt += test;
 	}
 	printf(" %ld %s\n",cnt , cnt == TEST_TIMES? "OK" : "FAIL" );
-#if 0
+#if 1
 	/**
 	* Test identity:
 	*    (a*b*a^1) == b
@@ -52,7 +52,7 @@ void test_Element_1w_h0h7()
 		random_Element_1w_h0h7(a);
 		random_Element_1w_h0h7(b);
 
-        invsqrt_Element_1w_h0h7(d,a,1);
+        inv_Element_1w_h0h7(d,a);
         mul_Element_1w_h0h7(a,a,b);
         compress_Element_1w_h0h7(a);
 		mul_Element_1w_h0h7(a,a,d);

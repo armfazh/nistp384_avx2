@@ -943,54 +943,83 @@ void new_compressfast_Element_1w_h0h7(uint64_t * pA)
 void inv_Element_1w_h0h7(uint64_t * __restrict pC, uint64_t * __restrict pA)
 {
 	int i;
-	copy_Element_1w_h0h7(pC,pA);
-	for (i = 382; i > 128; i--)
-	{
-		sqr_Element_1w_h0h7(pC);
-		compress_Element_1w_h0h7(pC);
-		mul_Element_1w_h0h7(pC,pC,pA);
-		compress_Element_1w_h0h7(pC);
-	}
-	sqr_Element_1w_h0h7(pC);
-	compress_Element_1w_h0h7(pC);
-	for (i = 127; i >= 96; i--)
-	{
-		sqr_Element_1w_h0h7(pC);
-		compress_Element_1w_h0h7(pC);
-		mul_Element_1w_h0h7(pC,pC,pA);
-		compress_Element_1w_h0h7(pC);
-	}
-	for (i = 95; i >=32; i--)
-	{
-		sqr_Element_1w_h0h7(pC);
-		compress_Element_1w_h0h7(pC);
-	}
-	for (i = 31; i > 1; i--)
-	{
-		sqr_Element_1w_h0h7(pC);
-		compress_Element_1w_h0h7(pC);
-		mul_Element_1w_h0h7(pC,pC,pA);
-		compress_Element_1w_h0h7(pC);
-	}
-	sqr_Element_1w_h0h7(pC);
-	compress_Element_1w_h0h7(pC);
+	Element_1w_H0H7 Tab_1,Tab_2,Tab_3;
+	uint64_t *T[5];
+	T[0] = pA;
+	T[1] = pC;
+	T[2] = Tab_1;
+	T[3] = Tab_2;
+	T[4] = Tab_3;
 
-	sqr_Element_1w_h0h7(pC);
-	compress_Element_1w_h0h7(pC);
-	mul_Element_1w_h0h7(pC,pC,pA);
-	compress_Element_1w_h0h7(pC);
-	/*for (i = 382; i >= 0; i--)
+	/* alpha_1 */
+	copy_Element_1w_h0h7(T[1],T[0]);
+
+	/* alpha_2 */
+	sqrn_Element_1w_h0h7(T[1],1);
+	mul_Element_1w_h0h7(T[1],T[1],T[0]);
+	compress_Element_1w_h0h7(T[1]);
+
+	/* alpha_3 */
+	copy_Element_1w_h0h7(T[2],T[1]);
+	sqrn_Element_1w_h0h7(T[2],1);
+	mul_Element_1w_h0h7(T[2],T[2],T[0]);
+	compress_Element_1w_h0h7(T[2]);
+
+	/* alpha_6 */
+	copy_Element_1w_h0h7(T[3],T[2]);
+	sqrn_Element_1w_h0h7(T[3],3);
+	mul_Element_1w_h0h7(T[3],T[3],T[2]);
+	compress_Element_1w_h0h7(T[3]);
+
+	/* alpha_12 */
+	copy_Element_1w_h0h7(T[4],T[3]);
+	sqrn_Element_1w_h0h7(T[4],6);
+	mul_Element_1w_h0h7(T[4],T[4],T[3]);
+	compress_Element_1w_h0h7(T[4]);
+
+	/* alpha_15 */
+	sqrn_Element_1w_h0h7(T[4],3);
+	mul_Element_1w_h0h7(T[4],T[4],T[2]);
+	compress_Element_1w_h0h7(T[4]);
+
+	/* alpha_30 */
+	copy_Element_1w_h0h7(T[3],T[4]);
+	sqrn_Element_1w_h0h7(T[3],15);
+	mul_Element_1w_h0h7(T[3],T[3],T[4]);
+	compress_Element_1w_h0h7(T[3]);
+
+	/* (alpha_30)^2 */
+	sqrn_Element_1w_h0h7(T[3],1);
+
+	/* T_3 = a^(2^31-1) = (alpha_30)^2*alpha_1 */
+	copy_Element_1w_h0h7(T[2],T[3]);
+	mul_Element_1w_h0h7(T[2],T[2],T[0]);
+	compress_Element_1w_h0h7(T[2]);
+
+	/* (alpha_30)^(2^2) */
+	sqrn_Element_1w_h0h7(T[3],1);
+
+	/* T_1 = a^(2^32-1) = (alpha_30)^(2^2)*alpha_2 */
+	copy_Element_1w_h0h7(T[4],T[3]);
+	mul_Element_1w_h0h7(T[4],T[4],T[1]);
+	compress_Element_1w_h0h7(T[4]);
+
+	/* T_2 = a^(2^32-3) = (alpha_30)^(2^2)*alpha_1 */
+	mul_Element_1w_h0h7(T[3],T[3],T[0]);
+	compress_Element_1w_h0h7(T[3]);
+
+	copy_Element_1w_h0h7(T[1],T[2]);
+	for(i=0;i<7;i++)
 	{
-		sqr_Element_1w_h0h7(pC);
-		compress_Element_1w_h0h7(pC);
-		if( i== 128 || i== 1 || (32<=i && i<96))
-		{
-			continue;
-		}
-		else
-		{
-			mul_Element_1w_h0h7(pC,pC,pA);
-			compress_Element_1w_h0h7(pC);
-		}
-	}*/
+		sqrn_Element_1w_h0h7(T[1],32);
+		mul_Element_1w_h0h7(T[1],T[1],T[4]);
+		compress_Element_1w_h0h7(T[1]);
+	}
+	sqrn_Element_1w_h0h7(T[1],33);
+	mul_Element_1w_h0h7(T[1],T[1],T[4]);
+	compress_Element_1w_h0h7(T[1]);
+
+	sqrn_Element_1w_h0h7(T[1],96);
+	mul_Element_1w_h0h7(T[1],T[1],T[3]);
+	compress_Element_1w_h0h7(T[1]);
 }

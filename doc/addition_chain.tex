@@ -38,21 +38,21 @@ using the following:
 \end{eqnarray*}
 Then, define  $L_{0},\dots,L_{353}= 0$ and 
 \begin{eqnarray*}
- L_{0  } &=& a^{T_2} \\
- L_{96 } &=& a^{T_1} \\
- L_{129} &=& a^{T_1} \\
- L_{161} &=& a^{T_1} \\
- L_{193} &=& a^{T_1} \\
- L_{225} &=& a^{T_1} \\
- L_{257} &=& a^{T_1} \\
- L_{289} &=& a^{T_1} \\
- L_{321} &=& a^{T_1} \\
- L_{353} &=& a^{T_3} \\
+ a^{T_2} &=& L_{0  } \\
+ a^{T_1} &=& L_{96 } = 
+ L_{129} = 
+ L_{161} = 
+ L_{193} = 
+ L_{225} = 
+ L_{257} = 
+ L_{289} = 
+ L_{321} \\
+ a^{T_3} &=& L_{353}
 \end{eqnarray*}
 To obtain $c =a^{-1}$ compute:
 \begin{algorithmic}
  \STATE $c = 1$
- \FOR{$i=354$ \TO 0}
+ \FOR{$i=353$ \TO 0}
 	\STATE $c= c^2$
 	\IF{$L_i \neq 0$}
 		\STATE  $c = c\times L_i$
@@ -60,7 +60,7 @@ To obtain $c =a^{-1}$ compute:
  \ENDFOR
  \RETURN $c$
 \end{algorithmic}
-
+Cost: 19 multiplications and 384 squares.
 
 \subsection{$p=2^{255}-19.$}
 

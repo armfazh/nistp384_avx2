@@ -11,14 +11,14 @@ int main()
 	int i=0;
 	printf("=== MAIN === \n");
 
-#if 0 /* === Element 1w ===  */
+#if 1 /* === Element 1w ===  */
 	printf("=== Element 1w === \n");
 
 	Element_1w_H0H7 a,b,c,d;
 	random_Element_1w_h0h7(a);
 	random_Element_1w_h0h7(b);
 	print_Element_1w_h0h7(a);
-	print_Element_1w_h0h7(b);
+//	print_Element_1w_h0h7(b);
 
 //	printex_Element_1w_h0h7(a);
 //	print_python_Element_1w_h0h7(a);
@@ -62,7 +62,7 @@ int main()
 //	sizes_Element_1w_h0h7(c);
 //	print_Element_1w_h0h7(c);
 
-	inv_Element_1w_h0h7(c,a);
+	inv2_Element_1w_h0h7(c,a);
 	print_Element_1w_h0h7(c);
 
 
@@ -300,7 +300,7 @@ int main()
 
 #endif
 
-#if 1 /* Fixed point mult */
+#if 0 /* Fixed point mult */
 	Point_XY_1way kP;
 	STR_BYTES k={
 			0x11,0x8f,0x32,0x38,0x56,0x91,0xe8,0xb2,
