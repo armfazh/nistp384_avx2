@@ -196,7 +196,11 @@ def recoding(k,w):
 	E += [ k ]
 	return E
 
-def variable_pmul(k,w,P):
+def variable_pmul(kk,w,P):
+    if kk%2 ==1 :
+        k = kk+1
+    else:
+        k = kk
     L = recoding(k,w)
     Tab = create_table(P,w)
     d = L[-1]
@@ -205,14 +209,16 @@ def variable_pmul(k,w,P):
         Q[1] = -Q[1]
     for i in reversed(range(len(L)-1)):
         d = L[i]
-        print(i,d)
-        print([hex(int(x)) for x in Q])
+        #print(i,d)
+        #print([hex(int(x)) for x in Q])
         for j in range(w-1):
             Q = doub_complete_2w(Q)
         R = deepcopy(Tab[abs(d)>>1])
         if d < 0:
-			R[1] = -R[1]
+            R[1] = -R[1]
         Q = fulladd_complete_2w(Q,R)
+    if kk%2 == 1:
+        Q = -Q
     print(Q)
     return Q
 

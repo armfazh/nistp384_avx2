@@ -6,12 +6,80 @@
 #include "element_1w_h0h7.h"
 #include "element_2w_h0h7.h"
 extern uint64_t TableSign_w4_36k[NUM_LUT*8*2*6];
+
+#include <openssl/bn.h>
+#include <openssl/ec.h>
+#include <openssl/obj_mac.h>
+
+int compare_element(BIGNUM* x , uint8_t *y)
+{
+	STR_BYTES bufX;
+	to_littleEndian(bufX,x);
+//	printf("OP: ");print_str_bytes(bufX);
+//	printf("TH: ");print_str_bytes(y);
+	return areEqual_str_bytes(bufX,y);
+}
+
+int compare_point(const EC_GROUP * ec_group, const EC_POINT * P , Point_XY_1way * Q)
+{
+	STR_BYTES sQx,sQy;
+	Element_1w_H0H7 Qx,Qy;
+	BIGNUM *Px,*Py;
+	Px = BN_new();
+	Py = BN_new();
+	deinterleave(Qx,Qy,Q->XY);
+	Element_1w_h0h7_To_str_bytes(sQx,Qx);
+	Element_1w_h0h7_To_str_bytes(sQy,Qy);
+	EC_POINT_get_affine_coordinates_GFp(ec_group,P,Px,Py,NULL);
+
+	int ret = compare_element(Px,sQx) && compare_element(Py,sQy);
+	BN_free(Px);
+	BN_free(Py);
+	return ret;
+}
+
+void to_littleEndian(uint8_t *str_num, BIGNUM* n)
+{
+	int i;
+	uint8_t tmp;
+	uint8_t end = BN_num_bytes(n);
+
+	BN_bn2bin(n,str_num);
+
+	for(i=0;i<(end+1)/2 ;i++)
+	{
+		tmp  = str_num[i];
+		str_num[i] = str_num[end-i-1];
+		str_num[end-i-1] = tmp;
+	}
+	for(i=end;i<SIZE_STR_BYTES;i++)
+	{
+		str_num[i] = 0;
+	}
+}
+
+void to_point(Point_XY_1way * P,const EC_GROUP*ec_group, EC_POINT * OSSL_P)
+{
+	STR_BYTES str_x,str_y;
+	Element_1w_H0H7 x,y;
+	BIGNUM * Px = BN_new();
+	BIGNUM * Py = BN_new();
+	EC_POINT_get_affine_coordinates_GFp(ec_group,OSSL_P,Px,Py,NULL);
+	to_littleEndian(str_x,Px);
+	to_littleEndian(str_y,Py);
+	str_bytes_To_Element_1w_h0h7(x,str_x);
+	str_bytes_To_Element_1w_h0h7(y,str_y);
+	interleave(P->XY,x,y);
+	BN_free(Px);
+	BN_free(Py);
+}
+
 int main()
 {
 	int i=0;
 	printf("=== MAIN === \n");
 
-#if 1 /* === Element 1w ===  */
+#if 0 /* === Element 1w ===  */
 	printf("=== Element 1w === \n");
 
 	Element_1w_H0H7 a,b,c,d;
@@ -62,10 +130,8 @@ int main()
 //	sizes_Element_1w_h0h7(c);
 //	print_Element_1w_h0h7(c);
 
-	inv2_Element_1w_h0h7(c,a);
+	inv_Element_1w_h0h7(c,a);
 	print_Element_1w_h0h7(c);
-
-
 #endif
 
 #if 0 /* === Element 2w ===  */
@@ -205,21 +271,55 @@ int main()
 	print_Element_2w_h0h7(Q.ZZ);
 #endif
 
-#if 0 /* testing variable point mult */
-	Point_XY_1way P, kP;
-	getGenerator(&P);
+#if 1 /* testing variable point mult */
 
-	STR_BYTES k;
-	random_str_bytes(k);
-	printf("k: \n");print_str_bytes(k);
-	variable_point_multiplication(&kP,k,&P);
-	printf("kP: \n");print_Element_2w_h0h7(kP.XY);
+	Point_XY_1way P,kG;
+	EC_KEY * ec_key = EC_KEY_new_by_curve_name(NID_secp384r1);
+	const EC_GROUP * ec_group = EC_KEY_get0_group(ec_key);
+	BIGNUM * ec_order = BN_new();
+	EC_GROUP_get_order(ec_group,ec_order,NULL);
 
-	random_str_bytes(k);
-	random_str_bytes(k);
-	printf("k: \n");print_str_bytes(k);
-	variable_point_multiplication(&kP,k,&P);
-	printf("kP: \n");print_Element_2w_h0h7(kP.XY);
+	/* Fixed point multiplication */
+	EC_POINT * OSSL_kG = EC_POINT_new(ec_group);
+	EC_POINT * OSSL_Q  = EC_POINT_new(ec_group);
+	BIGNUM * k = BN_new();
+	BIGNUM * k1 = BN_new();
+	STR_BYTES str_k,str_k1;
+	int test;
+
+	for(i=0;i<1000;i++)
+	{
+		BN_rand_range(k,ec_order);
+		EC_POINT_mul(ec_group,OSSL_kG,k,NULL,NULL,NULL);
+		BN_rand_range(k,ec_order);
+		EC_POINT_mul(ec_group,OSSL_Q,NULL,OSSL_kG,k,NULL);
+
+		to_littleEndian(str_k,k);
+		to_point(&P,ec_group,OSSL_kG);
+		variable_point_multiplication(&kG,str_k,&P);
+
+		STR_BYTES buf;
+		test = compare_point(ec_group,OSSL_Q,&kG);
+		if(!test)
+		{
+			char* s = NULL;
+			to_littleEndian(buf,k);
+			printf("\nTH_k : \n");print_str_bytes(str_k);
+			printf("TH_P : \n");print_affine_1way(&P);
+			printf("TH_kP: \n");print_affine_1way(&kG);
+			printf("OP_k : \n");print_str_bytes(buf);
+			printf("OP_P : \n");printf("%s\n",s=EC_POINT_point2hex(ec_group,OSSL_kG,POINT_CONVERSION_UNCOMPRESSED,NULL)); OPENSSL_free(s);
+			printf("OP_kP: \n");printf("%s\n",s=EC_POINT_point2hex(ec_group,OSSL_Q,POINT_CONVERSION_UNCOMPRESSED,NULL));  OPENSSL_free(s);
+			break;
+		}
+	}
+
+//
+//	random_str_bytes(k);
+//	random_str_bytes(k);
+//	printf("k: \n");print_str_bytes(k);
+//	variable_point_multiplication(&kP,k,&P);
+//	printf("kP: \n");print_Element_2w_h0h7(kP.XY);
 
 #endif
 

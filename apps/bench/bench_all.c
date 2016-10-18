@@ -11,8 +11,6 @@ int main(void)
 	randomize();
 	printf("===== Benchmarking: NIST-P384_avx2 =====\n");
 
-	const EC_GROUP * ec_group = EC_KEY_get0_group(EC_KEY_new_by_curve_name(NID_secp384r1));
-
 long BENCH=1000;
 	BN_CTX * ctx = BN_CTX_new();
 	BN_CTX_init(ctx);
@@ -34,12 +32,12 @@ const BIGNUM *prime = BN_get0_nist_prime_384();
 	printf("Mod mult:\n");
 	CLOCKS_RANDOM(			
 			BN_rand_range(a,prime),
-			ec_GFp_simple_field_mul(ec_group,c,a,b,ctx)
+			BN_mod_mul(c,a,b,prime,ctx)
 	);
 	printf("Mod sqr:\n");
 	CLOCKS_RANDOM(			
 			BN_rand_range(a,prime),
-			ec_GFp_simple_field_sqr(ec_group,c,a,ctx)
+			BN_mod_sqr(c,a,prime,ctx)
 	);
 	 BENCH=300;
 	printf("Mod inv:\n");
