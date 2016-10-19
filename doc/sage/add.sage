@@ -216,18 +216,22 @@ def variable_pmul(k,w,P):
 	Q = deepcopy(Tab[abs(d)>>1])
 	if d < 0:
 		Q[1] = -Q[1]
+	print(77,d)
+	print(HEX(Q))
 	for i in reversed(range(len(L)-1)):
 		d = L[i]
-		#print(i,d)
-		#print([hex(int(x)) for x in Q])
 		for j in range(w-1):
 			Q = doub_complete_2w(Q)
+			print(j);print(HEX(Q))
 		R = deepcopy(Tab[abs(d)>>1])
 		if d < 0:
 			R[1] = -R[1]
 		Q = fulladd_complete_2w(Q,R)
+		print(i,d)
+		print(HEX(Q))
 	if even:
 		Q[1] = -Q[1]
+	print(HEX(Q))
 	Q = [ Q[0]/Q[2], Q[1]/Q[2] ]
 	return Q
 

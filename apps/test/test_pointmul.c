@@ -16,7 +16,7 @@
 
 #define P384 NID_secp384r1
 
-void to_littleEndian(uint8_t *str_num, BIGNUM* n)
+void BN_to_str_bytes(uint8_t *str_num, BIGNUM *n)
 {
 	int i;
 	uint8_t tmp;
@@ -42,8 +42,8 @@ void to_point(Point_XY_1way * P,const EC_GROUP*ec_group, EC_POINT * OSSL_P)
 	BIGNUM * Px = BN_new();
 	BIGNUM * Py = BN_new();
 	EC_POINT_get_affine_coordinates_GFp(ec_group,OSSL_P,Px,Py,NULL);
-	to_littleEndian(str_x,Px);
-	to_littleEndian(str_y,Py);
+	BN_to_str_bytes(str_x, Px);
+	BN_to_str_bytes(str_y, Py);
 	str_bytes_To_Element_1w_h0h7(x,str_x);
 	str_bytes_To_Element_1w_h0h7(y,str_y);
 	interleave(P->XY,x,y);
@@ -54,7 +54,7 @@ void to_point(Point_XY_1way * P,const EC_GROUP*ec_group, EC_POINT * OSSL_P)
 int compare_element(BIGNUM* x , uint8_t *y)
 {
 	STR_BYTES bufX;
-	to_littleEndian(bufX,x);
+	BN_to_str_bytes(bufX, x);
 //	printf("OP: ");print_str_bytes(bufX);
 //	printf("TH: ");print_str_bytes(y);
 	return areEqual_str_bytes(bufX,y);
@@ -139,14 +139,14 @@ void test_pointmul()
 		BN_rand_range(k,ec_order);
 		EC_POINT_mul(ec_group,OSSL_kG,k,NULL,NULL,NULL);
 
-		to_littleEndian(str_k,k);
+		BN_to_str_bytes(str_k, k);
 		fixed_point_multiplication(&kG,str_k);
 		test = compare_point(ec_group,OSSL_kG,&kG);
 		if(!test)
 		{
 			char* s=NULL;
 			STR_BYTES buf;
-			to_littleEndian(buf,k);
+			BN_to_str_bytes(buf, k);
 			printf("\nOP_k: \n");printf("\n");print_str_bytes(buf);
 			printf("\nTH_k: \n");print_str_bytes(str_k);
 			print_affine_1way(&kG);
@@ -167,7 +167,7 @@ void test_pointmul()
 		BN_rand_range(k,ec_order);
 		EC_POINT_mul(ec_group,OSSL_Q,NULL,OSSL_kG,k,NULL);
 
-		to_littleEndian(str_k,k);
+		BN_to_str_bytes(str_k, k);
 		to_point(&P,ec_group,OSSL_kG);
 		variable_point_multiplication(&kG,str_k,&P);
 		test = compare_point(ec_group,OSSL_Q,&kG);
@@ -175,7 +175,8 @@ void test_pointmul()
 		{
 			STR_BYTES buf;
 			char* s = NULL;
-			to_littleEndian(buf,k);
+			BN_to_str_bytes(buf, k);
+
 			printf("\nTH_k : \n");print_str_bytes(str_k);
 			printf("TH_P : \n");print_affine_1way(&P);
 			printf("TH_kP: \n");print_affine_1way(&kG);
@@ -199,8 +200,8 @@ void test_pointmul()
 		BN_rand_range(k1,ec_order);
 		EC_POINT_mul(ec_group,OSSL_Q,k,OSSL_kG,k1,NULL);
 
-		to_littleEndian(str_k,k);
-		to_littleEndian(str_k1,k1);
+		BN_to_str_bytes(str_k, k);
+		BN_to_str_bytes(str_k1, k1);
 		to_point(&P,ec_group,OSSL_kG);
 		double_point_multiplication(&kG,str_k,str_k1,&P);
 		test = compare_point(ec_group,OSSL_Q,&kG);
@@ -208,8 +209,8 @@ void test_pointmul()
 		{
 			STR_BYTES buf,buf1;
 			char* s = NULL;
-			to_littleEndian(buf,k);
-			to_littleEndian(buf1,k1);
+			BN_to_str_bytes(buf, k);
+			BN_to_str_bytes(buf1, k1);
 			printf("TH_k : \n");print_str_bytes(str_k);
 			printf("TH_k1: \n");print_str_bytes(str_k1);
 			printf("TH_P : \n");print_affine_1way(&P);

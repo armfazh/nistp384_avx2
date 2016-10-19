@@ -269,17 +269,36 @@ void variable_point_multiplication(
 	{
 		_k[i] = (p64k[i]&mask)^(_k[i]&(~mask));
 	}
+	printf("\t");print_str_bytes(_k);
 	len = recoding(L,(uint8_t*)_k,OMEGA_VAR_PMUL);
+	for(i=len-1;i>=0;i--)
+	{
+		printf("%d, ",L[i]);
+	}printf("\n");
+
 	precompute_points(Table,P,OMEGA_VAR_PMUL);
+
 	read_point_protected(&Q,L[len-1],Table);
+	printf("i:%d d:%d \n",len-1,L[len-1]);
+	print_Element_2w_h0h7(Q.XY);
+	print_Element_2w_h0h7(Q.ZZ);
 	for(i=len-2;i>=0;i--)
 	{
 		for(j=0;j<(OMEGA_VAR_PMUL-1);j++)
 		{
 			_1way_doubling(&Q);
+			printf("j:%d\n",j);
+			printf("\t2Q:\n ");
+			print_Element_2w_h0h7(Q.XY);sizes_Element_2w_h0h7(Q.XY);printex_Element_2w_h0h7(Q.XY);
+			print_Element_2w_h0h7(Q.ZZ);sizes_Element_2w_h0h7(Q.ZZ);printex_Element_2w_h0h7(Q.ZZ);
 		}
+
 		read_point_protected(&R,L[i],Table);
 		_1way_full_addition_law(&Q,&R);
+		printf("i:%d d:%d \n",i,L[i]);
+		print_Element_2w_h0h7(Q.XY);sizes_Element_2w_h0h7(Q.XY);
+		print_Element_2w_h0h7(Q.ZZ);sizes_Element_2w_h0h7(Q.ZZ);
+		if (i==25) break;
 	}
 	negatePoint(&_Q,&Q);
 	__m256i vmask = _mm256_set1_epi64x(mask);
@@ -287,6 +306,8 @@ void variable_point_multiplication(
 	{
 		Q.XY[i] = XOR(AND(vmask,Q.XY[i]),ANDNOT(vmask,_Q.XY[i]));
 	}
+	print_Element_2w_h0h7(Q.XY);
+	print_Element_2w_h0h7(Q.ZZ);
 	/* convert to affine coordinates */
 	toAffine(kP,&Q);
 }
