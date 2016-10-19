@@ -594,15 +594,18 @@ void _1way_doubling(Point_XYZ_1way *P)
 	{
 		l5r5[i] = ADD(SHLV(l4r4[i],shift_1Z),l4r4[i]);
 	}
-	compress_Element_2w_h0h7(l5r5);
+	compress_Element_2w_h0h7(l1r1);
 	compress_Element_2w_h0h7(l3r3);
+	compress_Element_2w_h0h7(l5r5);
 	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
 	{
 		r5l5[i] = PERM64(l5r5[i],0x4E);
 	}
 
-//	printf("\tl3r3:\n");print_Element_2w_h0h7(l3r3);
-//	printf("\tl5r5:\n");print_Element_2w_h0h7(l5r5);
+	printf("\tp1q1:\n");print_Element_2w_h0h7(p1q1);sizes_Element_2w_h0h7((p1q1));
+	printf("\tl1r1:\n");print_Element_2w_h0h7(l1r1);sizes_Element_2w_h0h7((l1r1));
+	printf("\tl3r3:\n");print_Element_2w_h0h7(l3r3);sizes_Element_2w_h0h7((l3r3));
+	printf("\tl5r5:\n");print_Element_2w_h0h7(l5r5);sizes_Element_2w_h0h7((l5r5));
 /*  p4 = l3*l5;		q4 = r3*r5;*/
 	mul_Element_2w_h0h7(p4q4,l3r3,l5r5);
 /*  p5 = p1*r5;		q5 = q1*l5;*/
@@ -613,9 +616,10 @@ void _1way_doubling(Point_XYZ_1way *P)
 //	compress_Element_2w_h0h7(p5q5);
 //	compress_Element_2w_h0h7(  q6);
 
-//	printf("\tp4q4:\n");print_Element_2w_h0h7(p4q4);
-//	printf("\tp5q5:\n");print_Element_2w_h0h7(p5q5);
-//	printf("\tq6  :\n");print_Element_2w_h0h7(q6  );
+	printf("\tp4q4:\n");printex_Element_2w_h0h7(p4q4);sizes_Element_2w_h0h7(p4q4);
+	printf("\tp5q5:\n");printex_Element_2w_h0h7(p5q5);sizes_Element_2w_h0h7(p5q5);
+	printf("\tq6  :\n");printex_Element_2w_h0h7(q6  );sizes_Element_2w_h0h7(q6  );
+
 /*  X3 = 2*(p5-q5);	Y3 = p4+q4;    */
 	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
 	{
@@ -629,11 +633,15 @@ void _1way_doubling(Point_XYZ_1way *P)
 	}
 	compress_Element_2w_h0h7(P->XY);
 /*  Z3 = 8*q6;*/
+
+//	sizes_Element_2w_h0h7(q6);
 	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
 	{
 		P->ZZ[i] = PERM64(SHL(q6[i],3),0xEE);
 	}
+//	sizes_Element_2w_h0h7(P->ZZ);
 	compress_Element_2w_h0h7(P->ZZ);
+//	printf("\tq6  :\n");print_Element_2w_h0h7(P->ZZ);
 //	printf("\tP->XY:\n");print_Element_2w_h0h7(P->XY);
 //	printf("\tP->Z :\n");print_Element_2w_h0h7(P->Z );
 }
