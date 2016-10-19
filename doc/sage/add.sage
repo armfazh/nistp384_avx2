@@ -222,7 +222,7 @@ def variable_pmul(k,w,P):
 		d = L[i]
 		for j in range(w-1):
 			Q = doub_complete_2w(Q)
-			print(j);print(HEX(Q))
+		#print(j);print(HEX(Q))
 		R = deepcopy(Tab[abs(d)>>1])
 		if d < 0:
 			R[1] = -R[1]

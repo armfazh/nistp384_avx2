@@ -48,8 +48,8 @@ const BIGNUM *prime = BN_get0_nist_prime_384();
 
 	bench_element_1w_h0h7();
 	bench_element_2w_h0h7();
-	bench_ecc();
-	bench_pointmul();
+//	bench_ecc();
+//	bench_pointmul();
 
 	BN_CTX_free(ctx);
 	return 0;

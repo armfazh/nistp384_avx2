@@ -287,10 +287,10 @@ void variable_point_multiplication(
 		for(j=0;j<(OMEGA_VAR_PMUL-1);j++)
 		{
 			_1way_doubling(&Q);
-			printf("j:%d\n",j);
-			printf("\t2Q:\n ");
-			print_Element_2w_h0h7(Q.XY);sizes_Element_2w_h0h7(Q.XY);printex_Element_2w_h0h7(Q.XY);
-			print_Element_2w_h0h7(Q.ZZ);sizes_Element_2w_h0h7(Q.ZZ);printex_Element_2w_h0h7(Q.ZZ);
+//			printf("j:%d\n",j);
+//			printf("\t2Q:\n ");
+//			print_Element_2w_h0h7(Q.XY);sizes_Element_2w_h0h7(Q.XY);printex_Element_2w_h0h7(Q.XY);
+//			print_Element_2w_h0h7(Q.ZZ);sizes_Element_2w_h0h7(Q.ZZ);printex_Element_2w_h0h7(Q.ZZ);
 		}
 
 		read_point_protected(&R,L[i],Table);

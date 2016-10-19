@@ -298,7 +298,7 @@ int main()
 	print_Element_2w_h0h7(Q.ZZ);
 #endif
 
-#if 0 /* testing variable point mult */
+#if 1 /* testing variable point mult */
 
 	/* openssl */
 	EC_KEY * ec_key = EC_KEY_new_by_curve_name(NID_secp384r1);
@@ -401,7 +401,7 @@ int main()
 //	printf("kP: \n");print_Element_2w_h0h7(kP.XY);
 
 #endif
-#if 1 /*test doubling bug */
+#if 0 /*test doubling bug */
 	Point_XYZ_1way P;
 	Element_1w_H0H7 X,Y,Z;
 	X[0 ] = 0x007a7200;      Y[0 ] = 0x0d94c280;    Z[0 ] = 0x0ac9d800;
@@ -426,14 +426,12 @@ int main()
 	print_Element_2w_h0h7(P.ZZ);
 
 	_1way_doubling(&P);
-//	print_Element_2w_h0h7(P.XY);
-	printf("Z:\n");
-	print_Element_2w_h0h7(P.ZZ);
-//	print_Element_2w_h0h7(P.ZZ);
+	printf("XY:\n");	print_Element_2w_h0h7(P.XY);
+	printf("ZZ:\n");	print_Element_2w_h0h7(P.ZZ);
 
 
 #endif
-#if 1 /* testing bug in mul */
+#if 0 /* testing bug in mul */
 	Element_1w_H0H7 l1,r1,l3,r3,l5,r5,p1,q1;
 	Element_2w_H0H7  l1r1,l5r5,r5l5,l3r3,p4q4,p5q5,q6,p1q1;
 
@@ -497,16 +495,16 @@ int main()
 	l5[2 ] = 0x000000000c0ff117;   r5[2 ] = 0x0000000005bb4eb7;
 	l5[0 ] = 0x000000000ccf17f4;   r5[0 ] = 0x0000000005d3d004;
 
-
 	interleave(p1q1,p1,q1);
+//	compress_Element_2w_h0h7(p1q1);
 	interleave(l1r1,l1,r1);
 	interleave(l3r3,l3,r3);
 	interleave(l5r5,l5,r5);
 	interleave(r5l5,r5,l5);
-	printf("p1q1:\n");print_Element_2w_h0h7(p1q1);
-	printf("l1r1:\n");print_Element_2w_h0h7(l1r1);
-	printf("l3r3:\n");print_Element_2w_h0h7(l3r3);
-	printf("l5r5:\n");print_Element_2w_h0h7(l5r5);
+	printf("p1q1:\n");print_Element_2w_h0h7(p1q1);sizes_Element_2w_h0h7(p1q1);
+	printf("l1r1:\n");print_Element_2w_h0h7(l1r1);sizes_Element_2w_h0h7(l1r1);
+	printf("l3r3:\n");print_Element_2w_h0h7(l3r3);sizes_Element_2w_h0h7(l3r3);
+	printf("l5r5:\n");print_Element_2w_h0h7(l5r5);sizes_Element_2w_h0h7(l5r5);
 
 	/*  p4 = l3*l5;		q4 = r3*r5;*/
 	mul_Element_2w_h0h7(p4q4,l3r3,l5r5);
@@ -514,10 +512,12 @@ int main()
 	mul_Element_2w_h0h7(p5q5,p1q1,r5l5);
 	/*  empty;			q6 = q1*r1;*/
 	mul_Element_2w_h0h7(q6,p1q1,l1r1);
+	compress_Element_2w_h0h7(q6);
 
-	printf("\tp4q4:\n");printex_Element_2w_h0h7(p4q4);sizes_Element_2w_h0h7(p4q4);
-	printf("\tp5q5:\n");printex_Element_2w_h0h7(p5q5);sizes_Element_2w_h0h7(p5q5);
-	printf("\tq6  :\n");printex_Element_2w_h0h7(q6  );sizes_Element_2w_h0h7(q6  );
+	printf("\tp4q4:\n");print_Element_2w_h0h7(p4q4);sizes_Element_2w_h0h7(p4q4);
+	printf("\tp5q5:\n");print_Element_2w_h0h7(p5q5);sizes_Element_2w_h0h7(p5q5);
+	printf("\tq6  :\n");print_Element_2w_h0h7(q6  );sizes_Element_2w_h0h7(q6  );
+
 #endif
 
 

@@ -508,6 +508,12 @@ void compress_Element_2w_h0h7(__m256i * C)
 	__m256i c5 = LOAD(C+5);
 	__m256i c6 = LOAD(C+6);
 
+	/**
+	 * Since after a multiplication it could happen
+	 * that the sequence contains one or more negative digits,
+	 * the, we add a large multiple of the prime P, before
+	 * to process the reduction.
+	 */
 	c0 = ADD(c0,_2_32P[0]);
 	c1 = ADD(c1,_2_32P[1]);
 	c2 = ADD(c2,_2_32P[2]);
@@ -567,6 +573,20 @@ void compress_Element_2w_h0h7(__m256i * C)
 	c4 = ADD(c4, SHL(AND(mask4, h13), 24));
 	c5 = ADD(c5, SHR(h13, 4));
 
+	/**
+	 * At this point, c3 could be larger than 2^28;
+	 * then, we propagate one carry from (c3 -> c4).
+	 * This ensures that every digit of output
+	 * sequence be less that 2^28.
+	 */
+	h3_h10 = SHR(c3, VECT_BASE);
+	c3 = AND(c3, mask);
+	c4 = ADD(c4, h3_h10);
+
+	h4_h11 = SHR(c4, VECT_BASE);
+	c4 = AND(c4, mask);
+	c5 = ADD(c5, h4_h11);
+
 	STORE(C+0,c0);
 	STORE(C+1,c1);
 	STORE(C+2,c2);
@@ -586,6 +606,9 @@ void compress2_Element_2w_h0h7(__m256i * C, __m256i * D)
 	const __m256i mask4  = _mm256_set_epi64x(0x0,((uint64_t)1<< 4)-1,0x0,((uint64_t)1<< 4)-1);
 	const argElement_2w_H0H7 _2_32P = (argElement_2w_H0H7)CONST_2_32P_ELEMENT_H0H7;
 
+	__m256i h0_h7,  h1_h8,  h2_h9,  h3_h10;      		__m256i f0_f7,  f1_f8,  f2_f9,  f3_f10;
+	__m256i h4_h11, h5_h12, h6_h13, h13, h6;     		__m256i f4_f11, f5_f12, f6_f13, f13, f6;
+
 	__m256i c0 = LOAD(C+0);                      		__m256i d0 = LOAD(D+0);
 	__m256i c1 = LOAD(C+1);                      		__m256i d1 = LOAD(D+1);
 	__m256i c2 = LOAD(C+2);                      		__m256i d2 = LOAD(D+2);
@@ -593,9 +616,6 @@ void compress2_Element_2w_h0h7(__m256i * C, __m256i * D)
 	__m256i c4 = LOAD(C+4);                      		__m256i d4 = LOAD(D+4);
 	__m256i c5 = LOAD(C+5);                      		__m256i d5 = LOAD(D+5);
 	__m256i c6 = LOAD(C+6);                      		__m256i d6 = LOAD(D+6);
-
-	__m256i h0_h7,  h1_h8,  h2_h9,  h3_h10;      		__m256i f0_f7,  f1_f8,  f2_f9,  f3_f10;
-	__m256i h4_h11, h5_h12, h6_h13, h13, h6;     		__m256i f4_f11, f5_f12, f6_f13, f13, f6;
 
 	c0 = ADD(c0,_2_32P[0]);                             d0 = ADD(d0,_2_32P[0]);
 	c1 = ADD(c1,_2_32P[1]);                             d1 = ADD(d1,_2_32P[1]);
@@ -655,7 +675,21 @@ void compress2_Element_2w_h0h7(__m256i * C, __m256i * D)
 	c3 = ADD(c3, SHL(AND(mask8, h13), 20));      		d3 = ADD(d3, SHL(AND(mask8, f13), 20));
 	c4 = ADD(c4, SHL(AND(mask4, h13), 24));      		d4 = ADD(d4, SHL(AND(mask4, f13), 24));
 	c5 = ADD(c5, SHR(h13, 4));                   		d5 = ADD(d5, SHR(f13, 4));
-	                                             		                                             
+
+	/**
+	 * At this point, c3 could be larger than 2^28;
+	 * then, we propagate one carry from (c3 -> c4).
+	 * This ensures that every digit of output
+	 * sequence be less that 2^28.
+	 */
+	h3_h10 = SHR(c3, VECT_BASE);                 		f3_f10 = SHR(d3, VECT_BASE);
+	c3 = AND(c3, mask);                          		d3 = AND(d3, mask);
+	c4 = ADD(c4, h3_h10);                        		d4 = ADD(d4, f3_f10);
+
+	h4_h11 = SHR(c4, VECT_BASE);                 		f4_f11 = SHR(d4, VECT_BASE);
+	c4 = AND(c4, mask);                          		d4 = AND(d4, mask);
+	c5 = ADD(c5, h4_h11);                        		d5 = ADD(d5, f4_f11);
+
 	STORE(C+0,c0);                               		STORE(D+0,d0);
 	STORE(C+1,c1);                               		STORE(D+1,d1);
 	STORE(C+2,c2);                               		STORE(D+2,d2);
@@ -712,6 +746,14 @@ void new_compressfast_Element_2w_h0h7(__m256i * C)
 	c4 = ADD(c4, SHR(m13, 8));
 	c4 = ADD(c4, SHL(AND(mask4 ,m13),24));
 	c5 = ADD(c5, SHR(m13, 4));
+
+	__m256i h3_h10 = SHR(c3, VECT_BASE);
+	c3 = AND(c3, mask);
+	c4 = ADD(c4, h3_h10);
+
+	__m256i h4_h11 = SHR(c4, VECT_BASE);
+	c4 = AND(c4, mask);
+	c5 = ADD(c5, h4_h11);
 
 	STORE(C+0,c0);
 	STORE(C+1,c1);
@@ -771,7 +813,15 @@ void new_compressfast2_Element_2w_h0h7(__m256i * C,__m256i * D)
 	c3 = ADD(c3,SHL(AND(mask8 ,m_C13),20));                d3 = ADD(d3,SHL(AND(mask8 ,m_D13),20)); 
 	c4 = ADD(c4,SHR(m_C13, 8));                            d4 = ADD(d4,SHR(m_D13, 8));             
 	c4 = ADD(c4,SHL(AND(mask4 ,m_C13),24));                d4 = ADD(d4,SHL(AND(mask4 ,m_D13),24)); 
-	c5 = ADD(c5,SHR(m_C13, 4));                            d5 = ADD(d5,SHR(m_D13, 4));             
+	c5 = ADD(c5,SHR(m_C13, 4));                            d5 = ADD(d5,SHR(m_D13, 4));
+
+	__m256i h3_h10 = SHR(c3, VECT_BASE);                   __m256i f3_f10 = SHR(c3, VECT_BASE);
+	c3 = AND(c3, mask);                                    c3 = AND(c3, mask);
+	c4 = ADD(c4, h3_h10);                                  c4 = ADD(c4, f3_f10);
+
+	__m256i h4_h11 = SHR(c4, VECT_BASE);                   __m256i f4_f11 = SHR(c4, VECT_BASE);
+	c4 = AND(c4, mask);                                    c4 = AND(c4, mask);
+	c5 = ADD(c5, h4_h11);                                  c5 = ADD(c5, f4_f11);
 	                                                                                               
 	STORE(C+0,c0);                                         STORE(D+0,d0);
 	STORE(C+1,c1);                                         STORE(D+1,d1);
