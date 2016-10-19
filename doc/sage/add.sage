@@ -1,5 +1,8 @@
 load arith.sage
 load("../python/trees.py")
+
+HEX =  lambda y:   map(lambda x: hex(int(x)),y)
+
 Gx = Fp(0xaa87ca22be8b05378eb1c71ef320ad746e1d3b628ba79b9859f741e082542a385502f25dbf55296c3a545e3872760ab7)
 Gy = Fp(0x3617de4a96262c6f5d9e98bf9292dc29f8f41dbd289a147ce9da3113b5f0b8c00a60b1ce1d7e819d7a431d7c90ea0e5f)
 G = [ Gx,Gy ]
@@ -187,7 +190,7 @@ def create_table(P,OMEGA):
 	return T
 
 def recoding(k,w):
-	t = int(ceil(log(k,2)/(w-1)))
+	t = int(ceil(384/(w-1)))
 	E = []
 	for i in range(t):
 		digit = (k%2**w)-2**(w-1)
@@ -196,31 +199,37 @@ def recoding(k,w):
 	E += [ k ]
 	return E
 
-def variable_pmul(kk,w,P):
-    if kk%2 ==1 :
-        k = kk+1
-    else:
-        k = kk
-    L = recoding(k,w)
-    Tab = create_table(P,w)
-    d = L[-1]
-    Q = deepcopy(Tab[abs(d)>>1])
-    if d < 0:
-        Q[1] = -Q[1]
-    for i in reversed(range(len(L)-1)):
-        d = L[i]
-        #print(i,d)
-        #print([hex(int(x)) for x in Q])
-        for j in range(w-1):
-            Q = doub_complete_2w(Q)
-        R = deepcopy(Tab[abs(d)>>1])
-        if d < 0:
-            R[1] = -R[1]
-        Q = fulladd_complete_2w(Q,R)
-    if kk%2 == 1:
-        Q = -Q
-    print(Q)
-    return Q
+def eval_recoding(K,w):
+	n = 0
+	for v in reversed(K):
+		n = n*(2**(w-1)) + v
+	return n
+
+def variable_pmul(k,w,P):
+	global ecc_order
+	even = (k%2 == 0)
+	if even:
+		k = ecc_order-k
+	L = recoding(k,w)
+	Tab = create_table(P,w)
+	d = L[-1]
+	Q = deepcopy(Tab[abs(d)>>1])
+	if d < 0:
+		Q[1] = -Q[1]
+	for i in reversed(range(len(L)-1)):
+		d = L[i]
+		#print(i,d)
+		#print([hex(int(x)) for x in Q])
+		for j in range(w-1):
+			Q = doub_complete_2w(Q)
+		R = deepcopy(Tab[abs(d)>>1])
+		if d < 0:
+			R[1] = -R[1]
+		Q = fulladd_complete_2w(Q,R)
+	if even:
+		Q[1] = -Q[1]
+	Q = [ Q[0]/Q[2], Q[1]/Q[2] ]
+	return Q
 
 def wnaf(k,w):
 	E = []
