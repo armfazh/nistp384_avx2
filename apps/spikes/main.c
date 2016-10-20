@@ -353,8 +353,8 @@ int main()
 	printf("O k: \n");OSSL_print_int(OSSL_k);
 	printf("O P: \n");OSSL_print_point(OSSL_P,ec_group);
 	printf("O Q: \n");OSSL_print_point(OSSL_Q,ec_group);
-	printf("%s\n",EC_POINT_is_on_curve(ec_group,OSSL_P,NULL)?"YES":"NO");
-	printf("%s\n",EC_POINT_is_on_curve(ec_group,OSSL_Q,NULL)?"YES":"NO");
+//	printf("%s\n",EC_POINT_is_on_curve(ec_group,OSSL_P,NULL)?"YES":"NO");
+//	printf("%s\n",EC_POINT_is_on_curve(ec_group,OSSL_Q,NULL)?"YES":"NO");
 
 	variable_point_multiplication(&Q,k,&P);
 
