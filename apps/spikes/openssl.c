@@ -23,7 +23,7 @@ static void *KDF1_SHA1(const void *in, size_t inlen, void *out, size_t *outlen)
 #endif	/* OPENSSL_NO_SHA */
 	}
 
-void print_point_proy(EC_GROUP*ec_group,EC_POINT*P)
+void print_point_proy(const EC_GROUP*ec_group,EC_POINT*P)
 {
 	BIGNUM *x = BN_new();
 	BIGNUM *y = BN_new();
@@ -39,7 +39,7 @@ void print_point_proy(EC_GROUP*ec_group,EC_POINT*P)
 	BN_free(y);
 	BN_free(z);
 }
-void print_point_affine(EC_GROUP*ec_group,EC_POINT*P)
+void print_point_affine(const EC_GROUP*ec_group,const EC_POINT*P)
 {
 	BIGNUM *x = BN_new();
 	BIGNUM *y = BN_new();
@@ -68,29 +68,24 @@ int main()
 {
 	int i=0;
 	EC_KEY   * ec_key;
-	EC_GROUP * ec_group;
-	EC_POINT * G;
-	EC_METHOD* method;
 	BIGNUM   * ec_order = BN_new();
 
 	printf("OpenSSL version: %s\n", SSLeay_version(SSLEAY_VERSION));
-//	printf("compiled with: %s\n", SSLeay_version(SSLEAY_CFLAGS));
-//	printf("built on: %s\n", SSLeay_version(SSLEAY_BUILT_ON));
-//	printf("located on: %s\n", SSLeay_version(SSLEAY_DIR));
+	printf("compiled with: %s\n", SSLeay_version(SSLEAY_CFLAGS));
+	printf("built on: %s\n", SSLeay_version(SSLEAY_BUILT_ON));
+	printf("located on: %s\n", SSLeay_version(SSLEAY_DIR));
 	FIPS_mode_set(1);
 	printf("OpenSSL FIPS: %s\n", FIPS_mode()?"On":"Off");
 
-//	printf("ECC Key type: %s\n", OBJ_nid2sn(P384));
+	printf("ECC Key type: %s\n", OBJ_nid2sn(P384));
 	ec_key = EC_KEY_new_by_curve_name(P384);
 	EC_KEY * alice_key = EC_KEY_new_by_curve_name(P384);
 
-//	ECParameters_print_fp(stdout,ec_key);
-
-	ec_group = EC_KEY_get0_group(ec_key);
+	const EC_GROUP * ec_group = EC_KEY_get0_group(ec_key);
 	EC_GROUP_get_order(ec_group,ec_order,NULL);
-	G = EC_GROUP_get0_generator(ec_group);
+	const EC_POINT * G = EC_GROUP_get0_generator(ec_group);
 	printf("G: \n");print_point_affine(ec_group,G);
-	method = EC_GFp_nist_method();
+
 	BIGNUM *n = BN_new();
 	BIGNUM *m = BN_new();
 
@@ -118,7 +113,7 @@ int main()
 	print_point_affine(ec_group,kG);
 
 	//if(EC_GROUP_have_precompute_mult(ec_group) == 0)
-	EC_GROUP_precompute_mult(ec_group,NULL);
+	EC_GROUP_precompute_mult((EC_GROUP*)ec_group,NULL);
 
 
 	EC_KEY_generate_key(ec_key);
@@ -135,7 +130,7 @@ int main()
 
 	ECDSA_SIG *sig=NULL;
 	uint8_t message[128];
-	long BENCH=200;
+	long BENCH;
 
 	BN_CTX *ctx = BN_CTX_new();
 	BIGNUM *c =BN_new();
@@ -143,8 +138,7 @@ int main()
 	BIGNUM *b =BN_new();
 	const BIGNUM *prime = BN_get0_nist_prime_384();
 
-	 BENCH=1000;
-
+	BENCH=1000;
 
 	printf("Mod add:\n");
 	CLOCKS_RANDOM(			
@@ -159,14 +153,15 @@ int main()
 	printf("Mod mult:\n");
 	CLOCKS_RANDOM(			
 			BN_rand_range(a,prime),
-			ec_GFp_simple_field_mul(ec_group,c,a,b,ctx)
+			BN_mod_mul(c,a,b,prime,ctx)
 	);
 	printf("Mod sqr:\n");
 	CLOCKS_RANDOM(			
 			BN_rand_range(a,prime),
-			ec_GFp_simple_field_sqr(ec_group,c,a,ctx)
+			BN_mod_sqr(c,a,prime,ctx)
 	);
-	 BENCH=200;
+
+	BENCH=200;
 	printf("Mod inv:\n");
 	CLOCKS_RANDOM(
 			BN_rand_range(a,prime),
@@ -178,12 +173,11 @@ int main()
 	BN_free(c);
 	BN_CTX_free(ctx);
 	printf("Variable point:\n");
-/*	CLOCKS_RANDOM(
+	CLOCKS_RANDOM(
 			BN_rand_range(k, ec_order),
 			EC_POINT_mul(ec_group, kG, NULL, kG, k, NULL);
 					EC_POINT_get_affine_coordinates_GFp(ec_group, kG, n, m, NULL)
 	);
-*/
 	printf("Scalar mult_G:\n");
 	CLOCKS_RANDOM(
 			BN_rand_range(k, ec_order),
@@ -196,20 +190,14 @@ int main()
 					EC_POINT_get_affine_coordinates_GFp(ec_group, kG, n, m, NULL)
 	);
 
-/*	oper_second(
-			BN_rand_range(k, ec_order),
-			EC_POINT_mul(ec_group, kG, k, NULL, NULL, NULL);
-					EC_POINT_get_affine_coordinates_GFp(ec_group, kG, n, m, NULL)
-	);
-*/
-/*	printf("Double point:\n");
+	printf("Double point:\n");
 	CLOCKS_RANDOM(
 			BN_rand_range(k, ec_order),
 			EC_POINT_mul(ec_group, kG, k, _3G, m, NULL);
 					EC_POINT_get_affine_coordinates_GFp(ec_group, kG, n, m, NULL)
 	);
-*/
-	EC_POINT *pubKey = EC_KEY_get0_public_key(ec_key);
+
+	const EC_POINT *pubKey = EC_KEY_get0_public_key(ec_key);
 	printf("ECDH Key:\n");
 	CLOCKS(
 			ECDH_compute_key(shared_secret, size, pubKey, alice_key, KDF1_SHA1)
@@ -220,16 +208,12 @@ int main()
 			ECDSA_SIG_free(sig);
 	);
 
-/*
-printf("ECDSA Verif:\n");
+	printf("ECDSA Verif:\n");
 	CLOCKS_RANDOM(
 			sig = ECDSA_do_sign(message,128,ec_key),
 			ECDSA_do_verify(message, 128, sig, ec_key);
 	);
 	ECDSA_SIG_free(sig);
-
-*/
-
 
 	free(shared_secret);
 	BN_free(n);

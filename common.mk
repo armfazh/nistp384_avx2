@@ -23,7 +23,7 @@ CLANG=clang
 ##################
 ## Compilers' Flags
 # gcc flags
-GCC_CFLAGS= -march=haswell -mtune=intel -mno-vzeroupper  
+GCC_CFLAGS= -march=native -mtune=native
 # icc flags
 ICC_CFLAGS= -ipo -xHost  -funroll-loops -opt-multi-version-aggressive -restrict
 # clang flags

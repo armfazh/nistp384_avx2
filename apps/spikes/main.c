@@ -2,48 +2,19 @@
 #include <str_bytes.h>
 #include <ecc.h>
 #include <pointmul.h>
-#include <string.h>
-#include "element_1w_h0h7.h"
-#include "element_2w_h0h7.h"
+#include <openssl/bn.h>
+
 extern uint64_t TableSign_w4_36k[NUM_LUT*8*2*6];
 
 #include <openssl/bn.h>
 #include <openssl/ec.h>
 #include <openssl/obj_mac.h>
 
-int compare_element(BIGNUM* x , uint8_t *y)
-{
-	STR_BYTES bufX;
-	BN_to_str_bytes(bufX, x);
-//	printf("OP: ");print_str_bytes(bufX);
-//	printf("TH: ");print_str_bytes(y);
-	return areEqual_str_bytes(bufX,y);
-}
-
-int compare_point(const EC_GROUP * ec_group, const EC_POINT * P , Point_XY_1way * Q)
-{
-	STR_BYTES sQx,sQy;
-	Element_1w_H0H7 Qx,Qy;
-	BIGNUM *Px,*Py;
-	Px = BN_new();
-	Py = BN_new();
-	deinterleave(Qx,Qy,Q->XY);
-	Element_1w_h0h7_To_str_bytes(sQx,Qx);
-	Element_1w_h0h7_To_str_bytes(sQy,Qy);
-	EC_POINT_get_affine_coordinates_GFp(ec_group,P,Px,Py,NULL);
-
-	int ret = compare_element(Px,sQx) && compare_element(Py,sQy);
-	BN_free(Px);
-	BN_free(Py);
-	return ret;
-}
 
 void str_bytes_to_BN(BIGNUM *n, uint8_t *str_num)
 {
 	int i;
 	STR_BYTES buf;
-	uint8_t tmp;
-	uint8_t end = SIZE_STR_BYTES;
 
 	for(i=0;i<SIZE_STR_BYTES ;i++)
 	{
@@ -70,6 +41,33 @@ void BN_to_str_bytes(uint8_t *str_num, BIGNUM *n)
 	{
 		str_num[i] = 0;
 	}
+}
+
+int compare_element(BIGNUM* x , uint8_t *y)
+{
+	STR_BYTES bufX;
+	BN_to_str_bytes(bufX, x);
+//	printf("OP: ");print_str_bytes(bufX);
+//	printf("TH: ");print_str_bytes(y);
+	return areEqual_str_bytes(bufX,y);
+}
+
+int compare_point(const EC_GROUP * ec_group, const EC_POINT * P , Point_XY_1way * Q)
+{
+	STR_BYTES sQx,sQy;
+	Element_1w_H0H7 Qx,Qy;
+	BIGNUM *Px,*Py;
+	Px = BN_new();
+	Py = BN_new();
+	deinterleave(Qx,Qy,Q->XY);
+	Element_1w_h0h7_To_str_bytes(sQx,Qx);
+	Element_1w_h0h7_To_str_bytes(sQy,Qy);
+	EC_POINT_get_affine_coordinates_GFp(ec_group,P,Px,Py,NULL);
+
+	int ret = compare_element(Px,sQx) && compare_element(Py,sQy);
+	BN_free(Px);
+	BN_free(Py);
+	return ret;
 }
 
 void to_point(Point_XY_1way * P,const EC_GROUP*ec_group, EC_POINT * OSSL_P)
@@ -298,7 +296,7 @@ int main()
 	print_Element_2w_h0h7(Q.ZZ);
 #endif
 
-#if 1 /* testing variable point mult */
+#if 0 /* testing variable point mult */
 
 	/* openssl */
 	EC_KEY * ec_key = EC_KEY_new_by_curve_name(NID_secp384r1);

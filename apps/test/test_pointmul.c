@@ -2,7 +2,7 @@
 // Created by armfazh on 6/20/16.
 //
 
-#include "test.h"
+#include "tests.h"
 #include "pointmul.h"
 #include <stdio.h>
 

@@ -1,62 +1,87 @@
 cmake_minimum_required(VERSION 2.8.4)
 project(nistp384_avx2)
 
-# set(CMAKE_BUILD_TYPE, None)
-# set(CMAKE_INSTALL_PREFIX, "")
 include_directories(./include)
 link_directories(./lib)
 set(EXECUTABLE_OUTPUT_PATH ./bin)
 set(LIBRARY_OUTPUT_PATH ./lib)
 set(TARGET nistp384_avx2)
 set(SRC ./src)
+# PATH to BoringSSL, modify as appropriate.
+set(BORINGSSL_PATH /home/armfazh/Downloads/boringssl/build)
 enable_language(ASM-ATT)
 
-set(CMAKE_C_FLAGS "-Wall --extra-warnings -DPROCESSOR=HASWELL -Wextra -I./include -L./lib -O3 -march=haswell -mtune=intel -mno-vzeroupper -lm -lcrypto")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -I./include -O3 -march=native -mtune=native")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wall -Wextra -O3 -march=native -mtune=native -flto -lm ")
 
-add_library(${TARGET} STATIC ${SRC}/${TARGET}.c src/element_1w_h0h7.c include/element_1w_h0h7.h)
-add_library(${TARGET}_all STATIC ${SRC}/str_bytes.c
-		src/element_1w_h0h7.c
-		src/element_2w_h0h7.c
-		src/ecc.c
-        src/pointmul.c
-		include/element_2w_h0h7.h
-		include/element_1w_h0h7.h
-		include/ecc.h
-		include/pointmul.h)
-#add_executable(bench apps/bench/bench.c apps/bench/clocks.c apps/bench/bench_ecdh_avx2.c ${SRC}/random.c )
-#add_executable(test apps/test/test.c apps/test/test_ecdh_avx2.c ${SRC}/random.c)
-add_executable(bench_all apps/bench/bench_all.c apps/bench/clocks.c apps/bench/clocks.h
-				${SRC}/random.c include/random.h
-                apps/bench/bench_Element_1w_h0h7.c
-                apps/bench/bench_Element_2w_h0h7.c
-				apps/bench/bench_ecc.c
-				apps/bench/bench_pointmul.c)
-add_executable(test_all apps/test/test_all.c
-				apps/test/test_Element_1w_h0h7.c
-				apps/test/test_Element_2w_h0h7.c
-				${SRC}/random.c apps/test/test_pointmul.c)
+add_library(${TARGET} STATIC
+		${SRC}/str_bytes.c include/str_bytes.h
+		${SRC}/element_1w_h0h7.c include/element_1w_h0h7.h
+		${SRC}/element_2w_h0h7.c include/element_2w_h0h7.h
+		${SRC}/ecc.c include/ecc.h
+		${SRC}/pointmul.c include/pointmul.h
+		)
+
+add_executable(bench
+		apps/bench/bench.c apps/bench/bench.h
+		${SRC}/random.c include/random.h
+		apps/bench/clocks.c apps/bench/clocks.h
+		apps/bench/bench_Element_1w_h0h7.c
+		apps/bench/bench_Element_2w_h0h7.c
+		apps/bench/bench_ecc.c
+		apps/bench/bench_pointmul.c
+		)
+
+add_executable(tests
+		apps/test/tests.c apps/test/tests.h
+		${SRC}/random.c include/random.h
+		apps/test/test_Element_1w_h0h7.c
+		apps/test/test_Element_2w_h0h7.c
+		apps/test/test_pointmul.c
+		)
+
 add_executable(main apps/spikes/main.c ${SRC}/random.c include/random.h)
-add_executable(ssl apps/spikes/ssl.c ${SRC}/random.c apps/bench/clocks.c apps/bench/clocks.h)
+add_executable(openssl apps/spikes/openssl.c ${SRC}/random.c apps/bench/clocks.c apps/bench/clocks.h)
 add_executable(boringssl apps/spikes/boringssl.c ${SRC}/random.c apps/bench/clocks.c apps/bench/clocks.h)
 add_executable(mbed apps/spikes/mbed.c ${SRC}/random.c apps/bench/clocks.c apps/bench/clocks.h)
+add_executable(nettle_code apps/spikes/nettle.c ${SRC}/random.c apps/bench/clocks.c apps/bench/clocks.h)
 
-# target_link_libraries(
-#         bench
-#         ${TARGET}
-# )
-# target_link_libraries(
-#         test
-#         ${TARGET}
-# )
 target_link_libraries(
-     bench_all
-     ${TARGET}_all
+		bench
+		crypto
+		pthread
+		${TARGET}
 )
 target_link_libraries(
-     test_all
-     ${TARGET}_all
+		tests
+		crypto
+		pthread
+		${TARGET}
 )
 target_link_libraries(
 		main
-		${TARGET}_all
+		crypto
+		${TARGET}
+)
+target_link_libraries(
+		boringssl
+		pthread
+		crypto
+		ssl
+)
+target_link_libraries(
+		openssl
+		crypto
+		ssl
+)
+target_link_libraries(
+		mbed
+		mbedcrypto
+		mbedtls
+)
+target_link_libraries(
+		nettle_code
+		hogweed
+		nettle
+		gmp
 )

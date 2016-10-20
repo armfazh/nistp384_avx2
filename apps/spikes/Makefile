@@ -1,26 +1,26 @@
 
 include ../../common.mk
 
-.PHONY: main ssl
+.PHONY: main nettle openssl boringssl mbed
 BORINGSSL_PATH=/home/armfazh/Downloads/boringssl/build
 
 all: main
 
 main: $(BIN)/main_$(CC)
 
-nettle: nettle.c ../bench/clocks.o
+nettle: nettle.o ../bench/clocks.o
 	$(CC) -o $(BIN)/nettle_$(CC)  $(CFLAGS) $^ -lhogweed -lnettle -lgmp
 
-ssl: ssl.c ../bench/clocks.o
-	$(CC) -o $(BIN)/ssl_$(CC)  $(CFLAGS) $^ -lssl -lcrypto
+openssl: openssl.o ../bench/clocks.o
+	$(CC) -o $(BIN)/openssl_$(CC)  $(CFLAGS) $^ -lssl -lcrypto
 
-boringssl: boringssl.c ../bench/clocks.o
+boringssl: boringssl.o ../bench/clocks.o
 	$(CC) --verbose -o $(BIN)/boringssl_$(CC)  $(CFLAGS) $^ -lpthread -L$(BORINGSSL_PATH)/crypto -L$(BORINGSSL_PATH)//ssl -lcrypto -lssl
 
 mbed: mbed.c ../bench/clocks.o
 	$(CC) -o $(BIN)/mbed_$(CC)  $(CFLAGS) $^ -L/usr/local/lib -lmbedcrypto -lmbedtls
 
-$(BIN)/%_$(CC): %.c $(SRC)/random.o ../bench/clocks.o
+$(BIN)/%_$(CC): %.o $(SRC)/random.o ../bench/clocks.o
 	$(CC) -o $@  $(CFLAGS) $^ $(LDFLAGS)
 
 clean: 

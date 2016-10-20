@@ -421,7 +421,7 @@ int main( int argc, char *argv[] )
 #endif /* MBEDTLS_ECP_C */
 	{
 		mbedtls_printf( " failed\n  !  key type not supported\n" );
-		goto exit;
+		goto usage;
 	}
 
 	/*

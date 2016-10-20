@@ -23,13 +23,13 @@ static void *KDF1_SHA1(const void *in, size_t inlen, void *out, size_t *outlen)
 #endif	/* OPENSSL_NO_SHA */
 	}
 
-void print_point_proy(EC_GROUP*ec_group,EC_POINT*P)
+void print_point_proy(const EC_GROUP*ec_group, const EC_POINT*P)
 {
 	BIGNUM *x = BN_new();
 	BIGNUM *y = BN_new();
 	BIGNUM *z = BN_new();
 
-	//if (EC_POINT_get_Jprojective_coordinates_GFp(ec_group, P, x, y,z, NULL))
+	if (EC_POINT_get_Jprojective_coordinates_GFp(ec_group, P, x, y,z, NULL))
 	{
 		printf("x: ");	BN_print_fp(stdout, x);	printf("\n");
 		printf("y: ");	BN_print_fp(stdout, y);	printf("\n");
@@ -39,7 +39,7 @@ void print_point_proy(EC_GROUP*ec_group,EC_POINT*P)
 	BN_free(y);
 	BN_free(z);
 }
-void print_point_affine(EC_GROUP*ec_group,EC_POINT*P)
+void print_point_affine(const EC_GROUP*ec_group, const EC_POINT*P)
 {
 	BIGNUM *x = BN_new();
 	BIGNUM *y = BN_new();
@@ -68,8 +68,6 @@ int main()
 {
 	int i=0;
 	EC_KEY   * ec_key;
-	EC_GROUP * ec_group;
-	EC_POINT * G;
 	BIGNUM   * ec_order = BN_new();
 
 	printf("OpenSSL version: %s\n", SSLeay_version(SSLEAY_VERSION));
@@ -84,9 +82,9 @@ int main()
 
 //	ECParameters_print_fp(stdout,ec_key);
 
-	ec_group = EC_KEY_get0_group(ec_key);
+	const EC_GROUP * ec_group = EC_KEY_get0_group(ec_key);
 	EC_GROUP_get_order(ec_group,ec_order,NULL);
-	G = EC_GROUP_get0_generator(ec_group);
+	const EC_POINT * G = EC_GROUP_get0_generator(ec_group);
 	printf("G: \n");print_point_affine(ec_group,G);
 	BIGNUM *n = BN_new();
 	BIGNUM *m = BN_new();
@@ -176,7 +174,7 @@ int main()
 					EC_POINT_get_affine_coordinates_GFp(ec_group, kG, n, m, NULL)
 	);
 
-	EC_POINT *pubKey = EC_KEY_get0_public_key(ec_key);
+	const EC_POINT *pubKey = EC_KEY_get0_public_key(ec_key);
 	printf("ECDH Key:\n");
 	CLOCKS(
 			ECDH_compute_key(shared_secret, size, pubKey, alice_key, KDF1_SHA1)
