@@ -64,3 +64,11 @@ def test_arith():
 
 print("Testing: arith.sage")
 print("arith: {0}".format(test_arith()))
+
+def integer_mult(A,B):
+	C = [0]*(len(A)+len(B)-1)
+	for i,a in enumerate(A):
+		for j,b in enumerate(B):
+			C[i+j] += a*b
+	return C
+

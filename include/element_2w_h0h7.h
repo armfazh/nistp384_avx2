@@ -48,4 +48,7 @@ void compress2_Element_2w_h0h7(__m256i * C, __m256i * D);
 void new_compressfast_Element_2w_h0h7(__m256i * C);
 void new_compressfast2_Element_2w_h0h7(__m256i * C,__m256i * D);
 
+void mul_karatsuba_2w_h0h7(__m256i *  C, __m256i * A, __m256i *  B);
+void mul_schoolbook_h0h7(__m256i *  C, __m256i * A, __m256i *  B);
+
 #endif /* _ELEMENT_2W_H0H7_H_ */
