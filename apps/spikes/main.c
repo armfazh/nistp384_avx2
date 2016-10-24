@@ -194,6 +194,8 @@ int main()
 	printf("karats:\n");
 	printex_Element_2w_h0h7(buffer);
 	printex_Element_2w_h0h7(buffer+NUM_WORDS_128B_NISTP384);
+	sizes_Element_2w_h0h7(buffer);
+//	sizes_Element_2w_h0h7(buffer+NUM_WORDS_128B_NISTP384);
 
 #endif
 

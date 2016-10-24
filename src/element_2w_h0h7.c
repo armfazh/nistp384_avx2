@@ -270,31 +270,30 @@ do{                                                                 \
 
 
 
-#define mul_karate_7x7(h0,h1,h2,h3,h4,h5,h6,  h7,                                       \
-               f0,f1,f2,f3,g0,g1,g2,g3)                                              \
-do{                                                                                  \
- 	__m256i o0p0,o1p1,o2p2,o3p3,o4p4,o5p5,o6p6,o7p7;                                      \
-	__m256i q0,q1,q2,q3,q4,q5,q6,q7;                                                    \
-	mul_school_4x4(o0p0,o1p1,o2p2,o3p3,o4p4,o5p5,o6p6,f0,f1,f2,f3,g0,g1,g2,g3);      \
-	__m256i sF0 = ADD(f0,SHUF(f0,0x4E)); __m256i sG0 = ADD(g0,SHUF(g0,0x4E));        \
-	__m256i sF1 = ADD(f1,SHUF(f1,0x4E)); __m256i sG1 = ADD(g1,SHUF(g1,0x4E));        \
-	__m256i sF2 = ADD(f2,SHUF(f2,0x4E)); __m256i sG2 = ADD(g2,SHUF(g2,0x4E));        \
-	__m256i sF3 = ADD(f3,SHUF(f3,0x4E)); __m256i sG3 = ADD(g3,SHUF(g3,0x4E));        \
-                                                                                     \
-	mul_school_4x4(q0,q1,q2,q3,q4,q5,q6,                                             \
-				  sF0,sF1,sF2,sF3,                                                   \
-				  sG0,sG1,sG2,sG3);                                                  \
-																				     \
-	h0 = /*ADD(o0p0,*/BLEND32(SUB(q4,ADD(o4p4,SHUF(o4p4,0x4E))),ZERO,0x33);             \
-	h1 = ADD(o1p1,BLEND32(SUB(q5,ADD(o5p5,SHUF(o5p5,0x4E))),ZERO,0x33));             \
-	h2 = ADD(o2p2,BLEND32(SUB(q6,ADD(o6p6,SHUF(o6p6,0x4E))),ZERO,0x33));             \
-	h3 = ADD(o3p3,BLEND32(SUB(q7,ADD(o7p7,SHUF(o7p7,0x4E))),ZERO,0x33));             \
-	h4 = ADD(o4p4,BLEND32(SUB(q0,ADD(o0p0,SHUF(o0p0,0x4E))),ZERO,0xCC));             \
-	h5 = ADD(o5p5,BLEND32(SUB(q1,ADD(o1p1,SHUF(o1p1,0x4E))),ZERO,0xCC));             \
-	h6 = ADD(o6p6,BLEND32(SUB(q2,ADD(o2p2,SHUF(o2p2,0x4E))),ZERO,0xCC));             \
-	h7 = ADD(o7p7,BLEND32(SUB(q3,ADD(o3p3,SHUF(o3p3,0x4E))),ZERO,0xCC));             \
-    \
- \
+#define mul_karate_7x7(h0,h1,h2,h3,h4,h5,h6,h7,                                   \
+               f0,f1,f2,f3,g0,g1,g2,g3)                                           \
+do{                                                                               \
+ 	__m256i o0p0,o1p1,o2p2,o3p3,o4p4,o5p5,o6p6;                                   \
+	__m256i q0,q1,q2,q3,q4,q5,q6;                                                 \
+	mul_school_4x4(o0p0,o1p1,o2p2,o3p3,o4p4,o5p5,o6p6,f0,f1,f2,f3,g0,g1,g2,g3);   \
+	__m256i sF0 = ADD(f0,SHUF(f0,0x4E)); __m256i sG0 = ADD(g0,SHUF(g0,0x4E));     \
+	__m256i sF1 = ADD(f1,SHUF(f1,0x4E)); __m256i sG1 = ADD(g1,SHUF(g1,0x4E));     \
+	__m256i sF2 = ADD(f2,SHUF(f2,0x4E)); __m256i sG2 = ADD(g2,SHUF(g2,0x4E));     \
+	__m256i sF3 = ADD(f3,SHUF(f3,0x4E)); __m256i sG3 = ADD(g3,SHUF(g3,0x4E));     \
+                                                                                  \
+	mul_school_4x4(q0,q1,q2,q3,q4,q5,q6,                                          \
+				  sF0,sF1,sF2,sF3,                                                \
+				  sG0,sG1,sG2,sG3);                                               \
+																				  \
+	h0 = ADD(o0p0,BLEND32(SUB(q4,ADD(o4p4,SHUF(o4p4,0x4E))),ZERO,0x33));          \
+	h1 = ADD(o1p1,BLEND32(SUB(q5,ADD(o5p5,SHUF(o5p5,0x4E))),ZERO,0x33));          \
+	h2 = ADD(o2p2,BLEND32(SUB(q6,ADD(o6p6,SHUF(o6p6,0x4E))),ZERO,0x33));          \
+	h3 = o3p3;                                                                    \
+	h4 = ADD(o4p4,BLEND32(SUB(q0,ADD(o0p0,SHUF(o0p0,0x4E))),ZERO,0xCC));          \
+	h5 = ADD(o5p5,SUB(q1,ADD(o1p1,SHUF(o1p1,0x4E))));                             \
+	h6 = ADD(o6p6,SUB(q2,ADD(o2p2,SHUF(o2p2,0x4E))));                             \
+	h7 = SUB(q3,ADD(o3p3,SHUF(o3p3,0x4E)));                                       \
+																				  \
 }while(0)
 
 
@@ -303,7 +302,7 @@ void mul_karatsuba_2w_h0h7(__m256i *  C, __m256i * A, __m256i *  B)
 	__m256i a0,a1,a2,a3,a4,a5,a6;
 	__m256i b0,b1,b2,b3,b4,b5,b6;
 	__m256i x0y0,x1y1,x2y2,x3y3,x4y4,x5y5,x6y6,x7y7,x8y8,x9y9,x10y10,x11y11,x12y12;
-	__m256i z0,z1,z2,z3,z4,z5,z6,z7;
+	__m256i z0z8,z1z9,z2z10,z3z11,z4z12,z5,z6,z7;
 
 	a0 = A[0];   b0 = B[0];
 	a1 = A[1];   b1 = B[1];
@@ -326,30 +325,103 @@ void mul_karatsuba_2w_h0h7(__m256i *  C, __m256i * A, __m256i *  B)
 	__m256i sB2_6 = ADD(UPKL64(b2,b6),UPKH64(b2,b6));
 	__m256i sB3_7 = ADD(UPKL64(b3,ZERO),UPKH64(b3,ZERO));
 
-	mul_karate_7x7(z0,z1,z2,z3,z4,z5,z6,z7,
+	mul_karate_7x7(z0z8,z1z9,z2z10,z3z11,z4z12,z5,z6,z7,
 				   sA0_4,sA1_5,sA2_6,sA3_7,
 				   sB0_4,sB1_5,sB2_6,sB3_7);
 
-	C[0] = z0;   C[7]  = z7;
-	C[1] = z1;   C[8]  = ZERO;
-	C[2] = z2;   C[9]  = ZERO;
-	C[3] = z3;   C[10] = ZERO;
-	C[4] = z4;   C[11] = ZERO;
-	C[5] = z5;   C[12] = ZERO;
-	C[6] = z6;   C[13] = ZERO;
+	__m256i z8  = SHUF(z0z8 ,0x4E);
+	__m256i z9  = SHUF(z1z9 ,0x4E);
+	__m256i z10 = SHUF(z2z10,0x4E);
+	__m256i z11 = SHUF(z3z11,0x4E);
+	__m256i z12 = SHUF(z4z12,0x4E);
 
-	/*
-	__m256i x0x8  = UPKL64(x0y0,x8y8  );  __m256i y0y8  = UPKH64(x0y0,x8y8  ); __m256i x0z8  = BLEND32(x0y0,z0,0xCC);  C[0] = ADD(ADD(SHUF(SUB(z0,x0x8 ),0x4E),y0y8 ),x0z8 );
-	__m256i x1x9  = UPKL64(x1y1,x9y9  );  __m256i y1y9  = UPKH64(x1y1,x9y9  ); __m256i x1z9  = BLEND32(x1y1,z1,0xCC);  C[1] = ADD(ADD(SHUF(SUB(z1,x1x9 ),0x4E),y1y9 ),x1z9 );
-	__m256i x2x10 = UPKL64(x2y2,x10y10);  __m256i y2y10 = UPKH64(x2y2,x10y10); __m256i x2z10 = BLEND32(x2y2,z2,0xCC);  C[2] = ADD(ADD(SHUF(SUB(z2,x2x10),0x4E),y2y10),x2z10);
-	__m256i x3x11 = UPKL64(x3y3,x11y11);  __m256i y3y11 = UPKH64(x3y3,x11y11); __m256i x3z11 = BLEND32(x3y3,z3,0xCC);  C[3] = ADD(ADD(SHUF(SUB(z3,x3x11),0x4E),y3y11),x3z11);
-	__m256i x4x12 = UPKL64(x4y4,x12y12);  __m256i y4y12 = UPKH64(x4y4,x12y12); __m256i x4z12 = BLEND32(x4y4,z4,0xCC);  C[4] = ADD(ADD(SHUF(SUB(z4,x4x12),0x4E),y4y12),x4z12);
-	__m256i x5x13 = UPKL64(x5y5,ZERO);    __m256i y5y13 = UPKH64(x5y5,ZERO);   __m256i x5z13 = BLEND32(x5y5,z5,0xCC);  C[5] = ADD(ADD(SHUF(SUB(z5,x5x13),0x4E),y5y13),x5z13);
-	__m256i x6x14 = UPKL64(x6y6,ZERO);    __m256i y6y14 = UPKH64(x6y6,ZERO);   __m256i x6z14 = BLEND32(x6y6,z6,0xCC);  C[6] = ADD(ADD(SHUF(SUB(z6,x6x14),0x4E),y6y14),x6z14);
-	 */
-//	__m256i x7x15 = UPKL64(x7y7,ZERO);  __m256i y7y15 = UPKH64(x7y7,ZERO); __m256i x7z15 = BLEND32(x7y7,z7,0xCC);  C[7] = ADD(ADD(SHUF(SUB(z7,x7x15),0x4E),y7y15),x7z15);
+	__m256i y7  = SHUF(x7y7,0x4E);
+	__m256i y8  = SHUF(x8y8,0x4E);
+	__m256i y9  = SHUF(x9y9,0x4E);
+	__m256i y10 = SHUF(x10y10,0x4E);
+	__m256i y11 = SHUF(x11y11,0x4E);
+	__m256i y12 = SHUF(x12y12,0x4E);
+
+	__m256i ref0 = SUB(x7y7,  SHUF(x0y0,0x4E));
+	__m256i ref1 = SUB(x8y8,  SHUF(x1y1,0x4E));
+	__m256i ref2 = SUB(x9y9,  SHUF(x2y2,0x4E));
+	__m256i ref3 = SUB(x10y10,SHUF(x3y3,0x4E));
+	__m256i ref4 = SUB(x11y11,SHUF(x4y4,0x4E));
+	__m256i ref5 = SUB(x12y12,SHUF(x5y5,0x4E));
+	__m256i ref6 = SHUF(x6y6,0x4E);
+
+	__m256i c0  = x0y0;                            __m256i c14 = SUB(SUB(z7 ,y7 ),ref0);
+	__m256i c1  = x1y1;                            __m256i c15 = SUB(SUB(z8 ,y8 ),ref1);
+	__m256i c2  = x2y2;                            __m256i c16 = SUB(SUB(z9 ,y9 ),ref2);
+	__m256i c3  = x3y3;                            __m256i c17 = SUB(SUB(z10,y10),ref3);
+	__m256i c4  = x4y4;                            __m256i c18 = SUB(SUB(z11,y11),ref4);
+	__m256i c5  = x5y5;                            __m256i c19 = SUB(SUB(z12,y12),ref5);
+	__m256i c6  = x6y6;                            __m256i c20 = ref6;
+	__m256i c7  = ADD(SUB(z0z8, x0y0),ref0);       __m256i c21 = y7 ;
+	__m256i c8  = ADD(SUB(z1z9, x1y1),ref1);       __m256i c22 = y8 ;
+	__m256i c9  = ADD(SUB(z2z10,x2y2),ref2);       __m256i c23 = y9 ;
+	__m256i c10 = ADD(SUB(z3z11,x3y3),ref3);       __m256i c24 = y10;
+	__m256i c11 = ADD(SUB(z4z12,x4y4),ref4);       __m256i c25 = y11;
+	__m256i c12 = ADD(SUB(z5,   x5y5),ref5);       __m256i c26 = y12;
+	__m256i c13 = SUB(SUB(z6,   x6y6),ref6);
+
+    c0 = UPKL64(c0 ,c7 );	__m256i c14c21 = UPKL64(c14,c21);       c7  = ZERO;
+    c1 = UPKL64(c1 ,c8 );	__m256i c15c22 = UPKL64(c15,c22);       c8  = ZERO;
+    c2 = UPKL64(c2 ,c9 );	__m256i c16c23 = UPKL64(c16,c23);       c9  = ZERO;
+    c3 = UPKL64(c3 ,c10);	__m256i c17c24 = UPKL64(c17,c24);       c10 = ZERO;
+    c4 = UPKL64(c4 ,c11);	__m256i c18c25 = UPKL64(c18,c25);       c11 = ZERO;
+    c5 = UPKL64(c5 ,c12);	__m256i c19c26 = UPKL64(c19,c26);       c12 = ZERO;
+    c6 = UPKL64(c6 ,c13);	__m256i c20ZZ  = UPKL64(c20,ZERO);      c13 = ZERO;
+
+	const __m256i ones48 = _mm256_set1_epi64x(((uint64_t)1<<48)-1);
+	const __m256i ones36 = _mm256_set1_epi64x(((uint64_t)1<<36)-1);
+	const __m256i ones32 = _mm256_set1_epi64x(((uint64_t)1<<32)-1);
+
+	c0 = ADD(c0,SHL(AND(c14c21,ones48),8)); 	c2 = ADD(c2,SHR(c14c21,48));
+	c1 = SUB(c1,SHL(AND(c14c21,ones48),12));	c3 = SUB(c3,SHR(c14c21,48));
+	c3 = ADD(c3,SHL(AND(c14c21,ones36),20));	c5 = ADD(c5,SHR(c14c21,36));
+	c4 = ADD(c4,SHL(AND(c14c21,ones32),24));	c6 = ADD(c6,SHR(c14c21,32));
+
+	c1 = ADD(c1,SHL(AND(c15c22,ones48),8)); 	c3 = ADD(c3,SHR(c15c22,48));
+	c2 = SUB(c2,SHL(AND(c15c22,ones48),12));	c4 = SUB(c4,SHR(c15c22,48));
+	c4 = ADD(c4,SHL(AND(c15c22,ones36),20));	c6 = ADD(c6,SHR(c15c22,36));
+	c5 = ADD(c5,SHL(AND(c15c22,ones32),24));	c7 = ADD(c7,SHR(c15c22,32));
+
+	c2 = ADD(c2,SHL(AND(c16c23,ones48),8)); 	c4 = ADD(c4,SHR(c16c23,48));
+	c3 = SUB(c3,SHL(AND(c16c23,ones48),12));	c5 = SUB(c5,SHR(c16c23,48));
+	c5 = ADD(c5,SHL(AND(c16c23,ones36),20));	c7 = ADD(c7,SHR(c16c23,36));
+	c6 = ADD(c6,SHL(AND(c16c23,ones32),24));	c8 = ADD(c8,SHR(c16c23,32));
+
+	c3 = ADD(c3,SHL(AND(c17c24,ones48),8)); 	c5 = ADD(c5,SHR(c17c24,48));
+	c4 = SUB(c4,SHL(AND(c17c24,ones48),12));	c6 = SUB(c6,SHR(c17c24,48));
+	c6 = ADD(c6,SHL(AND(c17c24,ones36),20));	c8 = ADD(c8,SHR(c17c24,36));
+	c7 = ADD(c7,SHL(AND(c17c24,ones32),24));	c9 = ADD(c9,SHR(c17c24,32));
+
+	c4 = ADD(c4,SHL(AND(c18c25,ones48),8)); 	c6 = ADD(c6 ,SHR(c18c25,48));
+	c5 = SUB(c5,SHL(AND(c18c25,ones48),12));	c7 = SUB(c7 ,SHR(c18c25,48));
+	c7 = ADD(c7,SHL(AND(c18c25,ones36),20));	c9 = ADD(c9 ,SHR(c18c25,36));
+	c8 = ADD(c8,SHL(AND(c18c25,ones32),24));	c10= ADD(c10,SHR(c18c25,32));
+
+	c5 = ADD(c5,SHL(AND(c19c26,ones48),8)); 	c7 = ADD(c7 ,SHR(c19c26,48));
+	c6 = SUB(c6,SHL(AND(c19c26,ones48),12));	c8 = SUB(c8 ,SHR(c19c26,48));
+	c8 = ADD(c8,SHL(AND(c19c26,ones36),20));	c10= ADD(c10,SHR(c19c26,36));
+	c9 = ADD(c9,SHL(AND(c19c26,ones32),24));	c11= ADD(c11,SHR(c19c26,32));
+
+	c6 = ADD(c6 ,SHL(AND(c20ZZ,ones48),8)); 	c8 = ADD(c8 ,SHR(c20ZZ,48));
+	c7 = SUB(c7 ,SHL(AND(c20ZZ,ones48),12));	c9 = SUB(c9 ,SHR(c20ZZ,48));
+	c9 = ADD(c9 ,SHL(AND(c20ZZ,ones36),20));	c11= ADD(c11,SHR(c20ZZ,36));
+	c10= ADD(c10,SHL(AND(c20ZZ,ones32),24));	c12= ADD(c12,SHR(c20ZZ,32));
+
+
+	C[0 ] = c0;
+	C[1 ] = c1;
+	C[2 ] = c2;
+	C[3 ] = c3;
+	C[4 ] = c4;
+	C[5 ] = c5;
+	C[6 ] = c6;
+
 }
-
 
 /* Pi transformation */
 #define PI_2w()								\

@@ -11,7 +11,7 @@ int main(void)
 	randomize();
 	printf("===== Benchmarking: NIST-P384_avx2 =====\n");
 //
-long BENCH=1000;
+//long BENCH=1000;
 //	BN_CTX * ctx = BN_CTX_new();
 //	BN_CTX_init(ctx);
 //	BIGNUM *c =BN_new();
