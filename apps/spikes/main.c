@@ -193,7 +193,10 @@ int main()
 	mul_karatsuba_2w_h0h7(buffer,b,a);
 	printf("karats:\n");
 	printex_Element_2w_h0h7(buffer);
-	printex_Element_2w_h0h7(buffer+NUM_WORDS_128B_NISTP384);
+//	compress_Element_2w_h0h7(buffer);
+//	print_Element_2w_h0h7(buffer);
+//	print_python_Element_2w_h0h7(buffer);
+//	printex_Element_2w_h0h7(buffer+NUM_WORDS_128B_NISTP384);
 	sizes_Element_2w_h0h7(buffer);
 //	sizes_Element_2w_h0h7(buffer+NUM_WORDS_128B_NISTP384);
 
