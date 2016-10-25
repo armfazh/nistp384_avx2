@@ -179,9 +179,6 @@ int main()
 	compress_Element_2w_h0h7(d);
 	printf("equal: %s\n",compare_Element_2w_h0h7(c,d)?"yes":"no");
 
-
-	ALIGN __m256 buffer[2*NUM_WORDS_128B_NISTP384];
-
 //	mul_schoolbook_h0h7(buffer,b,a);
 //	printf("school:\n");
 //	printex_Element_2w_h0h7(buffer);
@@ -190,15 +187,13 @@ int main()
 //	sizes_Element_2w_h0h7(buffer);
 //	print_Element_2w_h0h7(buffer);
 
-	mul_karatsuba_2w_h0h7(buffer,b,a);
+	mul_karatsuba_2w_h0h7(c,b,a);
 	printf("karats:\n");
-	printex_Element_2w_h0h7(buffer);
-//	compress_Element_2w_h0h7(buffer);
-//	print_Element_2w_h0h7(buffer);
-//	print_python_Element_2w_h0h7(buffer);
-//	printex_Element_2w_h0h7(buffer+NUM_WORDS_128B_NISTP384);
-	sizes_Element_2w_h0h7(buffer);
-//	sizes_Element_2w_h0h7(buffer+NUM_WORDS_128B_NISTP384);
+	printex_Element_2w_h0h7(c);
+	sizes_Element_2w_h0h7(c);
+	compress_Element_2w_h0h7(c);
+	sizes_Element_2w_h0h7(c);
+	print_Element_2w_h0h7(c);
 
 #endif
 

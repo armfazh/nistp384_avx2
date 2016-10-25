@@ -299,36 +299,51 @@ do{                                                                             
 
 void mul_karatsuba_2w_h0h7(__m256i *  C, __m256i * A, __m256i *  B)
 {
-	__m256i a0,a1,a2,a3,a4,a5,a6;
-	__m256i b0,b1,b2,b3,b4,b5,b6;
+	const __m256i ones44 = _mm256_set1_epi64x(((uint64_t)1<<44)-1);
+	const __m256i ones36 = _mm256_set1_epi64x(((uint64_t)1<<36)-1);
+	const __m256i shuf48 = _mm256_set_epi64x(0x800D0C0B0A090880,0x8005040302010080,0x800D0C0B0A090880,0x8005040302010080);
+	const __m256i shuf32 = _mm256_set_epi64x(0x800B0A0908808080,0x8003020100808080,0x800B0A0908808080,0x8003020100808080);
+	__m256i a0a7,a1a8,a2a9,a3a10,a4a11,a5a12,a6a13;
+	__m256i b0b7,b1b8,b2b9,b3b10,b4b11,b5b12,b6b13;
 	__m256i x0y0,x1y1,x2y2,x3y3,x4y4,x5y5,x6y6,x7y7,x8y8,x9y9,x10y10,x11y11,x12y12;
 	__m256i z0z8,z1z9,z2z10,z3z11,z4z12,z5,z6,z7;
 
-	a0 = A[0];   b0 = B[0];
-	a1 = A[1];   b1 = B[1];
-	a2 = A[2];   b2 = B[2];
-	a3 = A[3];   b3 = B[3];
-	a4 = A[4];   b4 = B[4];
-	a5 = A[5];   b5 = B[5];
-	a6 = A[6];   b6 = B[6];
+	a0a7  = A[0];   b0b7  = B[0];
+	a1a8  = A[1];   b1b8  = B[1];
+	a2a9  = A[2];   b2b9  = B[2];
+	a3a10 = A[3];   b3b10 = B[3];
+	a4a11 = A[4];   b4b11 = B[4];
+	a5a12 = A[5];   b5b12 = B[5];
+	a6a13 = A[6];   b6b13 = B[6];
 
+	/**
+	 * Calculates
+	 * 	X = A[0:7]  * B[0:7]
+	 * 	Y = A[7:14] * B[7:14]
+	 * Stores in [X|Y]
+	 */
 	mul_karat_7x7(x0y0,x1y1,x2y2,x3y3,x4y4,x5y5,x6y6,x7y7,x8y8,x9y9,x10y10,x11y11,x12y12,
-				  a0,a1,a2,a3,a4,a5,a6,
-				  b0,b1,b2,b3,b4,b5,b6);
+				  a0a7,a1a8,a2a9,a3a10,a4a11,a5a12,a6a13,
+				  b0b7,b1b8,b2b9,b3b10,b4b11,b5b12,b6b13);
 
-	__m256i sA0_4 = ADD(UPKL64(a0,a4),UPKH64(a0,a4));
-	__m256i sA1_5 = ADD(UPKL64(a1,a5),UPKH64(a1,a5));
-	__m256i sA2_6 = ADD(UPKL64(a2,a6),UPKH64(a2,a6));
-	__m256i sA3_7 = ADD(UPKL64(a3,ZERO),UPKH64(a3,ZERO));
-	__m256i sB0_4 = ADD(UPKL64(b0,b4),UPKH64(b0,b4));
-	__m256i sB1_5 = ADD(UPKL64(b1,b5),UPKH64(b1,b5));
-	__m256i sB2_6 = ADD(UPKL64(b2,b6),UPKH64(b2,b6));
-	__m256i sB3_7 = ADD(UPKL64(b3,ZERO),UPKH64(b3,ZERO));
+	__m256i sA0_4 = ADD(UPKL64(a0a7,a4a11),UPKH64(a0a7,a4a11)); __m256i sB0_4 = ADD(UPKL64(b0b7,b4b11),UPKH64(b0b7,b4b11));    
+	__m256i sA1_5 = ADD(UPKL64(a1a8,a5a12),UPKH64(a1a8,a5a12)); __m256i sB1_5 = ADD(UPKL64(b1b8,b5b12),UPKH64(b1b8,b5b12));    
+	__m256i sA2_6 = ADD(UPKL64(a2a9,a6a13),UPKH64(a2a9,a6a13)); __m256i sB2_6 = ADD(UPKL64(b2b9,b6b13),UPKH64(b2b9,b6b13));    
+	__m256i sA3_7 = ADD(UPKL64(a3a10,ZERO),UPKH64(a3a10,ZERO)); __m256i sB3_7 = ADD(UPKL64(b3b10,ZERO),UPKH64(b3b10,ZERO));    
 
+	/**
+	 * Calculates
+	 *  sA[0:7] = A[0:7] + A[7:14]
+	 *  sB[0:7] = B[0:7] + B[7:14]
+ 	 * 	Z = sA[0:7] * sB[0:7]
+	 */
 	mul_karate_7x7(z0z8,z1z9,z2z10,z3z11,z4z12,z5,z6,z7,
 				   sA0_4,sA1_5,sA2_6,sA3_7,
 				   sB0_4,sB1_5,sB2_6,sB3_7);
 
+	/**
+	 * Combining partial results from Karatsuba
+	 */
 	__m256i z8  = SHUF(z0z8 ,0x4E);
 	__m256i z9  = SHUF(z1z9 ,0x4E);
 	__m256i z10 = SHUF(z2z10,0x4E);
@@ -363,42 +378,13 @@ void mul_karatsuba_2w_h0h7(__m256i *  C, __m256i * A, __m256i *  B)
 	__m256i c10 = ADD(SUB(z3z11,x3y3),ref3);       __m256i c24 = y10;
 	__m256i c11 = ADD(SUB(z4z12,x4y4),ref4);       __m256i c25 = y11;
 	__m256i c12 = ADD(SUB(z5,   x5y5),ref5);       __m256i c26 = y12;
-	__m256i c13 = SUB(SUB(z6,   x6y6),ref6);	   __m256i c27 = ZERO;
+	__m256i c13 = SUB(SUB(z6,   x6y6),ref6);       __m256i c27 = ZERO;
 
-	const __m256i ones48 = _mm256_set1_epi64x(((uint64_t)1<<48)-1);
-	const __m256i ones36 = _mm256_set1_epi64x(((uint64_t)1<<36)-1);
-	const __m256i ones32 = _mm256_set1_epi64x(((uint64_t)1<<32)-1);
-/*	__m256i l0,h0,l1,h1;
-#define ModularReduction(XX,X0,X1,X2,X3,X4,X5,X6,YY,Y0,Y1,Y2,Y3,Y4,Y5,Y6)   \
-		l0 = SHL(AND(XX, ones48),8);     	l1 = SHL(AND(YY, ones48),8);    \
-		h0 = SHR(XX, 48);               	h1 = SHR(YY, 48);               \
-		X0 = ADD(X0, l0);                	Y0 = ADD(Y0,l1);                \
-		X2 = ADD(X2, h0);               	Y2 = ADD(Y2,h1);                \
-		                                                                    \
-		l0 = SHL(l0,4);     				l1 = SHL(l1,4);                 \
-		X1 = SUB(X1, l0);                	Y1 = SUB(Y1,l1);                \
-		X3 = SUB(X3, h0);               	Y3 = SUB(Y3,h1);                \
-		                                                                    \
-		l0 = SHL(AND(XX, ones36),20);     	l1 = SHL(AND(YY, ones36),20);   \
-		h0 = SHR(XX, 36);               	h1 = SHR(YY, 36);               \
-		X3 = ADD(X3, l0);                	Y3 = ADD(Y3,l1);                \
-		X5 = ADD(X5, h0);               	Y5 = ADD(Y5,h1);                \
-		                                                                    \
-		l0 = SHL(AND(XX, ones32),24);     	l1 = SHL(AND(YY, ones32),24);   \
-		h0 = SHR(XX, 32);               	h1 = SHR(YY, 32);               \
-		X4 = ADD(X4, l0);                	Y4 = ADD(Y4,l1);                \
-		X6 = ADD(X6, h0);               	Y6 = ADD(Y6,h1);
-
-	ModularReduction(c20,c6,c7,c8,c9,c10,c11,c12,    c27,c13,c14,c15,c16,c17,c18,c19)
-	ModularReduction(c19,c5,c6,c7,c8,c9 ,c10,c11,    c26,c12,c13,c14,c15,c16,c17,c18)
-	ModularReduction(c18,c4,c5,c6,c7,c8 ,c9 ,c10,    c25,c11,c12,c13,c14,c15,c16,c17)
-	ModularReduction(c17,c3,c4,c5,c6,c7 ,c8 ,c9 ,    c24,c10,c11,c12,c13,c14,c15,c16)
-	ModularReduction(c16,c2,c3,c4,c5,c6 ,c7 ,c8 ,    c23,c9 ,c10,c11,c12,c13,c14,c15)
-	ModularReduction(c15,c1,c2,c3,c4,c5 ,c6 ,c7 ,    c22,c8 ,c9 ,c10,c11,c12,c13,c14)
-	ModularReduction(c14,c0,c1,c2,c3,c4 ,c5 ,c6 ,    c21,c7 ,c8 ,c9 ,c10,c11,c12,c13)
-#undef ModularReduction
-*/
-
+	/**
+	 * Modular reduction
+	 * (2^8)p = (2^8)(2^384-2^128-2^96+2^32-1)
+	 *        = 2^136+2^104-2^40+2^8
+	 */
 	__m256i c12c19 = UPKL64(c12,c19);
 	__m256i c11c18 = UPKL64(c11,c18);
 	__m256i c10c17 = UPKL64(c10,c17);
@@ -407,34 +393,34 @@ void mul_karatsuba_2w_h0h7(__m256i *  C, __m256i * A, __m256i *  B)
 	__m256i c7c14  = UPKL64(c7 ,c14);
 	__m256i c6c13  = UPKL64(c6 ,c13);
 	__m256i l,h;
-#define ModularReduction(XX,YY,X0,X1,X2,X3,X4,X5,X6)  \
-		__m256i XX ## YY = UPKL64(XX,YY);             \
-		l = SHL(AND(XX ## YY, ones48),8);             \
-		h = SHR(XX ## YY, 48);                        \
-		X0 = ADD(X0, l);                              \
-		X2 = ADD(X2, h);                              \
-		                                              \
-		l = SHL(l,4);     			                  \
-		X1 = SUB(X1, l);                              \
-		X3 = SUB(X3, h);                              \
-		                                              \
-		l = SHL(AND(XX ## YY, ones36),20);            \
-		h = SHR(XX ## YY, 36);                        \
-		X3 = ADD(X3, l);                              \
-		X5 = ADD(X5, h);                              \
-		                                              \
-		l = SHL(AND(XX ## YY, ones32),24);            \
-		h = SHR(XX ## YY, 32);                        \
-		X4 = ADD(X4, l);                              \
+#define ModularReduction(XX,X0,X1,X2,X3,X4,X5,X6)  \
+		l = _mm256_shuffle_epi8(XX, shuf48); \
+		h = SHR(XX, 48);                     \
+		X0 = ADD(X0, l);                     \
+		X2 = ADD(X2, h);                     \
+		                                     \
+		l = SHL(AND(XX, ones44),12);         \
+		h = SHR(XX, 44);                     \
+		X1 = SUB(X1, l);                     \
+		X3 = SUB(X3, h);                     \
+		                                     \
+		l = SHL(AND(XX, ones36),20);         \
+		h = SHR(XX, 36);                     \
+		X3 = ADD(X3, l);                     \
+		X5 = ADD(X5, h);                     \
+		                                     \
+		l = _mm256_shuffle_epi8(XX, shuf32); \
+		h = SHR(XX, 32);                     \
+		X4 = ADD(X4, l);                     \
 		X6 = ADD(X6, h);
 
-	ModularReduction(c20,c27,c6c13,c7c14,c8c15,c9c16,c10c17,c11c18,c12c19); __m256i c5c12 = UPKL64(c5,c12c19);
-	ModularReduction(c19,c26,c5c12,c6c13,c7c14,c8c15, c9c16,c10c17,c11c18); __m256i c4c11 = UPKL64(c4,c11c18);
-	ModularReduction(c18,c25,c4c11,c5c12,c6c13,c7c14, c8c15, c9c16,c10c17); __m256i c3c10 = UPKL64(c3,c10c17);
-	ModularReduction(c17,c24,c3c10,c4c11,c5c12,c6c13, c7c14, c8c15, c9c16); __m256i c2c9  = UPKL64(c2, c9c16);
-	ModularReduction(c16,c23, c2c9,c3c10,c4c11,c5c12, c6c13, c7c14, c8c15); __m256i c1c8  = UPKL64(c1, c8c15);
-	ModularReduction(c15,c22, c1c8, c2c9,c3c10,c4c11, c5c12, c6c13, c7c14); __m256i c0c7  = UPKL64(c0, c7c14);
-	ModularReduction(c14,c21, c0c7, c1c8, c2c9,c3c10, c4c11, c5c12, c6c13);
+	__m256i c20c27 = UPKL64(c20,c27);    ModularReduction(c20c27,c6c13,c7c14,c8c15,c9c16,c10c17,c11c18,c12c19);   __m256i c5c12 = UPKL64(c5,c12c19);
+	__m256i c19c26 = ALIGNR(c26,c12c19); ModularReduction(c19c26,c5c12,c6c13,c7c14,c8c15, c9c16,c10c17,c11c18);   __m256i c4c11 = UPKL64(c4,c11c18);
+	__m256i c18c25 = ALIGNR(c25,c11c18); ModularReduction(c18c25,c4c11,c5c12,c6c13,c7c14, c8c15, c9c16,c10c17);   __m256i c3c10 = UPKL64(c3,c10c17);
+	__m256i c17c24 = ALIGNR(c24,c10c17); ModularReduction(c17c24,c3c10,c4c11,c5c12,c6c13, c7c14, c8c15, c9c16);   __m256i c2c9  = UPKL64(c2, c9c16);
+	__m256i c16c23 = ALIGNR(c23, c9c16); ModularReduction(c16c23, c2c9,c3c10,c4c11,c5c12, c6c13, c7c14, c8c15);   __m256i c1c8  = UPKL64(c1, c8c15);
+	__m256i c15c22 = ALIGNR(c22, c8c15); ModularReduction(c15c22, c1c8, c2c9,c3c10,c4c11, c5c12, c6c13, c7c14);   __m256i c0c7  = UPKL64(c0, c7c14);
+	__m256i c14c21 = ALIGNR(c21, c7c14); ModularReduction(c14c21, c0c7, c1c8, c2c9,c3c10, c4c11, c5c12, c6c13);
 #undef ModularReduction
 
 	C[0 ] = c0c7 ;
@@ -529,8 +515,8 @@ void mul_schoolbook_h0h7(__m256i *  C, __m256i * A, __m256i *  B)
  * */
 void mul_Element_2w_h0h7(__m256i *  C, __m256i * A, __m256i *  B)
 {
-//	mul_karatsuba_2w_h0h7(C,A,B);
-	mul_schoolbook_h0h7(C,A,B);
+	mul_karatsuba_2w_h0h7(C,A,B);
+//	mul_schoolbook_h0h7(C,A,B);
 }
 
 void sqr_Element_2w_h0h7(__m256i *  C)

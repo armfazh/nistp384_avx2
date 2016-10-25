@@ -30,11 +30,9 @@ void bench_element_2w_h0h7()
 	CLOCKS(addsub4_Element_2w_h0h7(a,b,c,d));
 	CLOCKS(naddsub_Element_2w_h0h7(a,b,c,d));*/
 
-	ALIGN __m256 buffer[2*NUM_WORDS_128B_NISTP384];
 
-	CLOCKS(mul_schoolbook_h0h7(buffer,a,b));
-	CLOCKS(mul_karatsuba_2w_h0h7(buffer,a,b));
-
+	CLOCKS(mul_schoolbook_h0h7(c,a,b));
+	CLOCKS(mul_karatsuba_2w_h0h7(c,a,b));
 	CLOCKS(mul_Element_2w_h0h7(c,a,b));
 	CLOCKS(mul_Element_2w_h0h7(c,c,b));
 	CLOCKS(mul_Element_2w_h0h7(c,b,c));

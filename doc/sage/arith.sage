@@ -72,3 +72,64 @@ def integer_mult(A,B):
 			C[i+j] += a*b
 	return C
 
+def modular_red(D,i,j):
+	C = deepcopy(D)
+	X = C[i]
+
+	C[i-14+0] = C[i-14+0] + ((X%2**48)<<8)
+	C[i-14+2] = C[i-14+2] + (X>>48)
+
+	C[i-14+1] = C[i-14+1] - ((X%2**44)<<12)
+	C[i-14+3] = C[i-14+3] - (X>>44)
+
+	C[i-14+3] = C[i-14+3] + ((X%2**36)<<20)
+	C[i-14+5] = C[i-14+5] + (X>>36)
+
+	C[i-14+4] = C[i-14+4] + ((X%2**32)<<24)
+	C[i-14+6] = C[i-14+6] + (X>>32)
+	
+	Y = C[j]
+
+	C[j-14+0] = C[j-14+0] + ((Y%2**48)<<8)
+	C[j-14+2] = C[j-14+2] + (Y>>48)
+
+	C[j-14+1] = C[j-14+1] - ((Y%2**44)<<12)
+	C[j-14+3] = C[j-14+3] - (Y>>44)
+
+	C[j-14+3] = C[j-14+3] + ((Y%2**36)<<20)
+	C[j-14+5] = C[j-14+5] + (Y>>36)
+
+	C[j-14+4] = C[j-14+4] + ((Y%2**32)<<24)
+	C[j-14+6] = C[j-14+6] + (Y>>32)
+
+	k = i if i>j else j
+	return C[:k]
+
+def reduce_p384(C):
+	C = modular_red(C,27,20)
+	C = modular_red(C,26,19)
+	C = modular_red(C,25,18)
+	C = modular_red(C,24,17)
+	C = modular_red(C,23,16)
+	C = modular_red(C,22,15)
+	C = modular_red(C,21,14)
+	return C[:num_words]
+
+a0 = 0xd45ee95817055d255aa35831b70d32669ac99f33632e5a768de7e81bf854c27c46e3fbf2abbacd29ec4aff517369c667
+a1 = 0x5cdb18ec543caf32fb3bb0ec2a5c388f966bdcea977e013e67fce141a13ee97087dc3d214174820e1154b49bc6cdb2ab
+b0 = 0xbd644748d0cb0bcae53aa1e900f7ef05b3f1ebb1950f99a8bb5cf98961bed875947c3c05e6d129fb3aaafafb43fe1a02
+b1 = 0xf57d9bba19226fbb5c15474850e3cd333baf101bf2acd4aadc099e112464703b63794b5ec55a7314c5647b1ca81e231f
+c0 = a0*b0%p
+c1 = a1*b1%p
+
+A0 = toVect(a0)
+A1 = toVect(a1)
+B0 = toVect(b0)
+B1 = toVect(b1)
+C0 = integer_mult(A0,B0)+[0]
+C1 = integer_mult(A1,B1)+[0]
+D0 = reduce_p384(C0)
+D1 = reduce_p384(C1)
+print(c0 == fromVect(D0))
+print(c1 == fromVect(D1))
+
