@@ -22,6 +22,11 @@ static const uint64_t ECC_PARAM_B [2*NUM_WORDS_64B_NISTP384]= {
 		0x8f50138,0xfa7e23e,0x8f50138,0xfa7e23e,
 		0x2031408,0x00b3312,0x2031408,0x00b3312
 };
+void copyPoint(Point_XYZ_1way*Q,Point_XYZ_1way*P)
+{
+	copy_Element_2w_h0h7(Q->XY,P->XY);
+	copy_Element_2w_h0h7(Q->ZZ,P->ZZ);
+}
 void getIdentityProj(Point_XYZ_1way *pP)
 {
 	int i;
@@ -330,6 +335,7 @@ void _1way_full_addition_law(Point_XYZ_1way * Q, Point_XYZ_1way *P)
 		p1q2[i] = BLEND32(p1q1[i],p2q2[i],0xF0);
 	}
 	sub_Element_2w_h0h7(lBrB,p1q2,lArA);
+	compress_Element_2w_h0h7(lBrB);
 
 //	printf("\tl9r9:\n");print_Element_2w_h0h7(l9r9);
 //	printf("\tlArA:\n");print_Element_2w_h0h7(lArA);
@@ -369,6 +375,8 @@ void _1way_full_addition_law(Point_XYZ_1way * Q, Point_XYZ_1way *P)
 	addsub_Element_2w_h0h7(Q->XY,p4p5,q4q5,1,0);
 /*	Z3 = p6+q6*/
 	add_Element_2w_h0h7(Q->ZZ,p6q6,q6p6);
+	compress_Element_2w_h0h7(Q->XY);
+	compress_Element_2w_h0h7(Q->ZZ);
 //	printf("\tQ->XY:\n");print_Element_2w_h0h7(Q->XY);sizes_Element_2w_h0h7(Q->XY);
 //	printf("\tQ->ZZ:\n");print_Element_2w_h0h7(Q->ZZ);sizes_Element_2w_h0h7(Q->ZZ);
 }

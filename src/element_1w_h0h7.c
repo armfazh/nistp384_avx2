@@ -1022,4 +1022,5 @@ void inv_Element_1w_h0h7(uint64_t * __restrict pC, uint64_t * __restrict pA)
 	sqrn_Element_1w_h0h7(T[1],96);
 	mul_Element_1w_h0h7(T[1],T[1],T[3]);
 	compress_Element_1w_h0h7(T[1]);
+//	new_compressfast_Element_1w_h0h7(T[1]);
 }

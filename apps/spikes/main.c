@@ -160,7 +160,7 @@ int main()
 
 #endif
 
-#if 1 /* === Element 2w ===  */
+#if 0 /* === Element 2w ===  */
 	printf("=== Element 2w === \n");
 	Element_2w_H0H7 a,b,c,d;
 

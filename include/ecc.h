@@ -29,6 +29,7 @@ typedef ALIGN struct point_affine_1way{
 /******************************
  * Point util
  ******************************/
+void copyPoint(Point_XYZ_1way*Q,Point_XYZ_1way*P);
 void getIdentityProj(Point_XYZ_1way *pP);
 void getGenerator(Point_XY_1way *G);
 void toAffine(Point_XY_1way *aP, Point_XYZ_1way *pP);

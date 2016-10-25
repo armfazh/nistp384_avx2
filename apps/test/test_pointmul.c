@@ -64,6 +64,8 @@ int compare_point(const EC_GROUP * ec_group, const EC_POINT * P , Point_XY_1way 
 	STR_BYTES sQx,sQy;
 	Element_1w_H0H7 Qx,Qy;
 	BIGNUM *Px,*Py;
+	int ret;
+
 	Px = BN_new();
 	Py = BN_new();
 	deinterleave(Qx,Qy,Q->XY);
@@ -71,7 +73,7 @@ int compare_point(const EC_GROUP * ec_group, const EC_POINT * P , Point_XY_1way 
 	Element_1w_h0h7_To_str_bytes(sQy,Qy);
 	EC_POINT_get_affine_coordinates_GFp(ec_group,P,Px,Py,NULL);
 
-	int ret = compare_element(Px,sQx) && compare_element(Py,sQy);
+	ret = compare_element(Px,sQx) | compare_element(Py,sQy);
 	BN_free(Px);
 	BN_free(Py);
 	return ret;
@@ -79,35 +81,79 @@ int compare_point(const EC_GROUP * ec_group, const EC_POINT * P , Point_XY_1way 
 
 void test_ecc()
 {
+	long int cnt = 0;
+	int i,match;
 	Point_XY_1way P,G;
-	Point_XYZ_1way pP,pG;
+	Point_XYZ_1way pG,p2P,p3P;
 
 	getGenerator(&G);
 	getGenerator(&P);
 	EC_KEY * ec_key = EC_KEY_new_by_curve_name(P384);
 	const EC_GROUP * ec_group = EC_KEY_get0_group(ec_key);
-	const EC_POINT * OSSL_G = EC_GROUP_get0_generator(ec_group);
+	EC_POINT * OSSL_G  = EC_POINT_new(ec_group);
 	EC_POINT * OSSL_2G = EC_POINT_new(ec_group);
 	EC_POINT * OSSL_3G = EC_POINT_new(ec_group);
 
+	/**
+	 * Testing Generator point
+	 */
+	EC_POINT_copy(OSSL_G,EC_GROUP_get0_generator(ec_group));
 	printf("Generator: ");
-	printf(LABEL,compare_point(ec_group,OSSL_G,&G)?OK:ERROR);
-
-	EC_POINT_dbl(ec_group,OSSL_2G,OSSL_G,NULL);
-	EC_POINT_add(ec_group,OSSL_3G,OSSL_2G,OSSL_G,NULL);
-
+	printf(LABEL,compare_point(ec_group,OSSL_G,&G)==0?OK:ERROR);
 	toProjective(&pG,&G);
-	toProjective(&pP,&P);
-	_1way_doubling(&pG);
-	_1way_full_addition_law(&pP,&pG);
 
-	toAffine(&G,&pG);
-	toAffine(&P,&pP);
+	/**
+	 * Testing doubling function
+	 */
+	copyPoint(&p2P,&pG);
 	printf("Doubling: ");
-	printf(LABEL,compare_point(ec_group,OSSL_2G,&G)?OK:ERROR);
-	printf("Full addition: ");
-	printf(LABEL,compare_point(ec_group,OSSL_3G,&P)?OK:ERROR);
+	cnt = 0;
+	for(i=0;i<TEST_TIMES;i++)
+	{
+		EC_POINT_dbl(ec_group,OSSL_2G,OSSL_G,NULL);
+		_1way_doubling(&p2P);toAffine(&P,&p2P);
+		match = compare_point(ec_group, OSSL_2G, &P)==0;
+		if(!match)
+		{
+			printf(LABEL, compare_point(ec_group, OSSL_3G, &P)==0 ? OK : ERROR);
+			printf("P.XY:\n");print_Element_2w_h0h7(P.XY);
 
+			char* s=NULL;printf("%s\n",s=EC_POINT_point2hex(ec_group,OSSL_3G,POINT_CONVERSION_UNCOMPRESSED,NULL)); OPENSSL_free(s);
+			break;
+		}
+		EC_POINT_copy(OSSL_G,OSSL_2G);
+		cnt += match;
+	}
+	printf(" %ld %s\n",cnt , cnt == TEST_TIMES? "OK" : "FAIL" );
+
+	/**
+	 * Testing full addition function
+	 */
+	EC_POINT_copy(OSSL_G,EC_GROUP_get0_generator(ec_group));
+	EC_POINT_dbl(ec_group,OSSL_2G,OSSL_G,NULL);
+
+	copyPoint(&p3P,&pG);
+	_1way_doubling(&p3P);
+
+	printf("Point addition: ");
+	cnt = 0;
+	for(i=0;i<8;i++)
+	{
+		EC_POINT_add(ec_group,OSSL_3G,OSSL_2G,OSSL_G,NULL);
+		_1way_full_addition_law(&p3P, &pG);	toAffine(&P, &p3P);
+		match = compare_point(ec_group, OSSL_3G, &P)==0;
+		if(!match)
+		{
+			printf(LABEL, compare_point(ec_group, OSSL_3G, &P)==0 ? OK : ERROR);
+			printf("P.XY:\n");print_Element_2w_h0h7(P.XY);
+
+			char* s=NULL;printf("%s\n",s=EC_POINT_point2hex(ec_group,OSSL_3G,POINT_CONVERSION_UNCOMPRESSED,NULL)); OPENSSL_free(s);
+			break;
+		}
+		EC_POINT_copy(OSSL_2G,OSSL_3G);
+		cnt += match;
+	}
+	printf(" %ld %s\n",cnt , cnt == TEST_TIMES? "OK" : "FAIL" );
 	EC_POINT_free(OSSL_2G);
 	EC_POINT_free(OSSL_3G);
 	EC_KEY_free(ec_key);
@@ -116,7 +162,7 @@ void test_ecc()
 void test_pointmul()
 {
 	long int cnt = 0;
-	int i,test;
+	int i,match;
 
 	Point_XY_1way P,kG;
 
@@ -132,7 +178,7 @@ void test_pointmul()
 	BIGNUM * k1 = BN_new();
 	STR_BYTES str_k,str_k1;
 
-	printf("Fixed point test:");
+	printf("Fixed point:");
 	cnt = 0;
 	for(i=0;i<TEST_TIMES;i++)
 	{
@@ -141,8 +187,8 @@ void test_pointmul()
 
 		BN_to_str_bytes(str_k, k);
 		fixed_point_multiplication(&kG,str_k);
-		test = compare_point(ec_group,OSSL_kG,&kG);
-		if(!test)
+		match = compare_point(ec_group,OSSL_kG,&kG)==0;
+		if(!match)
 		{
 			char* s=NULL;
 			STR_BYTES buf;
@@ -153,12 +199,12 @@ void test_pointmul()
 			printf("%s\n",s=EC_POINT_point2hex(ec_group,OSSL_kG,POINT_CONVERSION_UNCOMPRESSED,NULL)); OPENSSL_free(s);
 			break;
 		}
-		cnt += test;
+		cnt += match;
 	}
 	printf(" %ld %s\n",cnt , cnt == TEST_TIMES? "OK" : "FAIL" );
 
 	/* Variable point multiplication */
-	printf("Variable point test:");
+	printf("Variable point:");
 	BN_rand_range(k,ec_order);
 	EC_POINT_mul(ec_group,OSSL_kG,k,NULL,NULL,NULL);
 	cnt = 0;
@@ -170,8 +216,8 @@ void test_pointmul()
 		BN_to_str_bytes(str_k, k);
 		to_point(&P,ec_group,OSSL_kG);
 		variable_point_multiplication(&kG,str_k,&P);
-		test = compare_point(ec_group,OSSL_Q,&kG);
-		if(!test)
+		match = compare_point(ec_group,OSSL_Q,&kG)==0;
+		if(!match)
 		{
 			STR_BYTES buf;
 			char* s = NULL;
@@ -185,12 +231,12 @@ void test_pointmul()
 			printf("OP_kP: \n");printf("%s\n",s=EC_POINT_point2hex(ec_group,OSSL_Q,POINT_CONVERSION_UNCOMPRESSED,NULL));  OPENSSL_free(s);
 			break;
 		}
-		cnt += test;
+		cnt += match;
 	}
 	printf(" %ld %s\n",cnt , cnt == TEST_TIMES? "OK" : "FAIL" );
 
 	/* Double point multiplication */
-	printf("Double point test:");
+	printf("Double point:");
 	BN_rand_range(k,ec_order);
 	EC_POINT_mul(ec_group,OSSL_kG,k,NULL,NULL,NULL);
 	cnt = 0;
@@ -204,8 +250,8 @@ void test_pointmul()
 		BN_to_str_bytes(str_k1, k1);
 		to_point(&P,ec_group,OSSL_kG);
 		double_point_multiplication(&kG,str_k,str_k1,&P);
-		test = compare_point(ec_group,OSSL_Q,&kG);
-		if(!test)
+		match = compare_point(ec_group,OSSL_Q,&kG)==0;
+		if(!match)
 		{
 			STR_BYTES buf,buf1;
 			char* s = NULL;
@@ -221,7 +267,7 @@ void test_pointmul()
 			printf("OP_kP: \n");printf("%s\n",s=EC_POINT_point2hex(ec_group,OSSL_Q,POINT_CONVERSION_UNCOMPRESSED,NULL));  OPENSSL_free(s);
 			break;
 		}
-		cnt += test;
+		cnt += match;
 	}
 	printf(" %ld %s\n",cnt , cnt == TEST_TIMES? "OK" : "FAIL" );
 

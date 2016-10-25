@@ -22,5 +22,5 @@ void random_str_bytes(uint8_t *A)
 
 int areEqual_str_bytes(uint8_t* A, uint8_t* B)
 {
-	return memcmp(A,B,sizeof(uint8_t)*SIZE_STR_BYTES)==0;
+	return memcmp(A,B,sizeof(uint8_t)*SIZE_STR_BYTES);
 }

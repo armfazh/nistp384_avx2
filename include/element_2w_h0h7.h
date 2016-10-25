@@ -51,4 +51,14 @@ void new_compressfast2_Element_2w_h0h7(__m256i * C,__m256i * D);
 void mul_karatsuba_2w_h0h7(__m256i *  C, __m256i * A, __m256i *  B);
 void mul_schoolbook_h0h7(__m256i *  C, __m256i * A, __m256i *  B);
 
+
+#define copy_Element_2w_h0h7(C,A) \
+	C[0] = A[0];                  \
+	C[1] = A[1];                  \
+	C[2] = A[2];                  \
+	C[3] = A[3];                  \
+	C[4] = A[4];                  \
+	C[5] = A[5];                  \
+	C[6] = A[6];                  \
+
 #endif /* _ELEMENT_2W_H0H7_H_ */
