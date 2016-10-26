@@ -393,8 +393,8 @@ int main()
 		variable_point_multiplication(&kG,str_k,&P);
 
 		STR_BYTES buf;
-		test = compare_point(ec_group,OSSL_Q,&kG);
-		if(!test)
+		tests = compare_point(ec_group,OSSL_Q,&kG);
+		if(!tests)
 		{
 			char* s = NULL;
 			BN_to_str_bytes(buf,k);
@@ -416,7 +416,7 @@ int main()
 //	printf("kP: \n");print_Element_2w_h0h7(kP.XY);
 
 #endif
-#if 0 /*test doubling bug */
+#if 0 /*tests doubling bug */
 	Point_XYZ_1way P;
 	Element_1w_H0H7 X,Y,Z;
 	X[0 ] = 0x007a7200;      Y[0 ] = 0x0d94c280;    Z[0 ] = 0x0ac9d800;

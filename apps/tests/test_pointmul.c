@@ -137,15 +137,16 @@ void test_ecc()
 
 	printf("Point addition: ");
 	cnt = 0;
-	for(i=0;i<8;i++)
+	for(i=0;i<TEST_TIMES;i++)
 	{
 		EC_POINT_add(ec_group,OSSL_3G,OSSL_2G,OSSL_G,NULL);
 		_1way_full_addition_law(&p3P, &pG);	toAffine(&P, &p3P);
 		match = compare_point(ec_group, OSSL_3G, &P)==0;
 		if(!match)
 		{
+			printf("%dP\n",3+i);
 			printf(LABEL, compare_point(ec_group, OSSL_3G, &P)==0 ? OK : ERROR);
-			printf("P.XY:\n");print_Element_2w_h0h7(P.XY);
+			printf("P.XY:\n");print_Element_2w_h0h7(P.XY);sizes_Element_2w_h0h7(P.XY);
 
 			char* s=NULL;printf("%s\n",s=EC_POINT_point2hex(ec_group,OSSL_3G,POINT_CONVERSION_UNCOMPRESSED,NULL)); OPENSSL_free(s);
 			break;

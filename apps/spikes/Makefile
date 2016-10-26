@@ -1,6 +1,7 @@
 
 include ../../common.mk
 
+.INTERMEDIATE: main.o nettle.o openssl.o boringssl.o mbed.o ../bench/clocks.o
 .PHONY: main nettle openssl boringssl mbed
 BORINGSSL_PATH=/home/armfazh/Downloads/boringssl/build
 

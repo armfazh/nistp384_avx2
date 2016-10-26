@@ -240,12 +240,12 @@ void _1way_full_addition_law(Point_XYZ_1way * Q, Point_XYZ_1way *P)
 	add_Element_2w_h0h7(l1r1,XY1,ZZ1);
 /*   	l2 = X2 + Z2;     r2 = Y2 + Z2;   */
 	add_Element_2w_h0h7(l2r2,XY2,ZZ2);
-
+//	if(debug) {
 //	printf("\tm1  :\n");print_Element_2w_h0h7(m1  );
 //	printf("\tm2  :\n");print_Element_2w_h0h7(m2  );
 //	printf("\tl1r1:\n");print_Element_2w_h0h7(l1r1);
 //	printf("\tl2r2:\n");print_Element_2w_h0h7(l2r2);
-
+//	}
 /*   	p0 = X1 * X2;     q0 = Y1 * Y2;   */
 	mul_Element_2w_h0h7(p0q0,XY1,XY2);
 	compress_Element_2w_h0h7(p0q0);
@@ -260,11 +260,11 @@ void _1way_full_addition_law(Point_XYZ_1way * Q, Point_XYZ_1way *P)
 /*       p2 = l1 * l2;     q2 = r1 * r2;   */
 	mul_Element_2w_h0h7(p2q2,l1r1,l2r2);
 	compress_Element_2w_h0h7(p2q2);
-
-//	printf("\tp0q0:\n");print_Element_2w_h0h7(p0q0);
-//	printf("\tp1q1:\n");print_Element_2w_h0h7(p1q1);
-//	printf("\tp2q2:\n");print_Element_2w_h0h7(p2q2);
-
+//	if(debug) {
+//		printf("\tp0q0:\n");		print_Element_2w_h0h7(p0q0);
+//		printf("\tp1q1:\n");		print_Element_2w_h0h7(p1q1);
+//		printf("\tp2q2:\n");		print_Element_2w_h0h7(p2q2);
+//	}
 /*      l0 = 3*p0;        r0 = 3*q1;       */
 	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
 	{
@@ -279,18 +279,24 @@ void _1way_full_addition_law(Point_XYZ_1way * Q, Point_XYZ_1way *P)
 	add_Element_2w_h0h7(l3r3,p0q0,q1p1);
 /*       l4 = p2 - l3;        */
 	sub_Element_2w_h0h7(l4r4,p2q2,l3r3);
+	compress_Element_2w_h0h7(l4r4);
 /*       p3 = ecc_b*l4;    q3 = ecc_b*q1;  */
 	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
 	{
 		l4r4[i] = BLEND32(l4r4[i],p1q1[i],0xF0);
 	}
+//	if(debug) {
+//
+//		printf("\tl4r4:\n");print_Element_2w_h0h7(l4r4);sizes_Element_2w_h0h7(l4r4);
+//		printf("\tbb  :\n");print_Element_2w_h0h7(BB  );sizes_Element_2w_h0h7(BB  );
+//	}
 	mul_Element_2w_h0h7(p3q3,l4r4,BB);
 	compress_Element_2w_h0h7(p3q3);
+//	if(debug) {
 //	printf("\tl0r0:\n");print_Element_2w_h0h7(l0r0);
 //	printf("\tl3r3:\n");print_Element_2w_h0h7(l3r3);
-//	printf("\tl4r4:\n");print_Element_2w_h0h7(l4r4);
 //	printf("\tp3q3:\n");print_Element_2w_h0h7(p3q3);
-
+//	}
 /*       l5 = p3 - p0;     r5 = l4 - q3;   */
 	for(i=0;i<NUM_WORDS_128B_NISTP384;i++)
 	{

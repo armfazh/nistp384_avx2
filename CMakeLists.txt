@@ -33,11 +33,11 @@ add_executable(bench
 		)
 
 add_executable(tests
-		apps/test/tests.c apps/test/tests.h
+		apps/tests/tests.c apps/tests/tests.h
 		${SRC}/random.c include/random.h
-		apps/test/test_Element_1w_h0h7.c
-		apps/test/test_Element_2w_h0h7.c
-		apps/test/test_pointmul.c
+		apps/tests/test_Element_1w_h0h7.c
+		apps/tests/test_Element_2w_h0h7.c
+		apps/tests/test_pointmul.c
 		)
 
 add_executable(main apps/spikes/main.c ${SRC}/random.c include/random.h)

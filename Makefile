@@ -14,7 +14,7 @@ $(LIB)/lib%_$(CC).a: $(SRC)/str_bytes.o  $(SRC)/random.o $(SRC)/element_1w_h0h7.
 bench: $(BIN)/bench_$(CC)
 papi: $(BIN)/papi_$(CC)
 super: $(BIN)/super_$(CC)
-test: $(BIN)/test_$(CC)
+tests: $(BIN)/tests_$(CC)
 
 main: $(TARGET)
 	make -C apps/spikes main
