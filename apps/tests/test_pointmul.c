@@ -55,8 +55,6 @@ int compare_element(BIGNUM* x , uint8_t *y)
 {
 	STR_BYTES bufX;
 	BN_to_str_bytes(bufX, x);
-//	printf("OP: ");print_str_bytes(bufX);
-//	printf("TH: ");print_str_bytes(y);
 	return areEqual_str_bytes(bufX,y);
 }
 int compare_point(const EC_GROUP * ec_group, const EC_POINT * P , Point_XY_1way * Q)
@@ -93,6 +91,9 @@ void test_ecc()
 	EC_POINT * OSSL_G  = EC_POINT_new(ec_group);
 	EC_POINT * OSSL_2G = EC_POINT_new(ec_group);
 	EC_POINT * OSSL_3G = EC_POINT_new(ec_group);
+	BIGNUM * ec_order = BN_new();
+	EC_GROUP_get_order(ec_group,ec_order,NULL);
+	BIGNUM * k = BN_new();
 
 	/**
 	 * Testing Generator point
@@ -105,7 +106,12 @@ void test_ecc()
 	/**
 	 * Testing doubling function
 	 */
+	BN_rand_range(k,ec_order);
+	EC_POINT_mul(ec_group,OSSL_G,k,NULL,NULL,NULL);
+	to_point(&G,ec_group,OSSL_G);
+	toProjective(&pG,&G);
 	copyPoint(&p2P,&pG);
+
 	printf("Doubling: ");
 	cnt = 0;
 	for(i=0;i<TEST_TIMES;i++)
@@ -129,7 +135,10 @@ void test_ecc()
 	/**
 	 * Testing full addition function
 	 */
-	EC_POINT_copy(OSSL_G,EC_GROUP_get0_generator(ec_group));
+	BN_rand_range(k,ec_order);
+	EC_POINT_mul(ec_group,OSSL_G,k,NULL,NULL,NULL);
+	to_point(&G,ec_group,OSSL_G);
+	toProjective(&pG,&G);
 	EC_POINT_dbl(ec_group,OSSL_2G,OSSL_G,NULL);
 
 	copyPoint(&p3P,&pG);
