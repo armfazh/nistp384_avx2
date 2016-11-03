@@ -17,8 +17,8 @@ void bench_element_2w_h0h7()
 	CLOCKS(interleave(a,a0,a1));
 	CLOCKS(deinterleave(a0,a1,a));
 
-//	CLOCKS(add_Element_2w_h0h7(c,a,b));
-//	CLOCKS(sub_Element_2w_h0h7(c,c,b));
+	CLOCKS(add_Element_2w_h0h7(c,a,b));
+	CLOCKS(sub_Element_2w_h0h7(c,c,b));
 //	CLOCKS(addsub_Element_2w_h0h7(c,a,b,0,0));
 //	CLOCKS(addsub_Element_2w_h0h7(c,a,b,1,0));
 //	CLOCKS(addsub_Element_2w_h0h7(c,a,b,0,1));
@@ -31,12 +31,14 @@ void bench_element_2w_h0h7()
 	CLOCKS(naddsub_Element_2w_h0h7(a,b,c,d));*/
 
 
-	CLOCKS(mul_schoolbook_h0h7(c,a,b));
+	CLOCKS(mul_schoolbook_2w_h0h7(c,a,b));
 	CLOCKS(mul_karatsuba_2w_h0h7(c,a,b));
 	CLOCKS(mul_Element_2w_h0h7(c,a,b));
 	CLOCKS(mul_Element_2w_h0h7(c,c,b));
 	CLOCKS(mul_Element_2w_h0h7(c,b,c));
-	CLOCKS(sqr_Element_2w_h0h7(c));
+	CLOCKS(sqr_schoolbook_2w_h0h7(c,a));
+	CLOCKS(sqr_karatsuba_2w_h0h7(c,a));
+	CLOCKS(sqr_Element_2w_h0h7(c,a));
 
 	CLOCKS(compress_Element_2w_h0h7(c));
 	CLOCKS(compress2_Element_2w_h0h7(c,a));

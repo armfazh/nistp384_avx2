@@ -197,6 +197,247 @@ inline void addsub_Element_2w_h0h7(
 	}
 }
 
+/* Pi transformation */
+#define PI_2w()								\
+	tmp = b6;								\
+	b6 = b5; 								\
+	b5 = b4; 								\
+	b4 = b3; 								\
+	b3 = b2; 								\
+	b2 = b1; 								\
+	b1 = b0; 								\
+	b0 = SHLi_128(tmp, 8);					\
+	a13 = SHRi_128(tmp, 8);					\
+	b0 = ADD(b0, SHLi_128(AND(a13, mask20), 1)); \
+	b1 = ADD(b1, SHR(a13, 20));				\
+	b1 = SUB(b1, SHL(AND(a13,mask16), 12));\
+	b2 = SUB(b2, SHRi_128(a13, 2));				\
+	b3 = ADD(b3, SHL(AND(a13,mask8), 20)); \
+	b4 = ADD(b4, SHRi_128(a13, 1));				\
+	b4 = ADD(b4, SHLi_128(AND(a13,mask4), 3)); \
+	b5 = ADD(b5, SHR(a13, 4));
+
+void mul_schoolbook_2w_h0h7(__m256i *  C, __m256i * A, __m256i *  B)
+{
+	int i,j;
+	const __m256i mask20 = _mm256_set_epi64x(0x0,((uint64_t)1<<20)-1,0x0,((uint64_t)1<<20)-1);
+	const __m256i mask16 = _mm256_set_epi64x(0x0,((uint64_t)1<<16)-1,0x0,((uint64_t)1<<16)-1);
+	const __m256i mask8  = _mm256_set_epi64x(0x0,((uint64_t)1<< 8)-1,0x0,((uint64_t)1<< 8)-1);
+	const __m256i mask4  = _mm256_set_epi64x(0x0,((uint64_t)1<< 4)-1,0x0,((uint64_t)1<< 4)-1);
+	const __m256i M[2] = { _mm256_set1_epi64x(0x0706050403020100), _mm256_set1_epi64x(0x0F0E0D0C0B0A0908) };
+
+	__m256i ai,tmp,a13;
+	__m256i b0,b1,b2,b3,b4,b5,b6;
+	__m256i c0,c1,c2,c3,c4,c5,c6;
+
+	b0 = LOAD(B+0);
+	b1 = LOAD(B+1);
+	b2 = LOAD(B+2);
+	b3 = LOAD(B+3);
+	b4 = LOAD(B+4);
+	b5 = LOAD(B+5);
+	b6 = LOAD(B+6);
+
+	ai = _mm256_shuffle_epi8(LOAD(A + 0), M[0]);
+	c0 = MUL(b0,ai);
+	c1 = MUL(b1,ai);
+	c2 = MUL(b2,ai);
+	c3 = MUL(b3,ai);
+	c4 = MUL(b4,ai);
+	c5 = MUL(b5,ai);
+	c6 = MUL(b6,ai);
+
+	i=1;
+	for(j=0;j<2;j++)
+	{
+		for ( ; i < 7; i++)
+		{
+			PI_2w();
+
+			ai = _mm256_shuffle_epi8(LOAD(A + i), M[j]);
+			c0 = ADD(c0, MUL(b0, ai));
+			c1 = ADD(c1, MUL(b1, ai));
+			c2 = ADD(c2, MUL(b2, ai));
+			c3 = ADD(c3, MUL(b3, ai));
+			c4 = ADD(c4, MUL(b4, ai));
+			c5 = ADD(c5, MUL(b5, ai));
+			c6 = ADD(c6, MUL(b6, ai));
+		}
+		i=0;
+	}
+
+	STORE(C+0, c0);
+	STORE(C+1, c1);
+	STORE(C+2, c2);
+	STORE(C+3, c3);
+	STORE(C+4, c4);
+	STORE(C+5, c5);
+	STORE(C+6, c6);
+}
+
+void sqr_schoolbook_2w_h0h7(__m256i *  C,__m256i *  A)
+{
+	const __m256i mask20 = _mm256_set_epi64x(0x0,((uint64_t)1<<20)-1,0x0,((uint64_t)1<<20)-1);
+	const __m256i mask16 = _mm256_set_epi64x(0x0,((uint64_t)1<<16)-1,0x0,((uint64_t)1<<16)-1);
+	const __m256i mask8  = _mm256_set_epi64x(0x0,((uint64_t)1<< 8)-1,0x0,((uint64_t)1<< 8)-1);
+	const __m256i mask4  = _mm256_set_epi64x(0x0,((uint64_t)1<< 4)-1,0x0,((uint64_t)1<< 4)-1);
+
+	__m256i ai,tmp,a13;
+	__m256i b0,b1,b2,b3,b4,b5,b6;
+	__m256i c0,c1,c2,c3,c4,c5,c6;
+
+	b0 = LOAD(A+0);
+	b1 = LOAD(A+1);
+	b2 = LOAD(A+2);
+	b3 = LOAD(A+3);
+	b4 = LOAD(A+4);
+	b5 = LOAD(A+5);
+	b6 = LOAD(A+6);
+
+	ai = _mm256_shuffle_epi32(LOAD(A + 0), 0x44);
+	c0 = MUL(b0, ai);
+	c1 = MUL(b1, ai);
+	c2 = MUL(b2, ai);
+	c3 = MUL(b3, ai);
+	c4 = MUL(b4, ai);
+	c5 = MUL(b5, ai);
+	c6 = MUL(b6, ai);
+	PI_2w();
+
+	ai = _mm256_shuffle_epi32(LOAD(A + 1), 0x44);
+	c0 = ADD(c0, MUL(b0, ai));
+	c1 = ADD(c1, MUL(b1, ai));
+	c2 = ADD(c2, MUL(b2, ai));
+	c3 = ADD(c3, MUL(b3, ai));
+	c4 = ADD(c4, MUL(b4, ai));
+	c5 = ADD(c5, MUL(b5, ai));
+	c6 = ADD(c6, MUL(b6, ai));
+	PI_2w();
+
+	ai = _mm256_shuffle_epi32(LOAD(A + 2), 0x44);
+	c0 = ADD(c0, MUL(b0, ai));
+	c1 = ADD(c1, MUL(b1, ai));
+	c2 = ADD(c2, MUL(b2, ai));
+	c3 = ADD(c3, MUL(b3, ai));
+	c4 = ADD(c4, MUL(b4, ai));
+	c5 = ADD(c5, MUL(b5, ai));
+	c6 = ADD(c6, MUL(b6, ai));
+	PI_2w();
+
+	ai = _mm256_shuffle_epi32(LOAD(A + 3), 0x44);
+	c0 = ADD(c0, MUL(b0, ai));
+	c1 = ADD(c1, MUL(b1, ai));
+	c2 = ADD(c2, MUL(b2, ai));
+	c3 = ADD(c3, MUL(b3, ai));
+	c4 = ADD(c4, MUL(b4, ai));
+	c5 = ADD(c5, MUL(b5, ai));
+	c6 = ADD(c6, MUL(b6, ai));
+	PI_2w();
+
+	ai = _mm256_shuffle_epi32(LOAD(A + 4), 0x44);
+	c0 = ADD(c0, MUL(b0, ai));
+	c1 = ADD(c1, MUL(b1, ai));
+	c2 = ADD(c2, MUL(b2, ai));
+	c3 = ADD(c3, MUL(b3, ai));
+	c4 = ADD(c4, MUL(b4, ai));
+	c5 = ADD(c5, MUL(b5, ai));
+	c6 = ADD(c6, MUL(b6, ai));
+	PI_2w();
+	ai = _mm256_shuffle_epi32(LOAD(A + 5), 0x44);
+	c0 = ADD(c0, MUL(b0, ai));
+	c1 = ADD(c1, MUL(b1, ai));
+	c2 = ADD(c2, MUL(b2, ai));
+	c3 = ADD(c3, MUL(b3, ai));
+	c4 = ADD(c4, MUL(b4, ai));
+	c5 = ADD(c5, MUL(b5, ai));
+	c6 = ADD(c6, MUL(b6, ai));
+	PI_2w();
+	ai = _mm256_shuffle_epi32(LOAD(A + 6), 0x44);
+	c0 = ADD(c0, MUL(b0, ai));
+	c1 = ADD(c1, MUL(b1, ai));
+	c2 = ADD(c2, MUL(b2, ai));
+	c3 = ADD(c3, MUL(b3, ai));
+	c4 = ADD(c4, MUL(b4, ai));
+	c5 = ADD(c5, MUL(b5, ai));
+	c6 = ADD(c6, MUL(b6, ai));
+	PI_2w();
+
+	ai = _mm256_shuffle_epi32(LOAD(A + 0), 0xEE);
+	c0 = ADD(c0, MUL(b0, ai));
+	c1 = ADD(c1, MUL(b1, ai));
+	c2 = ADD(c2, MUL(b2, ai));
+	c3 = ADD(c3, MUL(b3, ai));
+	c4 = ADD(c4, MUL(b4, ai));
+	c5 = ADD(c5, MUL(b5, ai));
+	c6 = ADD(c6, MUL(b6, ai));
+	PI_2w();
+
+	ai = _mm256_shuffle_epi32(LOAD(A + 1), 0xEE);
+	c0 = ADD(c0, MUL(b0, ai));
+	c1 = ADD(c1, MUL(b1, ai));
+	c2 = ADD(c2, MUL(b2, ai));
+	c3 = ADD(c3, MUL(b3, ai));
+	c4 = ADD(c4, MUL(b4, ai));
+	c5 = ADD(c5, MUL(b5, ai));
+	c6 = ADD(c6, MUL(b6, ai));
+	PI_2w();
+
+	ai = _mm256_shuffle_epi32(LOAD(A + 2), 0xEE);
+	c0 = ADD(c0, MUL(b0, ai));
+	c1 = ADD(c1, MUL(b1, ai));
+	c2 = ADD(c2, MUL(b2, ai));
+	c3 = ADD(c3, MUL(b3, ai));
+	c4 = ADD(c4, MUL(b4, ai));
+	c5 = ADD(c5, MUL(b5, ai));
+	c6 = ADD(c6, MUL(b6, ai));
+	PI_2w();
+
+	ai = _mm256_shuffle_epi32(LOAD(A + 3), 0xEE);
+	c0 = ADD(c0, MUL(b0, ai));
+	c1 = ADD(c1, MUL(b1, ai));
+	c2 = ADD(c2, MUL(b2, ai));
+	c3 = ADD(c3, MUL(b3, ai));
+	c4 = ADD(c4, MUL(b4, ai));
+	c5 = ADD(c5, MUL(b5, ai));
+	c6 = ADD(c6, MUL(b6, ai));
+	PI_2w();
+
+	ai = _mm256_shuffle_epi32(LOAD(A + 4), 0xEE);
+	c0 = ADD(c0, MUL(b0, ai));
+	c1 = ADD(c1, MUL(b1, ai));
+	c2 = ADD(c2, MUL(b2, ai));
+	c3 = ADD(c3, MUL(b3, ai));
+	c4 = ADD(c4, MUL(b4, ai));
+	c5 = ADD(c5, MUL(b5, ai));
+	c6 = ADD(c6, MUL(b6, ai));
+	PI_2w();
+	ai = _mm256_shuffle_epi32(LOAD(A + 5), 0xEE);
+	c0 = ADD(c0, MUL(b0, ai));
+	c1 = ADD(c1, MUL(b1, ai));
+	c2 = ADD(c2, MUL(b2, ai));
+	c3 = ADD(c3, MUL(b3, ai));
+	c4 = ADD(c4, MUL(b4, ai));
+	c5 = ADD(c5, MUL(b5, ai));
+	c6 = ADD(c6, MUL(b6, ai));
+	PI_2w();
+	ai = _mm256_shuffle_epi32(LOAD(A + 6), 0xEE);
+	c0 = ADD(c0, MUL(b0, ai));
+	c1 = ADD(c1, MUL(b1, ai));
+	c2 = ADD(c2, MUL(b2, ai));
+	c3 = ADD(c3, MUL(b3, ai));
+	c4 = ADD(c4, MUL(b4, ai));
+	c5 = ADD(c5, MUL(b5, ai));
+	c6 = ADD(c6, MUL(b6, ai));
+
+	STORE(C+0, c0);
+	STORE(C+1, c1);
+	STORE(C+2, c2);
+	STORE(C+3, c3);
+	STORE(C+4, c4);
+	STORE(C+5, c5);
+	STORE(C+6, c6);
+}
+
 #define mul_school_4x4(r0,r1,r2,r3,r4,r5,r6,s0,s1,s2,s3,t0,t1,t2,t3) \
 do{                           \
 	r0 = MUL(s0,t0);          \
@@ -257,7 +498,6 @@ do{                                                                 \
     __m256i ref0 = SUB(o4,p0);                                      \
     __m256i ref1 = SUB(o5,p1);                                      \
     __m256i ref2 = SUB(o6,p2);                                      \
-    __m256i ref3 = SUB(ZERO,p3);                                    \
 	h0 = o0;                         h8  = SUB(SUB(q4,p4),ref0);    \
 	h1 = o1;                         h9  = SUB(q5,ref1);            \
 	h2 = o2;                         h10 = SUB(q6,ref2);            \
@@ -265,7 +505,7 @@ do{                                                                 \
 	h4 = ADD(ref0,SUB(q0,o0));       h12 = p4;                      \
 	h5 = ADD(ref1,SUB(q1,o1));                                      \
 	h6 = ADD(ref2,SUB(q2,o2));                                      \
-	h7 = ADD(ref3,SUB(q3,o3));                                      \
+	h7 = SUB(SUB(q3,o3),p3);                                        \
 }while(0)
 
 
@@ -296,7 +536,6 @@ do{                                                                             
 																				  \
 }while(0)
 
-
 void mul_karatsuba_2w_h0h7(__m256i *  C, __m256i * A, __m256i *  B)
 {
 	const __m256i ones44 = _mm256_set1_epi64x(((uint64_t)1<<44)-1);
@@ -326,10 +565,10 @@ void mul_karatsuba_2w_h0h7(__m256i *  C, __m256i * A, __m256i *  B)
 				  a0a7,a1a8,a2a9,a3a10,a4a11,a5a12,a6a13,
 				  b0b7,b1b8,b2b9,b3b10,b4b11,b5b12,b6b13);
 
-	__m256i sA0_4 = ADD(UPKL64(a0a7,a4a11),UPKH64(a0a7,a4a11)); __m256i sB0_4 = ADD(UPKL64(b0b7,b4b11),UPKH64(b0b7,b4b11));    
-	__m256i sA1_5 = ADD(UPKL64(a1a8,a5a12),UPKH64(a1a8,a5a12)); __m256i sB1_5 = ADD(UPKL64(b1b8,b5b12),UPKH64(b1b8,b5b12));    
-	__m256i sA2_6 = ADD(UPKL64(a2a9,a6a13),UPKH64(a2a9,a6a13)); __m256i sB2_6 = ADD(UPKL64(b2b9,b6b13),UPKH64(b2b9,b6b13));    
-	__m256i sA3_7 = ADD(UPKL64(a3a10,ZERO),UPKH64(a3a10,ZERO)); __m256i sB3_7 = ADD(UPKL64(b3b10,ZERO),UPKH64(b3b10,ZERO));    
+	__m256i sA0_4 = ADD(UPKL64(a0a7,a4a11),UPKH64(a0a7,a4a11)); __m256i sB0_4 = ADD(UPKL64(b0b7,b4b11),UPKH64(b0b7,b4b11));
+	__m256i sA1_5 = ADD(UPKL64(a1a8,a5a12),UPKH64(a1a8,a5a12)); __m256i sB1_5 = ADD(UPKL64(b1b8,b5b12),UPKH64(b1b8,b5b12));
+	__m256i sA2_6 = ADD(UPKL64(a2a9,a6a13),UPKH64(a2a9,a6a13)); __m256i sB2_6 = ADD(UPKL64(b2b9,b6b13),UPKH64(b2b9,b6b13));
+	__m256i sA3_7 = ADD(UPKL64(a3a10,ZERO),UPKH64(a3a10,ZERO)); __m256i sB3_7 = ADD(UPKL64(b3b10,ZERO),UPKH64(b3b10,ZERO));
 
 	/**
 	 * Calculates
@@ -432,83 +671,222 @@ void mul_karatsuba_2w_h0h7(__m256i *  C, __m256i * A, __m256i *  B)
 	C[6 ] = c6c13;
 }
 
-/* Pi transformation */
-#define PI_2w()								\
-	tmp = b6;								\
-	b6 = b5; 								\
-	b5 = b4; 								\
-	b4 = b3; 								\
-	b3 = b2; 								\
-	b2 = b1; 								\
-	b1 = b0; 								\
-	b0 = SHLi_128(tmp, 8);					\
-	a13 = SHRi_128(tmp, 8);					\
-	b0 = ADD(b0, SHLi_128(AND(a13, mask20), 1)); \
-	b1 = ADD(b1, SHR(a13, 20));				\
-	b1 = SUB(b1, SHL(AND(a13,mask16), 12));\
-	b2 = SUB(b2, SHRi_128(a13, 2));				\
-	b3 = ADD(b3, SHL(AND(a13,mask8), 20)); \
-	b4 = ADD(b4, SHRi_128(a13, 1));				\
-	b4 = ADD(b4, SHLi_128(AND(a13,mask4), 3)); \
-	b5 = ADD(b5, SHR(a13, 4));
+#define sqr_school_3x3(r0,r1,r2,r3,r4,s0,s1,s2) \
+do{                                             \
+	__m256i t2 = MUL(s0,s2);                    \
+	r0 = MUL(s0,s0);                            \
+	r1 = MUL(s0,s1);                            \
+	r1 = ADD(r1,r1);                            \
+ 	r2 = MUL(s1,s1);                            \
+ 	r2 = ADD(r2,ADD(t2,t2));                    \
+	r3 = MUL(s1,s2);                            \
+	r3 = ADD(r3,r3);                            \
+	r4 = MUL(s2,s2);                            \
+}while(0)
 
-void mul_schoolbook_h0h7(__m256i *  C, __m256i * A, __m256i *  B)
+#define sqr_school_4x4(r0,r1,r2,r3,r4,r5,r6,s0,s1,s2,s3) \
+do{                                                      \
+	__m256i t2 = MUL(s0,s2);                             \
+	__m256i t4 = MUL(s1,s3);                             \
+	r0 = MUL(s0,s0);                                     \
+	r1 = MUL(s0,s1);                                     \
+	r1 = ADD(r1,r1);                                     \
+ 	r2 = MUL(s1,s1);                                     \
+ 	r2 = ADD(r2,ADD(t2,t2));                             \
+	r3 = MUL(s0,s3);                                     \
+	r3 = ADD(r3,MUL(s1,s2));                             \
+	r3 = ADD(r3,r3);                                     \
+	r4 = MUL(s2,s2);                                     \
+ 	r4 = ADD(r4,ADD(t4,t4));                             \
+	r5 = MUL(s2,s3);                                     \
+	r5 = ADD(r5,r5);                                     \
+	r6 = MUL(s3,s3);                                     \
+}while(0)
+
+#define sqr_karat_7x7(h0,h1,h2,h3,h4,h5,h6,h7,h8,h9,h10,h11,h12,  \
+               f0,f1,f2,f3,f4,f5,f6)                              \
+do{                                                               \
+ 	__m256i o0,o1,o2,o3,o4,o5,o6;                                 \
+	__m256i p0,p1,p2,p3,p4;                                       \
+	__m256i q0,q1,q2,q3,q4,q5,q6;                                 \
+	sqr_school_4x4(o0,o1,o2,o3,o4,o5,o6,f0,f1,f2,f3);             \
+	sqr_school_3x3(p0,p1,p2,p3,p4,f4,f5,f6);                      \
+	sqr_school_4x4(q0,q1,q2,q3,q4,q5,q6,                          \
+		ADD(f0,f4),                                               \
+		ADD(f1,f5),                                               \
+		ADD(f2,f6),                                               \
+		f3);                                                      \
+    __m256i ref0 = SUB(o4,p0);                                    \
+    __m256i ref1 = SUB(o5,p1);                                    \
+    __m256i ref2 = SUB(o6,p2);                                    \
+	h0 = o0;                         h8  = SUB(SUB(q4,p4),ref0);  \
+	h1 = o1;                         h9  = SUB(q5,ref1);          \
+	h2 = o2;                         h10 = SUB(q6,ref2);          \
+	h3 = o3;                         h11 = p3;                    \
+	h4 = ADD(ref0,SUB(q0,o0));       h12 = p4;                    \
+	h5 = ADD(ref1,SUB(q1,o1));                                    \
+	h6 = ADD(ref2,SUB(q2,o2));                                    \
+	h7 = SUB(SUB(q3,o3),p3);                                      \
+}while(0)
+
+#define sqr_karate_7x7(h0,h1,h2,h3,h4,h5,h6,h7,                           \
+               f0,f1,f2,f3)                                               \
+do{                                                                       \
+ 	__m256i o0p0,o1p1,o2p2,o3p3,o4p4,o5p5,o6p6;                           \
+	__m256i q0,q1,q2,q3,q4,q5,q6;                                         \
+	sqr_school_4x4(o0p0,o1p1,o2p2,o3p3,o4p4,o5p5,o6p6,f0,f1,f2,f3);       \
+	__m256i sF0 = ADD(f0,SHUF(f0,0x4E));                                  \
+	__m256i sF1 = ADD(f1,SHUF(f1,0x4E));                                  \
+	__m256i sF2 = ADD(f2,SHUF(f2,0x4E));                                  \
+	__m256i sF3 = ADD(f3,SHUF(f3,0x4E));                                  \
+                                                                          \
+	sqr_school_4x4(q0,q1,q2,q3,q4,q5,q6,                                  \
+				  sF0,sF1,sF2,sF3);                                       \
+																		  \
+	h0 = ADD(o0p0,BLEND32(SUB(q4,ADD(o4p4,SHUF(o4p4,0x4E))),ZERO,0x33));  \
+	h1 = ADD(o1p1,BLEND32(SUB(q5,ADD(o5p5,SHUF(o5p5,0x4E))),ZERO,0x33));  \
+	h2 = ADD(o2p2,BLEND32(SUB(q6,ADD(o6p6,SHUF(o6p6,0x4E))),ZERO,0x33));  \
+	h3 = o3p3;                                                            \
+	h4 = ADD(o4p4,BLEND32(SUB(q0,ADD(o0p0,SHUF(o0p0,0x4E))),ZERO,0xCC));  \
+	h5 = ADD(o5p5,SUB(q1,ADD(o1p1,SHUF(o1p1,0x4E))));                     \
+	h6 = ADD(o6p6,SUB(q2,ADD(o2p2,SHUF(o2p2,0x4E))));                     \
+	h7 = SUB(q3,ADD(o3p3,SHUF(o3p3,0x4E)));                               \
+}while(0)
+
+
+
+void sqr_karatsuba_2w_h0h7(__m256i *  C,__m256i *  A)
 {
-	int i,j;
-	const __m256i mask20 = _mm256_set_epi64x(0x0,((uint64_t)1<<20)-1,0x0,((uint64_t)1<<20)-1);
-	const __m256i mask16 = _mm256_set_epi64x(0x0,((uint64_t)1<<16)-1,0x0,((uint64_t)1<<16)-1);
-	const __m256i mask8  = _mm256_set_epi64x(0x0,((uint64_t)1<< 8)-1,0x0,((uint64_t)1<< 8)-1);
-	const __m256i mask4  = _mm256_set_epi64x(0x0,((uint64_t)1<< 4)-1,0x0,((uint64_t)1<< 4)-1);
-	const __m256i M[2] = { _mm256_set1_epi64x(0x0706050403020100), _mm256_set1_epi64x(0x0F0E0D0C0B0A0908) };
+	const __m256i ones44 = _mm256_set1_epi64x(((uint64_t)1<<44)-1);
+	const __m256i ones36 = _mm256_set1_epi64x(((uint64_t)1<<36)-1);
+	const __m256i shuf48 = _mm256_set_epi64x(0x800D0C0B0A090880,0x8005040302010080,0x800D0C0B0A090880,0x8005040302010080);
+	const __m256i shuf32 = _mm256_set_epi64x(0x800B0A0908808080,0x8003020100808080,0x800B0A0908808080,0x8003020100808080);
+	__m256i a0a7,a1a8,a2a9,a3a10,a4a11,a5a12,a6a13;
+	__m256i x0y0,x1y1,x2y2,x3y3,x4y4,x5y5,x6y6,x7y7,x8y8,x9y9,x10y10,x11y11,x12y12;
+	__m256i z0z8,z1z9,z2z10,z3z11,z4z12,z5,z6,z7;
 
-	__m256i ai,tmp,a13;
-	__m256i b0,b1,b2,b3,b4,b5,b6;
-	__m256i c0,c1,c2,c3,c4,c5,c6;
+	a0a7  = A[0];
+	a1a8  = A[1];
+	a2a9  = A[2];
+	a3a10 = A[3];
+	a4a11 = A[4];
+	a5a12 = A[5];
+	a6a13 = A[6];
 
-	b0 = LOAD(B+0);
-	b1 = LOAD(B+1);
-	b2 = LOAD(B+2);
-	b3 = LOAD(B+3);
-	b4 = LOAD(B+4);
-	b5 = LOAD(B+5);
-	b6 = LOAD(B+6);
+	/**
+	 * Calculates
+	 * 	X = A[0:7]  * B[0:7]
+	 * 	Y = A[7:14] * B[7:14]
+	 * Stores in [X|Y]
+	 */
+	sqr_karat_7x7(x0y0,x1y1,x2y2,x3y3,x4y4,x5y5,x6y6,x7y7,x8y8,x9y9,x10y10,x11y11,x12y12,
+				  a0a7,a1a8,a2a9,a3a10,a4a11,a5a12,a6a13);
 
-	ai = _mm256_shuffle_epi8(LOAD(A + 0), M[0]);
-	c0 = MUL(b0,ai);
-	c1 = MUL(b1,ai);
-	c2 = MUL(b2,ai);
-	c3 = MUL(b3,ai);
-	c4 = MUL(b4,ai);
-	c5 = MUL(b5,ai);
-	c6 = MUL(b6,ai);
+	__m256i sA0_4 = ADD(UPKL64(a0a7,a4a11),UPKH64(a0a7,a4a11));
+	__m256i sA1_5 = ADD(UPKL64(a1a8,a5a12),UPKH64(a1a8,a5a12));
+	__m256i sA2_6 = ADD(UPKL64(a2a9,a6a13),UPKH64(a2a9,a6a13));
+	__m256i sA3_7 = ADD(UPKL64(a3a10,ZERO),UPKH64(a3a10,ZERO));
 
-	i=1;
-	for(j=0;j<2;j++)
-	{
-		for ( ; i < 7; i++)
-		{
-			PI_2w();
+	/**
+	 * Calculates
+	 *  sA[0:7] = A[0:7] + A[7:14]
+	 *  sB[0:7] = B[0:7] + B[7:14]
+ 	 * 	Z = sA[0:7] * sB[0:7]
+	 */
+	sqr_karate_7x7(z0z8,z1z9,z2z10,z3z11,z4z12,z5,z6,z7,
+				   sA0_4,sA1_5,sA2_6,sA3_7);
 
-			ai = _mm256_shuffle_epi8(LOAD(A + i), M[j]);
-			c0 = ADD(c0, MUL(b0, ai));
-			c1 = ADD(c1, MUL(b1, ai));
-			c2 = ADD(c2, MUL(b2, ai));
-			c3 = ADD(c3, MUL(b3, ai));
-			c4 = ADD(c4, MUL(b4, ai));
-			c5 = ADD(c5, MUL(b5, ai));
-			c6 = ADD(c6, MUL(b6, ai));
-		}
-		i=0;
-	}
+	/**
+	 * Combining partial results from Karatsuba
+	 */
+	__m256i z8  = SHUF(z0z8 ,0x4E);
+	__m256i z9  = SHUF(z1z9 ,0x4E);
+	__m256i z10 = SHUF(z2z10,0x4E);
+	__m256i z11 = SHUF(z3z11,0x4E);
+	__m256i z12 = SHUF(z4z12,0x4E);
 
-	STORE(C+0, c0);
-	STORE(C+1, c1);
-	STORE(C+2, c2);
-	STORE(C+3, c3);
-	STORE(C+4, c4);
-	STORE(C+5, c5);
-	STORE(C+6, c6);
+	__m256i y7  = SHUF(x7y7,0x4E);
+	__m256i y8  = SHUF(x8y8,0x4E);
+	__m256i y9  = SHUF(x9y9,0x4E);
+	__m256i y10 = SHUF(x10y10,0x4E);
+	__m256i y11 = SHUF(x11y11,0x4E);
+	__m256i y12 = SHUF(x12y12,0x4E);
+
+	__m256i ref0 = SUB(x7y7,  SHUF(x0y0,0x4E));
+	__m256i ref1 = SUB(x8y8,  SHUF(x1y1,0x4E));
+	__m256i ref2 = SUB(x9y9,  SHUF(x2y2,0x4E));
+	__m256i ref3 = SUB(x10y10,SHUF(x3y3,0x4E));
+	__m256i ref4 = SUB(x11y11,SHUF(x4y4,0x4E));
+	__m256i ref5 = SUB(x12y12,SHUF(x5y5,0x4E));
+	__m256i ref6 = SHUF(x6y6,0x4E);
+
+	__m256i c0  = x0y0;                            __m256i c14 = SUB(SUB(z7 ,y7 ),ref0);
+	__m256i c1  = x1y1;                            __m256i c15 = SUB(SUB(z8 ,y8 ),ref1);
+	__m256i c2  = x2y2;                            __m256i c16 = SUB(SUB(z9 ,y9 ),ref2);
+	__m256i c3  = x3y3;                            __m256i c17 = SUB(SUB(z10,y10),ref3);
+	__m256i c4  = x4y4;                            __m256i c18 = SUB(SUB(z11,y11),ref4);
+	__m256i c5  = x5y5;                            __m256i c19 = SUB(SUB(z12,y12),ref5);
+	__m256i c6  = x6y6;                            __m256i c20 = ref6;
+	__m256i c7  = ADD(SUB(z0z8, x0y0),ref0);       __m256i c21 = y7 ;
+	__m256i c8  = ADD(SUB(z1z9, x1y1),ref1);       __m256i c22 = y8 ;
+	__m256i c9  = ADD(SUB(z2z10,x2y2),ref2);       __m256i c23 = y9 ;
+	__m256i c10 = ADD(SUB(z3z11,x3y3),ref3);       __m256i c24 = y10;
+	__m256i c11 = ADD(SUB(z4z12,x4y4),ref4);       __m256i c25 = y11;
+	__m256i c12 = ADD(SUB(z5,   x5y5),ref5);       __m256i c26 = y12;
+	__m256i c13 = SUB(SUB(z6,   x6y6),ref6);       __m256i c27 = ZERO;
+
+	/**
+	 * Modular reduction
+	 * (2^8)p = (2^8)(2^384-2^128-2^96+2^32-1)
+	 *        = 2^136+2^104-2^40+2^8
+	 */
+	__m256i c12c19 = UPKL64(c12,c19);
+	__m256i c11c18 = UPKL64(c11,c18);
+	__m256i c10c17 = UPKL64(c10,c17);
+	__m256i c9c16  = UPKL64(c9 ,c16);
+	__m256i c8c15  = UPKL64(c8 ,c15);
+	__m256i c7c14  = UPKL64(c7 ,c14);
+	__m256i c6c13  = UPKL64(c6 ,c13);
+	__m256i l,h;
+#define ModularReduction(XX,X0,X1,X2,X3,X4,X5,X6)  \
+		l = _mm256_shuffle_epi8(XX, shuf48); \
+		h = SHR(XX, 48);                     \
+		X0 = ADD(X0, l);                     \
+		X2 = ADD(X2, h);                     \
+		                                     \
+		l = SHL(AND(XX, ones44),12);         \
+		h = SHR(XX, 44);                     \
+		X1 = SUB(X1, l);                     \
+		X3 = SUB(X3, h);                     \
+		                                     \
+		l = SHL(AND(XX, ones36),20);         \
+		h = SHR(XX, 36);                     \
+		X3 = ADD(X3, l);                     \
+		X5 = ADD(X5, h);                     \
+		                                     \
+		l = _mm256_shuffle_epi8(XX, shuf32); \
+		h = SHR(XX, 32);                     \
+		X4 = ADD(X4, l);                     \
+		X6 = ADD(X6, h);
+
+	__m256i c20c27 = UPKL64(c20,c27);    ModularReduction(c20c27,c6c13,c7c14,c8c15,c9c16,c10c17,c11c18,c12c19);   __m256i c5c12 = UPKL64(c5,c12c19);
+	__m256i c19c26 = ALIGNR(c26,c12c19); ModularReduction(c19c26,c5c12,c6c13,c7c14,c8c15, c9c16,c10c17,c11c18);   __m256i c4c11 = UPKL64(c4,c11c18);
+	__m256i c18c25 = ALIGNR(c25,c11c18); ModularReduction(c18c25,c4c11,c5c12,c6c13,c7c14, c8c15, c9c16,c10c17);   __m256i c3c10 = UPKL64(c3,c10c17);
+	__m256i c17c24 = ALIGNR(c24,c10c17); ModularReduction(c17c24,c3c10,c4c11,c5c12,c6c13, c7c14, c8c15, c9c16);   __m256i c2c9  = UPKL64(c2, c9c16);
+	__m256i c16c23 = ALIGNR(c23, c9c16); ModularReduction(c16c23, c2c9,c3c10,c4c11,c5c12, c6c13, c7c14, c8c15);   __m256i c1c8  = UPKL64(c1, c8c15);
+	__m256i c15c22 = ALIGNR(c22, c8c15); ModularReduction(c15c22, c1c8, c2c9,c3c10,c4c11, c5c12, c6c13, c7c14);   __m256i c0c7  = UPKL64(c0, c7c14);
+	__m256i c14c21 = ALIGNR(c21, c7c14); ModularReduction(c14c21, c0c7, c1c8, c2c9,c3c10, c4c11, c5c12, c6c13);
+#undef ModularReduction
+
+	C[0 ] = c0c7 ;
+	C[1 ] = c1c8 ;
+	C[2 ] = c2c9 ;
+	C[3 ] = c3c10;
+	C[4 ] = c4c11;
+	C[5 ] = c5c12;
+	C[6 ] = c6c13;
 }
+
 
 /**
  *
@@ -518,168 +896,10 @@ void mul_Element_2w_h0h7(__m256i *  C, __m256i * A, __m256i *  B)
 	mul_karatsuba_2w_h0h7(C,A,B);
 //	mul_schoolbook_h0h7(C,A,B);
 }
-
-void sqr_Element_2w_h0h7(__m256i *  C)
+void sqr_Element_2w_h0h7(__m256i *  C,__m256i *  A)
 {
-	const __m256i mask20 = _mm256_set_epi64x(0x0,((uint64_t)1<<20)-1,0x0,((uint64_t)1<<20)-1);
-	const __m256i mask16 = _mm256_set_epi64x(0x0,((uint64_t)1<<16)-1,0x0,((uint64_t)1<<16)-1);
-	const __m256i mask8  = _mm256_set_epi64x(0x0,((uint64_t)1<< 8)-1,0x0,((uint64_t)1<< 8)-1);
-	const __m256i mask4  = _mm256_set_epi64x(0x0,((uint64_t)1<< 4)-1,0x0,((uint64_t)1<< 4)-1);
-
-	__m256i ai,tmp,a13;
-	__m256i b0,b1,b2,b3,b4,b5,b6;
-	__m256i c0,c1,c2,c3,c4,c5,c6;
-
-	b0 = LOAD(C+0);
-	b1 = LOAD(C+1);
-	b2 = LOAD(C+2);
-	b3 = LOAD(C+3);
-	b4 = LOAD(C+4);
-	b5 = LOAD(C+5);
-	b6 = LOAD(C+6);
-
-	ai = _mm256_shuffle_epi32(LOAD(C + 0), 0x44);
-	c0 = MUL(b0, ai);
-	c1 = MUL(b1, ai);
-	c2 = MUL(b2, ai);
-	c3 = MUL(b3, ai);
-	c4 = MUL(b4, ai);
-	c5 = MUL(b5, ai);
-	c6 = MUL(b6, ai);
-	PI_2w();
-
-	ai = _mm256_shuffle_epi32(LOAD(C + 1), 0x44);
-	c0 = ADD(c0, MUL(b0, ai));
-	c1 = ADD(c1, MUL(b1, ai));
-	c2 = ADD(c2, MUL(b2, ai));
-	c3 = ADD(c3, MUL(b3, ai));
-	c4 = ADD(c4, MUL(b4, ai));
-	c5 = ADD(c5, MUL(b5, ai));
-	c6 = ADD(c6, MUL(b6, ai));
-	PI_2w();
-
-	ai = _mm256_shuffle_epi32(LOAD(C + 2), 0x44);
-	c0 = ADD(c0, MUL(b0, ai));
-	c1 = ADD(c1, MUL(b1, ai));
-	c2 = ADD(c2, MUL(b2, ai));
-	c3 = ADD(c3, MUL(b3, ai));
-	c4 = ADD(c4, MUL(b4, ai));
-	c5 = ADD(c5, MUL(b5, ai));
-	c6 = ADD(c6, MUL(b6, ai));
-	PI_2w();
-
-	ai = _mm256_shuffle_epi32(LOAD(C + 3), 0x44);
-	c0 = ADD(c0, MUL(b0, ai));
-	c1 = ADD(c1, MUL(b1, ai));
-	c2 = ADD(c2, MUL(b2, ai));
-	c3 = ADD(c3, MUL(b3, ai));
-	c4 = ADD(c4, MUL(b4, ai));
-	c5 = ADD(c5, MUL(b5, ai));
-	c6 = ADD(c6, MUL(b6, ai));
-	PI_2w();
-
-	ai = _mm256_shuffle_epi32(LOAD(C + 4), 0x44);
-	c0 = ADD(c0, MUL(b0, ai));
-	c1 = ADD(c1, MUL(b1, ai));
-	c2 = ADD(c2, MUL(b2, ai));
-	c3 = ADD(c3, MUL(b3, ai));
-	c4 = ADD(c4, MUL(b4, ai));
-	c5 = ADD(c5, MUL(b5, ai));
-	c6 = ADD(c6, MUL(b6, ai));
-	PI_2w();
-	ai = _mm256_shuffle_epi32(LOAD(C + 5), 0x44);
-	c0 = ADD(c0, MUL(b0, ai));
-	c1 = ADD(c1, MUL(b1, ai));
-	c2 = ADD(c2, MUL(b2, ai));
-	c3 = ADD(c3, MUL(b3, ai));
-	c4 = ADD(c4, MUL(b4, ai));
-	c5 = ADD(c5, MUL(b5, ai));
-	c6 = ADD(c6, MUL(b6, ai));
-	PI_2w();
-	ai = _mm256_shuffle_epi32(LOAD(C + 6), 0x44);
-	c0 = ADD(c0, MUL(b0, ai));
-	c1 = ADD(c1, MUL(b1, ai));
-	c2 = ADD(c2, MUL(b2, ai));
-	c3 = ADD(c3, MUL(b3, ai));
-	c4 = ADD(c4, MUL(b4, ai));
-	c5 = ADD(c5, MUL(b5, ai));
-	c6 = ADD(c6, MUL(b6, ai));
-	PI_2w();
-
-	ai = _mm256_shuffle_epi32(LOAD(C + 0), 0xEE);
-	c0 = ADD(c0, MUL(b0, ai));
-	c1 = ADD(c1, MUL(b1, ai));
-	c2 = ADD(c2, MUL(b2, ai));
-	c3 = ADD(c3, MUL(b3, ai));
-	c4 = ADD(c4, MUL(b4, ai));
-	c5 = ADD(c5, MUL(b5, ai));
-	c6 = ADD(c6, MUL(b6, ai));
-	PI_2w();
-
-	ai = _mm256_shuffle_epi32(LOAD(C + 1), 0xEE);
-	c0 = ADD(c0, MUL(b0, ai));
-	c1 = ADD(c1, MUL(b1, ai));
-	c2 = ADD(c2, MUL(b2, ai));
-	c3 = ADD(c3, MUL(b3, ai));
-	c4 = ADD(c4, MUL(b4, ai));
-	c5 = ADD(c5, MUL(b5, ai));
-	c6 = ADD(c6, MUL(b6, ai));
-	PI_2w();
-
-	ai = _mm256_shuffle_epi32(LOAD(C + 2), 0xEE);
-	c0 = ADD(c0, MUL(b0, ai));
-	c1 = ADD(c1, MUL(b1, ai));
-	c2 = ADD(c2, MUL(b2, ai));
-	c3 = ADD(c3, MUL(b3, ai));
-	c4 = ADD(c4, MUL(b4, ai));
-	c5 = ADD(c5, MUL(b5, ai));
-	c6 = ADD(c6, MUL(b6, ai));
-	PI_2w();
-
-	ai = _mm256_shuffle_epi32(LOAD(C + 3), 0xEE);
-	c0 = ADD(c0, MUL(b0, ai));
-	c1 = ADD(c1, MUL(b1, ai));
-	c2 = ADD(c2, MUL(b2, ai));
-	c3 = ADD(c3, MUL(b3, ai));
-	c4 = ADD(c4, MUL(b4, ai));
-	c5 = ADD(c5, MUL(b5, ai));
-	c6 = ADD(c6, MUL(b6, ai));
-	PI_2w();
-
-	ai = _mm256_shuffle_epi32(LOAD(C + 4), 0xEE);
-	c0 = ADD(c0, MUL(b0, ai));
-	c1 = ADD(c1, MUL(b1, ai));
-	c2 = ADD(c2, MUL(b2, ai));
-	c3 = ADD(c3, MUL(b3, ai));
-	c4 = ADD(c4, MUL(b4, ai));
-	c5 = ADD(c5, MUL(b5, ai));
-	c6 = ADD(c6, MUL(b6, ai));
-	PI_2w();
-	ai = _mm256_shuffle_epi32(LOAD(C + 5), 0xEE);
-	c0 = ADD(c0, MUL(b0, ai));
-	c1 = ADD(c1, MUL(b1, ai));
-	c2 = ADD(c2, MUL(b2, ai));
-	c3 = ADD(c3, MUL(b3, ai));
-	c4 = ADD(c4, MUL(b4, ai));
-	c5 = ADD(c5, MUL(b5, ai));
-	c6 = ADD(c6, MUL(b6, ai));
-	PI_2w();
-	ai = _mm256_shuffle_epi32(LOAD(C + 6), 0xEE);
-	c0 = ADD(c0, MUL(b0, ai));
-	c1 = ADD(c1, MUL(b1, ai));
-	c2 = ADD(c2, MUL(b2, ai));
-	c3 = ADD(c3, MUL(b3, ai));
-	c4 = ADD(c4, MUL(b4, ai));
-	c5 = ADD(c5, MUL(b5, ai));
-	c6 = ADD(c6, MUL(b6, ai));
-	
-	STORE(C+0, c0);
-	STORE(C+1, c1);
-	STORE(C+2, c2);
-	STORE(C+3, c3);
-	STORE(C+4, c4);
-	STORE(C+5, c5);
-	STORE(C+6, c6);
+	sqr_karatsuba_2w_h0h7(C,A);
+//	sqr_schoolbook_2w_h0h7(C,A);
 }
 
 

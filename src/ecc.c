@@ -561,7 +561,7 @@ void _1way_doubling(Point_XYZ_1way *P)
 	}
 
 /*	p0 = X**2;		q0 = Y**2;		*/
-	mul_Element_2w_h0h7(p0q0,XY,XY);
+	sqr_Element_2w_h0h7(p0q0,XY);
 	compress_Element_2w_h0h7(p0q0);
 /*	p1 = X*Y;		q1 = Y*Z;       */
 	mul_Element_2w_h0h7(p1q1,XY,YZ);

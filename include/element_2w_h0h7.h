@@ -16,8 +16,6 @@ void print_python_Element_2w_h0h7(argElement_2w_H0H7 X_Y);
 int compare_Element_2w_h0h7(argElement_2w_H0H7 X0_X1,argElement_2w_H0H7 Y0_Y1);
 void sizes_Element_2w_h0h7(argElement_2w_H0H7 X_Y);
 
-void to_Element_2w_h0h7(__m256i * C);
-void from_Element_2w_h0h7(__m256i * C);
 
 void interleave(argElement_2w_H0H7 C, uint64_t * LOW, uint64_t * HIGH);
 void deinterleave(uint64_t * LOW, uint64_t * HIGH, argElement_2w_H0H7 A);
@@ -30,27 +28,19 @@ void addsub_Element_2w_h0h7(
 		const int subadd,
 		const int large);
 
-//void addsub_Element_2w_h0h7(argElement_2w_H0H7 A,argElement_2w_H0H7 B);
-//void addsub_large_Element_2w_h0h7(argElement_2w_H0H7 A, argElement_2w_H0H7 B);
-//void subadd_Element_2w_h0h7(argElement_2w_H0H7 C, argElement_2w_H0H7 A,const int permutation);
-//void addsub4_Element_2w_h0h7(
-//		argElement_2w_H0H7 __restrict C, argElement_2w_H0H7 __restrict D,
-//		argElement_2w_H0H7 __restrict A, argElement_2w_H0H7 __restrict B);
-//void naddsub_Element_2w_h0h7(
-//		argElement_2w_H0H7 __restrict C, argElement_2w_H0H7 __restrict D,
-//		argElement_2w_H0H7 __restrict A, argElement_2w_H0H7 __restrict B);
 void mul_Element_2w_h0h7(__m256i * C, __m256i * A, __m256i * B);
 
-void sqr_Element_2w_h0h7(__m256i * C);
+void sqr_Element_2w_h0h7(__m256i * C,__m256i *  A);
 void compress_Element_2w_h0h7(__m256i * C);
 void compress2_Element_2w_h0h7(__m256i * C, __m256i * D);
 
 void new_compressfast_Element_2w_h0h7(__m256i * C);
 void new_compressfast2_Element_2w_h0h7(__m256i * C,__m256i * D);
 
+void mul_schoolbook_2w_h0h7(__m256i *  C, __m256i * A, __m256i *  B);
 void mul_karatsuba_2w_h0h7(__m256i *  C, __m256i * A, __m256i *  B);
-void mul_schoolbook_h0h7(__m256i *  C, __m256i * A, __m256i *  B);
-
+void sqr_schoolbook_2w_h0h7(__m256i *  C,__m256i * A);
+void sqr_karatsuba_2w_h0h7 (__m256i *  C,__m256i * A);
 
 #define copy_Element_2w_h0h7(C,A) \
 	C[0] = A[0];                  \

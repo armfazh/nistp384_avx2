@@ -6,7 +6,7 @@ void test_Element_2w_h0h7()
 {
 	int64_t i;
 	int64_t cnt =0 , match=0;
-	Element_2w_H0H7 a,b,c,e,f;
+	Element_2w_H0H7 a,b,c,e,f,aa,bb;
 
 	printf("===== 2-way =====\n");
 	/**
@@ -27,11 +27,11 @@ void test_Element_2w_h0h7()
 		mul_Element_2w_h0h7(e,e,f);
 		compress_Element_2w_h0h7(e);
 
-		sqr_Element_2w_h0h7(a);
-		compress_Element_2w_h0h7(a);
-		sqr_Element_2w_h0h7(b);
-		compress_Element_2w_h0h7(b);
-		sub_Element_2w_h0h7(c, a, b);
+		sqr_Element_2w_h0h7(aa,a);
+		compress_Element_2w_h0h7(aa);
+		sqr_Element_2w_h0h7(bb,b);
+		compress_Element_2w_h0h7(bb);
+		sub_Element_2w_h0h7(c, aa, bb);
 
 		match = compare_Element_2w_h0h7(c, e)==0;
 		if(!match)
