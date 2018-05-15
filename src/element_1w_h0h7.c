@@ -1163,17 +1163,16 @@ void new_compressfast_Element_1w_h0h7(uint64_t * pA)
 	_mm_store_si128((__m128i*)pA+6,c6);
 }
 
-
 void inv_Element_1w_h0h7(uint64_t * __restrict pC, uint64_t * __restrict pA)
 {
-	int i;
-	Element_1w_H0H7 Tab_1,Tab_2,Tab_3;
-	uint64_t *T[5];
+	Element_1w_H0H7 Tab_1,Tab_2,Tab_3,Tab_4;
+	uint64_t *T[6];
 	T[0] = pA;
 	T[1] = pC;
 	T[2] = Tab_1;
 	T[3] = Tab_2;
 	T[4] = Tab_3;
+	T[5] = Tab_4;
 
 	/* alpha_1 */
 	copy_Element_1w_h0h7(T[1],T[0]);
@@ -1212,39 +1211,49 @@ void inv_Element_1w_h0h7(uint64_t * __restrict pC, uint64_t * __restrict pA)
 	mul_Element_1w_h0h7(T[3],T[3],T[4]);
 	compress_Element_1w_h0h7(T[3]);
 
-	/* (alpha_30)^2 */
-	sqrn_Element_1w_h0h7(T[3],1);
+	/* alpha_60 */
+	copy_Element_1w_h0h7(T[5],T[3]);
+	sqrn_Element_1w_h0h7(T[5],30);
+	mul_Element_1w_h0h7(T[5],T[5],T[3]);
+	compress_Element_1w_h0h7(T[5]);
 
-	/* T_3 = a^(2^31-1) = (alpha_30)^2*alpha_1 */
+	/* T_3 = alpha_30^(2^2) */
+	sqrn_Element_1w_h0h7(T[3],2);
+
+	/* alpha_32 */
 	copy_Element_1w_h0h7(T[2],T[3]);
-	mul_Element_1w_h0h7(T[2],T[2],T[0]);
+	mul_Element_1w_h0h7(T[2],T[2],T[1]);
 	compress_Element_1w_h0h7(T[2]);
 
-	/* (alpha_30)^(2^2) */
-	sqrn_Element_1w_h0h7(T[3],1);
-
-	/* T_1 = a^(2^32-1) = (alpha_30)^(2^2)*alpha_2 */
-	copy_Element_1w_h0h7(T[4],T[3]);
-	mul_Element_1w_h0h7(T[4],T[4],T[1]);
-	compress_Element_1w_h0h7(T[4]);
-
-	/* T_2 = a^(2^32-3) = (alpha_30)^(2^2)*alpha_1 */
+	/* T_3 = a^(2^32-3) = (alpha_30)^(2^2)*alpha_1 */
 	mul_Element_1w_h0h7(T[3],T[3],T[0]);
 	compress_Element_1w_h0h7(T[3]);
 
-	copy_Element_1w_h0h7(T[1],T[2]);
-	for(i=0;i<7;i++)
-	{
-		sqrn_Element_1w_h0h7(T[1],32);
-		mul_Element_1w_h0h7(T[1],T[1],T[4]);
-		compress_Element_1w_h0h7(T[1]);
-	}
-	sqrn_Element_1w_h0h7(T[1],33);
-	mul_Element_1w_h0h7(T[1],T[1],T[4]);
+	/* alpha_120 */
+	copy_Element_1w_h0h7(T[1],T[5]);
+	sqrn_Element_1w_h0h7(T[1],60);
+	mul_Element_1w_h0h7(T[1],T[1],T[5]);
 	compress_Element_1w_h0h7(T[1]);
 
+	/* alpha_240 */
+	copy_Element_1w_h0h7(T[5],T[1]);
+	sqrn_Element_1w_h0h7(T[5],120);
+	mul_Element_1w_h0h7(T[5],T[5],T[1]);
+	compress_Element_1w_h0h7(T[5]);
+
+	/* alpha_255 */
+	sqrn_Element_1w_h0h7(T[5],15);
+	mul_Element_1w_h0h7(T[5],T[5],T[4]);
+	compress_Element_1w_h0h7(T[5]);
+
+	/* T_5 = a^(2^288-2^32-1) = (alpha_255)^(2^33)*alpha_32 */
+	sqrn_Element_1w_h0h7(T[5],33);
+	mul_Element_1w_h0h7(T[5],T[5],T[2]);
+	compress_Element_1w_h0h7(T[5]);
+
+	/* T_1 = a^(2^384-2^128-2^96+2^32-3) = (T_1)^(2^96)*T_3 */
+	copy_Element_1w_h0h7(T[1],T[5]);
 	sqrn_Element_1w_h0h7(T[1],96);
 	mul_Element_1w_h0h7(T[1],T[1],T[3]);
 	compress_Element_1w_h0h7(T[1]);
-//	new_compressfast_Element_1w_h0h7(T[1]);
 }
