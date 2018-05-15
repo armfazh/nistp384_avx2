@@ -8,7 +8,8 @@ Fp = GF(p)
 powers = [ int(ceil(rho*i)) for i in range(num_words) ]
 bits   = [ int(ceil(rho*(i+1))-ceil(rho*i)) for i in range(num_words) ]
 toVect = lambda a : [ (a>>pow)%2**b for pow,b in zip(powers,bits) ]
-fromVect = lambda V: sum([v*2**pow for pow,v in zip(powers,V)])%p
+#fromVect = lambda V: sum([v*2**pow for pow,v in zip(powers,V)])%p
+fromVect = lambda V: sum([v*2**( int(ceil(rho*i))  ) for i,v in enumerate(V)])%p
 
 Add = lambda X,Y : [x+y for x,y in zip(X,Y)] if len(X)==len(Y) else []
 Sub = lambda X,Y : [x-y for x,y in zip(X,Y)] if len(X)==len(Y) else []
@@ -16,7 +17,7 @@ Dot = lambda X,Y : [x*y for x,y in zip(X,Y)] if len(X)==len(Y) else []
 
 Hex = lambda V: map(hex,V)
 
-size = lambda x:  floor(log(abs(x),2))+1 if x!=0 else 0
+size = lambda x: sgn(x)*(floor(log(abs(x),2))+1 if x != 0 else 0)
 sizes = lambda V: map(size,V) 
 
 def Pi384_bis(X,i):
@@ -48,6 +49,7 @@ def Muli(A,B):
 	for i,b in enumerate(B):
 		bV = [b]*num_words
 		Y = Pi384_bis(Y,i)
+#		print(sizes(Y),max(sizes(Y)))
 		C = Add(C,Dot(Y,bV))
 	return C
 

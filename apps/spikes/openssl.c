@@ -152,7 +152,8 @@ int main()
 	);
 	printf("Mod mult:\n");
 	CLOCKS_RANDOM(			
-			BN_rand_range(a,prime),
+			BN_rand_range(a,prime);
+			BN_rand_range(b,prime),
 			BN_mod_mul(c,a,b,prime,ctx)
 	);
 	printf("Mod sqr:\n");
@@ -166,6 +167,11 @@ int main()
 	CLOCKS_RANDOM(
 			BN_rand_range(a,prime),
 			BN_mod_inverse(c,a,prime,ctx)
+	);
+	printf("Mod inv exp:\n");
+	CLOCKS_RANDOM(
+			BN_rand_range(a,prime),
+			BN_mod_exp(c,a,prime,prime,ctx)
 	);
 
 	BN_free(a);

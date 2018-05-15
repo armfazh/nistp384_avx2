@@ -59,4 +59,22 @@
 :/* in   */ "r" (Y)\
 :/* regs */);
 
+#define ZERO128            _mm_setzero_si128()
+#define LOAD128(X)         _mm_load_si128((__m128i*) X)
+#define STORE128(X,Y)      _mm_store_si128((__m128i*) X, Y)
+#define ALIGNR128(X,Y)     _mm_castpd_si128(_mm_shuffle_pd(_mm_castsi128_pd(Y),_mm_castsi128_pd(X),0x5))
+#define ADD128(X,Y)        _mm_add_epi64(X,Y)
+#define SUB128(X,Y)        _mm_sub_epi64(X,Y)
+#define AND128(X,Y)        _mm_and_si128(X,Y)
+#define XOR128(X,Y)        _mm_xor_si128(X,Y)
+#define OR128(X,Y)         _mm_or_si128(X,Y)
+#define MUL128(X,Y)        _mm_mul_epi32(X,Y)
+#define SHR128(X,Y)        _mm_srli_epi64(X,Y)
+#define SHL128(X,Y)        _mm_slli_epi64(X,Y)
+#define UPKL64128(X,Y)     _mm_unpacklo_epi64(X,Y)
+#define UPKH64128(X,Y)     _mm_unpackhi_epi64(X,Y)
+#define SHUF128(X,Y)       _mm_shuffle_epi32(X,Y)
+#define BLEND32128(X,Y,Z)  _mm_blend_epi32(X,Y,Z)
+
+
 #endif /* _AVX2_H_ */

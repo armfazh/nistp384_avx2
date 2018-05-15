@@ -377,7 +377,225 @@ void sqrn_Element_1w_h0h7(uint64_t *  C,int times)
 	STORE(C+2,LOAD(A+2));\
 	STORE(C+3,LOAD(A+3));
 
-inline void sqr_Element_1w_h0h7(uint64_t *  C)
+
+#define sqr_school_3x3(r0,r1,r2,r3,r4,s0,s1,s2) \
+do{                                             \
+	__m128i t2 = MUL128(s0,s2);                 \
+	r0 = MUL128(s0,s0);                         \
+	r1 = MUL128(s0,s1);                         \
+	r1 = ADD128(r1,r1);                         \
+ 	r2 = MUL128(s1,s1);                         \
+ 	r2 = ADD128(r2,ADD128(t2,t2));              \
+	r3 = MUL128(s1,s2);                         \
+	r3 = ADD128(r3,r3);                         \
+	r4 = MUL128(s2,s2);                         \
+}while(0)
+
+#define sqr_school_4x4(r0,r1,r2,r3,r4,r5,r6,s0,s1,s2,s3) \
+do{                                                      \
+	__m128i t2 = MUL128(s0,s2);                          \
+	__m128i t4 = MUL128(s1,s3);                          \
+	r0 = MUL128(s0,s0);                                  \
+	r1 = MUL128(s0,s1);                                  \
+	r1 = ADD128(r1,r1);                                  \
+ 	r2 = MUL128(s1,s1);                                  \
+ 	r2 = ADD128(r2,ADD128(t2,t2));                       \
+	r3 = MUL128(s0,s3);                                  \
+	r3 = ADD128(r3,MUL128(s1,s2));                       \
+	r3 = ADD128(r3,r3);                                  \
+	r4 = MUL128(s2,s2);                                  \
+ 	r4 = ADD128(r4,ADD128(t4,t4));                       \
+	r5 = MUL128(s2,s3);                                  \
+	r5 = ADD128(r5,r5);                                  \
+	r6 = MUL128(s3,s3);                                  \
+}while(0)
+
+#define sqr_karat_7x7(h0,h1,h2,h3,h4,h5,h6,h7,h8,h9,h10,h11,h12,  \
+               f0,f1,f2,f3,f4,f5,f6)                              \
+do{                                                               \
+ 	__m128i o0,o1,o2,o3,o4,o5,o6;                                 \
+	__m128i p0,p1,p2,p3,p4;                                       \
+	__m128i q0,q1,q2,q3,q4,q5,q6;                                 \
+	sqr_school_4x4(o0,o1,o2,o3,o4,o5,o6,f0,f1,f2,f3);             \
+	sqr_school_3x3(p0,p1,p2,p3,p4,f4,f5,f6);                      \
+	sqr_school_4x4(q0,q1,q2,q3,q4,q5,q6,                          \
+		ADD128(f0,f4),                                            \
+		ADD128(f1,f5),                                            \
+		ADD128(f2,f6),                                            \
+		f3);                                                      \
+    __m128i ref0 = SUB128(o4,p0);                                 \
+    __m128i ref1 = SUB128(o5,p1);                                 \
+    __m128i ref2 = SUB128(o6,p2);                                 \
+	h0 = o0;                         h8  = SUB128(SUB128(q4,p4),ref0);  \
+	h1 = o1;                         h9  = SUB128(q5,ref1);       \
+	h2 = o2;                         h10 = SUB128(q6,ref2);       \
+	h3 = o3;                         h11 = p3;                    \
+	h4 = ADD128(ref0,SUB128(q0,o0)); h12 = p4;                    \
+	h5 = ADD128(ref1,SUB128(q1,o1));                              \
+	h6 = ADD128(ref2,SUB128(q2,o2));                              \
+	h7 = SUB128(SUB128(q3,o3),p3);                                \
+}while(0)
+
+#define sqr_karate_7x7(h0,h1,h2,h3,h4,h5,h6,h7,                      \
+               f0,f1,f2,f3)                                          \
+do{                                                                  \
+ 	__m128i o0p0,o1p1,o2p2,o3p3,o4p4,o5p5,o6p6;                      \
+	__m128i q0,q1,q2,q3,q4,q5,q6;                                    \
+	sqr_school_4x4(o0p0,o1p1,o2p2,o3p3,o4p4,o5p5,o6p6,f0,f1,f2,f3);  \
+	__m128i sF0 = ADD128(f0,SHUF128(f0,0x4E));                       \
+	__m128i sF1 = ADD128(f1,SHUF128(f1,0x4E));                       \
+	__m128i sF2 = ADD128(f2,SHUF128(f2,0x4E));                       \
+	__m128i sF3 = ADD128(f3,SHUF128(f3,0x4E));                       \
+                                                                     \
+	sqr_school_4x4(q0,q1,q2,q3,q4,q5,q6,                             \
+				  sF0,sF1,sF2,sF3);                                  \
+																	 \
+	h0 = ADD128(o0p0,BLEND32128(SUB128(q4,ADD128(o4p4,SHUF128(o4p4,0x4E))),ZERO128,0x33));  \
+	h1 = ADD128(o1p1,BLEND32128(SUB128(q5,ADD128(o5p5,SHUF128(o5p5,0x4E))),ZERO128,0x33));  \
+	h2 = ADD128(o2p2,BLEND32128(SUB128(q6,ADD128(o6p6,SHUF128(o6p6,0x4E))),ZERO128,0x33));  \
+	h3 = o3p3;                                                       \
+	h4 = ADD128(o4p4,BLEND32128(SUB128(q0,ADD128(o0p0,SHUF128(o0p0,0x4E))),ZERO128,0xCC));  \
+	h5 = ADD128(o5p5,SUB128(q1,ADD128(o1p1,SHUF128(o1p1,0x4E))));    \
+	h6 = ADD128(o6p6,SUB128(q2,ADD128(o2p2,SHUF128(o2p2,0x4E))));    \
+	h7 = SUB128(q3,ADD128(o3p3,SHUF128(o3p3,0x4E)));                 \
+}while(0)
+
+
+
+void sqr_karatsuba_1w_h0h7(uint64_t *  C)
+{
+	const __m128i ones44 = _mm_set1_epi64x(((uint64_t)1<<44)-1);
+	const __m128i ones36 = _mm_set1_epi64x(((uint64_t)1<<36)-1);
+	const __m128i shuf48 = _mm_set_epi64x(0x800D0C0B0A090880,0x8005040302010080);
+	const __m128i shuf32 = _mm_set_epi64x(0x800B0A0908808080,0x8003020100808080);
+	__m128i a0a7,a1a8,a2a9,a3a10,a4a11,a5a12,a6a13;
+	__m128i x0y0,x1y1,x2y2,x3y3,x4y4,x5y5,x6y6,x7y7,x8y8,x9y9,x10y10,x11y11,x12y12;
+	__m128i z0z8,z1z9,z2z10,z3z11,z4z12,z5,z6,z7;
+
+	a0a7  = LOAD128(C+0);
+	a1a8  = LOAD128(C+1);
+	a2a9  = LOAD128(C+2);
+	a3a10 = LOAD128(C+3);
+	a4a11 = LOAD128(C+4);
+	a5a12 = LOAD128(C+5);
+	a6a13 = LOAD128(C+6);
+
+	/**
+	 * Calculates
+	 * 	X = A[0:7]  * B[0:7]
+	 * 	Y = A[7:14] * B[7:14]
+	 * Stores in [X|Y]
+	 */
+	sqr_karat_7x7(x0y0,x1y1,x2y2,x3y3,x4y4,x5y5,x6y6,x7y7,x8y8,x9y9,x10y10,x11y11,x12y12,
+				  a0a7,a1a8,a2a9,a3a10,a4a11,a5a12,a6a13);
+
+	__m128i sA0_4 = ADD128(UPKL64128(a0a7,a4a11),UPKH64128(a0a7,a4a11));
+	__m128i sA1_5 = ADD128(UPKL64128(a1a8,a5a12),UPKH64128(a1a8,a5a12));
+	__m128i sA2_6 = ADD128(UPKL64128(a2a9,a6a13),UPKH64128(a2a9,a6a13));
+	__m128i sA3_7 = ADD128(UPKL64128(a3a10,ZERO128),UPKH64128(a3a10,ZERO128));
+
+	/**
+	 * Calculates
+	 *  sA[0:7] = A[0:7] + A[7:14]
+	 *  sB[0:7] = B[0:7] + B[7:14]
+ 	 * 	Z = sA[0:7] * sB[0:7]
+	 */
+	sqr_karate_7x7(z0z8,z1z9,z2z10,z3z11,z4z12,z5,z6,z7,
+				   sA0_4,sA1_5,sA2_6,sA3_7);
+
+	/**
+	 * Combining partial results from Karatsuba
+	 */
+	__m128i z8  = SHUF128(z0z8 ,0x4E);
+	__m128i z9  = SHUF128(z1z9 ,0x4E);
+	__m128i z10 = SHUF128(z2z10,0x4E);
+	__m128i z11 = SHUF128(z3z11,0x4E);
+	__m128i z12 = SHUF128(z4z12,0x4E);
+
+	__m128i y7  = SHUF128(x7y7,0x4E);
+	__m128i y8  = SHUF128(x8y8,0x4E);
+	__m128i y9  = SHUF128(x9y9,0x4E);
+	__m128i y10 = SHUF128(x10y10,0x4E);
+	__m128i y11 = SHUF128(x11y11,0x4E);
+	__m128i y12 = SHUF128(x12y12,0x4E);
+
+	__m128i ref0 = SUB128(x7y7,  SHUF128(x0y0,0x4E));
+	__m128i ref1 = SUB128(x8y8,  SHUF128(x1y1,0x4E));
+	__m128i ref2 = SUB128(x9y9,  SHUF128(x2y2,0x4E));
+	__m128i ref3 = SUB128(x10y10,SHUF128(x3y3,0x4E));
+	__m128i ref4 = SUB128(x11y11,SHUF128(x4y4,0x4E));
+	__m128i ref5 = SUB128(x12y12,SHUF128(x5y5,0x4E));
+	__m128i ref6 = SHUF128(x6y6,0x4E);
+
+	__m128i c0  = x0y0;                             __m128i c14 = SUB128(SUB128(z7 ,y7 ),ref0);
+	__m128i c1  = x1y1;                             __m128i c15 = SUB128(SUB128(z8 ,y8 ),ref1);
+	__m128i c2  = x2y2;                             __m128i c16 = SUB128(SUB128(z9 ,y9 ),ref2);
+	__m128i c3  = x3y3;                             __m128i c17 = SUB128(SUB128(z10,y10),ref3);
+	__m128i c4  = x4y4;                             __m128i c18 = SUB128(SUB128(z11,y11),ref4);
+	__m128i c5  = x5y5;                             __m128i c19 = SUB128(SUB128(z12,y12),ref5);
+	__m128i c6  = x6y6;                             __m128i c20 = ref6;
+	__m128i c7  = ADD128(SUB128(z0z8, x0y0),ref0);  __m128i c21 = y7 ;
+	__m128i c8  = ADD128(SUB128(z1z9, x1y1),ref1);  __m128i c22 = y8 ;
+	__m128i c9  = ADD128(SUB128(z2z10,x2y2),ref2);  __m128i c23 = y9 ;
+	__m128i c10 = ADD128(SUB128(z3z11,x3y3),ref3);  __m128i c24 = y10;
+	__m128i c11 = ADD128(SUB128(z4z12,x4y4),ref4);  __m128i c25 = y11;
+	__m128i c12 = ADD128(SUB128(z5,   x5y5),ref5);  __m128i c26 = y12;
+	__m128i c13 = SUB128(SUB128(z6,   x6y6),ref6);  __m128i c27 = ZERO128;
+
+	/**
+	 * Modular reduction
+	 * (2^8)p = (2^8)(2^384-2^128-2^96+2^32-1)
+	 *        = 2^136+2^104-2^40+2^8
+	 */
+	__m128i c12c19 = UPKL64128(c12,c19);
+	__m128i c11c18 = UPKL64128(c11,c18);
+	__m128i c10c17 = UPKL64128(c10,c17);
+	__m128i c9c16  = UPKL64128(c9 ,c16);
+	__m128i c8c15  = UPKL64128(c8 ,c15);
+	__m128i c7c14  = UPKL64128(c7 ,c14);
+	__m128i c6c13  = UPKL64128(c6 ,c13);
+	__m128i l,h;
+#define ModularReduction(XX,X0,X1,X2,X3,X4,X5,X6)  \
+		l = _mm_shuffle_epi8(XX, shuf48);  \
+		h = SHR128(XX, 48);                \
+		X0 = ADD128(X0, l);                \
+		X2 = ADD128(X2, h);                \
+		                                   \
+		l = SHL128(AND128(XX, ones44),12); \
+		h = SHR128(XX, 44);                \
+		X1 = SUB128(X1, l);                \
+		X3 = SUB128(X3, h);                \
+		                                   \
+		l = SHL128(AND128(XX, ones36),20); \
+		h = SHR128(XX, 36);                \
+		X3 = ADD128(X3, l);                \
+		X5 = ADD128(X5, h);                \
+		                                   \
+		l = _mm_shuffle_epi8(XX, shuf32);  \
+		h = SHR128(XX, 32);                \
+		X4 = ADD128(X4, l);                \
+		X6 = ADD128(X6, h);
+
+	__m128i c20c27 = UPKL64128(c20,c27);    ModularReduction(c20c27,c6c13,c7c14,c8c15,c9c16,c10c17,c11c18,c12c19);   __m128i c5c12 = UPKL64128(c5,c12c19);
+	__m128i c19c26 = ALIGNR128(c26,c12c19); ModularReduction(c19c26,c5c12,c6c13,c7c14,c8c15, c9c16,c10c17,c11c18);   __m128i c4c11 = UPKL64128(c4,c11c18);
+	__m128i c18c25 = ALIGNR128(c25,c11c18); ModularReduction(c18c25,c4c11,c5c12,c6c13,c7c14, c8c15, c9c16,c10c17);   __m128i c3c10 = UPKL64128(c3,c10c17);
+	__m128i c17c24 = ALIGNR128(c24,c10c17); ModularReduction(c17c24,c3c10,c4c11,c5c12,c6c13, c7c14, c8c15, c9c16);   __m128i c2c9  = UPKL64128(c2, c9c16);
+	__m128i c16c23 = ALIGNR128(c23, c9c16); ModularReduction(c16c23, c2c9,c3c10,c4c11,c5c12, c6c13, c7c14, c8c15);   __m128i c1c8  = UPKL64128(c1, c8c15);
+	__m128i c15c22 = ALIGNR128(c22, c8c15); ModularReduction(c15c22, c1c8, c2c9,c3c10,c4c11, c5c12, c6c13, c7c14);   __m128i c0c7  = UPKL64128(c0, c7c14);
+	__m128i c14c21 = ALIGNR128(c21, c7c14); ModularReduction(c14c21, c0c7, c1c8, c2c9,c3c10, c4c11, c5c12, c6c13);
+#undef ModularReduction
+
+	STORE128(C+0,c0c7 );
+	STORE128(C+1,c1c8 );
+	STORE128(C+2,c2c9 );
+	STORE128(C+3,c3c10);
+	STORE128(C+4,c4c11);
+	STORE128(C+5,c5c12);
+	STORE128(C+6,c6c13);
+}
+
+
+inline void sqr_schoolbook_1w_h0h7(uint64_t *  C)
 {
 	const __m128i mask20 = _mm_set_epi64x(0x0,((uint64_t)1<<20)-1);
 	const __m128i mask16 = _mm_set_epi64x(0x0,((uint64_t)1<<16)-1);
@@ -538,6 +756,12 @@ inline void sqr_Element_1w_h0h7(uint64_t *  C)
 	_mm_store_si128((__m128i*)C+4, c4);
 	_mm_store_si128((__m128i*)C+5, c5);
 	_mm_store_si128((__m128i*)C+6, c6);
+}
+
+inline void sqr_Element_1w_h0h7(uint64_t *  C)
+{
+	sqr_karatsuba_1w_h0h7(C);
+//	sqr_schoolbook_1w_h0h7(C);
 }
 
 inline void sqr_complex_Element_1w_h0h7(uint64_t *A)
