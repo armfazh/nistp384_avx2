@@ -297,7 +297,7 @@ inline void naddsub_Element_1w_h0h7(uint64_t *pC, uint64_t *pD, uint64_t *pA, ui
 	b4 = _mm_add_epi64(b4, _mm_slli_si128(_mm_and_si128(mask4, a13), 3));	\
 	b5 = _mm_add_epi64(b5, _mm_srli_epi64(a13, 4));
 
-void mul_schoolbook_Element_1w_h0h7(uint64_t *C, uint64_t *A, uint64_t *B)
+void mul_schoolbook_1w_h0h7(uint64_t *C, uint64_t *A, uint64_t *B)
 {
 	int i,j;
 	const __m128i mask20 = _mm_set_epi64x(0x0,((uint64_t)1<<20)-1);
@@ -591,7 +591,7 @@ void mul_karatsuba_1w_h0h7(uint64_t *  C, uint64_t * A, uint64_t *  B)
 inline void mul_Element_1w_h0h7(uint64_t *pC, uint64_t *pA, uint64_t *pB)
 {
 	mul_karatsuba_1w_h0h7(pC, pA, pB);
-//	mul_schoolbook_Element_1w_h0h7(pC, pA, pB);
+//	mul_schoolbook_1w_h0h7(pC, pA, pB);
 }
 
 
@@ -997,188 +997,6 @@ inline void sqr_Element_1w_h0h7(uint64_t *  C)
 	sqr_karatsuba_1w_h0h7(C);
 //	sqr_schoolbook_1w_h0h7(C);
 }
-
-void sqr_complex_Element_1w_h0h7(uint64_t *A)
-{
-	const __m128i mask20 = _mm_set_epi64x(0x0,((uint64_t)1<<20)-1);
-	const __m128i mask16 = _mm_set_epi64x(0x0,((uint64_t)1<<16)-1);
-	const __m128i mask8 = _mm_set_epi64x(0x0,((uint64_t)1<<8)-1);
-	const __m128i mask4 = _mm_set_epi64x(0x0,((uint64_t)1<<4)-1);
-
-	__m128i ai,ai2,tmp,a13;
-	__m128i b0,b1,b2,b3,b4,b5,b6;
-	__m128i c0,c1,c2,c3,c4,c5,c6;
-
-	b0 = _mm_load_si128((__m128i*)A+0);
-	b1 = _mm_load_si128((__m128i*)A+1);
-	b2 = _mm_load_si128((__m128i*)A+2);
-	b3 = _mm_load_si128((__m128i*)A+3);
-	b4 = _mm_load_si128((__m128i*)A+4);
-	b5 = _mm_load_si128((__m128i*)A+5);
-	b6 = _mm_load_si128((__m128i*)A+6);
-
-	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + 0), 0x44);
-	ai2 = _mm_add_epi64(ai,ai);
-	c0 = _mm_mul_epi32(b0, ai);
-	c1 = _mm_mul_epi32(b1, ai2);
-	c2 = _mm_mul_epi32(b2, ai2);
-	c3 = _mm_mul_epi32(b3, ai2);
-	c4 = _mm_mul_epi32(b4, ai2);
-	c5 = _mm_mul_epi32(b5, ai2);
-	c6 = _mm_mul_epi32(b6, ai2);
-
-	PI_1w();
-	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + 1), 0x44);
-	ai2 = _mm_add_epi64(ai,ai);
-	c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai2));
-	/*c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));*/
-	c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));
-	c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai2));
-	c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai2));
-	c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai2));
-	c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai2));
-
-	PI_1w();
-	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + 2), 0x44);
-	ai2 = _mm_add_epi64(ai,ai);
-	c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai2));
-	c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai2));
-	/*c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));*/
-	/*c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));*/
-	c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));
-	c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai2));
-	c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai2));
-
-	PI_1w();
-	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + 3), 0x44);
-	ai2 = _mm_add_epi64(ai,ai);
-	c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai2));
-	c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai2));
-	c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai2));
-	/*c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));*/
-	/*c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));*/
-	/*c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));*/
-	c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));
-
-	PI_1w();
-	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + 4), 0x44);
-	ai2 = _mm_add_epi64(ai,ai);
-	/*c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai2));*/
-	c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));
-	c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai2));
-	c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai2));
-	/*c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));*/
-	/*c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));*/
-	/*c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));*/
-
-	PI_1w();
-	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + 5), 0x44);
-	ai2 = _mm_add_epi64(ai,ai);
-	/*c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai));*/
-	/*c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));*/
-	/*c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));*/
-	c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));
-	c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai2));
-	/*c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));*/
-	/*c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));*/
-
-	PI_1w();
-	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + 6), 0x44);
-	/*c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai));*/
-	/*c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));*/
-	/*c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));*/
-	/*c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));*/
-	/*c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));*/
-	c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));
-	/*c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));*/
-
-
-	PI_1w();
-	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + 0), 0xEE);
-	ai2 = _mm_add_epi64(ai,ai);
-	c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai));
-	c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai2));
-	c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai2));
-	c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai2));
-	c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai2));
-	c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai2));
-	c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai2));
-
-	PI_1w();
-	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + 1), 0xEE);
-	ai2 = _mm_add_epi64(ai,ai);
-	c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai2));
-	/*c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));*/
-	c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));
-	c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai2));
-	c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai2));
-	c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai2));
-	c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai2));
-
-	PI_1w();
-	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + 2), 0xEE);
-	ai2 = _mm_add_epi64(ai,ai);
-	c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai2));
-	c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai2));
-	/*c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));*/
-	/*c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));*/
-	c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));
-	c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai2));
-	c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai2));
-
-	PI_1w();
-	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + 3), 0xEE);
-	ai2 = _mm_add_epi64(ai,ai);
-	c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai2));
-	c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai2));
-	c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai2));
-	/*c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));*/
-	/*c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));*/
-	/*c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));*/
-	c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));
-
-	PI_1w();
-	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + 4), 0xEE);
-	ai2 = _mm_add_epi64(ai,ai);
-	/*c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai));*/
-	c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));
-	c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai2));
-	c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai2));
-	/*c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));*/
-	/*c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));*/
-	/*c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));*/
-
-	PI_1w();
-	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + 5), 0xEE);
-	ai2 = _mm_add_epi64(ai,ai);
-	/*c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai));*/
-	/*c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));*/
-	/*c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));*/
-	c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));
-	c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai2));
-	/*c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));*/
-	/*c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));*/
-
-	PI_1w();
-	ai = _mm_shuffle_epi32(_mm_load_si128((__m128i *) A + 6), 0xEE);
-	/*c0 = _mm_add_epi64(c0, _mm_mul_epi32(b0, ai));*/
-	/*c1 = _mm_add_epi64(c1, _mm_mul_epi32(b1, ai));*/
-	/*c2 = _mm_add_epi64(c2, _mm_mul_epi32(b2, ai));*/
-	/*c3 = _mm_add_epi64(c3, _mm_mul_epi32(b3, ai));*/
-	/*c4 = _mm_add_epi64(c4, _mm_mul_epi32(b4, ai));*/
-	c5 = _mm_add_epi64(c5, _mm_mul_epi32(b5, ai));
-	/*c6 = _mm_add_epi64(c6, _mm_mul_epi32(b6, ai));*/
-
-
-	_mm_store_si128((__m128i*)A+0,c0);
-	_mm_store_si128((__m128i*)A+1,c1);
-	_mm_store_si128((__m128i*)A+2,c2);
-	_mm_store_si128((__m128i*)A+3,c3);
-	_mm_store_si128((__m128i*)A+4,c4);
-	_mm_store_si128((__m128i*)A+5,c5);
-	_mm_store_si128((__m128i*)A+6,c6);
-}
-
 
 void compress_Element_1w_h0h7(uint64_t *A)
 {
