@@ -133,6 +133,7 @@ int main()
 	long BENCH;
 
 	BN_CTX *ctx = BN_CTX_new();
+	BN_MONT_CTX * mctx = EC_GROUP_get_mont_data(ec_group);
 	BIGNUM *c =BN_new();
 	BIGNUM *a =BN_new();
 	BIGNUM *b =BN_new();
@@ -156,11 +157,21 @@ int main()
 			BN_rand_range(b,prime),
 			BN_mod_mul(c,a,b,prime,ctx)
 	);
+    CLOCKS_RANDOM(
+            BN_rand_range(a,prime);
+            BN_rand_range(b,prime),
+            BN_mod_mul_montgomery(c,a,b,mctx,ctx)
+    );
+
 	printf("Mod sqr:\n");
 	CLOCKS_RANDOM(			
 			BN_rand_range(a,prime),
 			BN_mod_sqr(c,a,prime,ctx)
 	);
+    CLOCKS_RANDOM(
+            BN_rand_range(a,prime),
+            BN_mod_mul_montgomery(c,a,a,mctx,ctx)
+    );
 
 	BENCH=200;
 	printf("Mod inv:\n");
@@ -169,10 +180,16 @@ int main()
 			BN_mod_inverse(c,a,prime,ctx)
 	);
 	printf("Mod inv exp:\n");
-	CLOCKS_RANDOM(
-			BN_rand_range(a,prime),
-			BN_mod_exp(c,a,prime,prime,ctx)
-	);
+    CLOCKS_RANDOM(
+            BN_rand_range(a,prime),
+            BN_mod_exp(c,a,prime,prime,ctx)
+    );
+    printf("Mod inv exp ctegit st:\n");
+    CLOCKS_RANDOM(
+            BN_rand_range(a,prime),
+            BN_mod_exp_mont_consttime(c,a,prime,prime,ctx,mctx);
+    );
+
 
 	BN_free(a);
 	BN_free(b);

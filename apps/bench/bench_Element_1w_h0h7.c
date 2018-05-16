@@ -14,12 +14,14 @@ void bench_element_1w_h0h7()
 	random_Element_1w_h0h7(a);
 	random_Element_1w_h0h7(b);
 	random_Element_1w_h0h7(c);
+	random_Element_1w_h0h7(d);
 	CLOCKS(str_bytes_To_Element_1w_h0h7(a,A));
 	CLOCKS(Element_1w_h0h7_To_str_bytes(A, a));
 	CLOCKS(add_Element_1w_h0h7(c,a,b));
 	CLOCKS(sub_Element_1w_h0h7(c,c,b));
 	CLOCKS(addsub_Element_1w_h0h7(a,b));
 	CLOCKS(naddsub_Element_1w_h0h7(c,d,a,b));
+	CLOCKS(mul_schoolbook_Element_1w_h0h7(c,a,b));
 	CLOCKS(mul_Element_1w_h0h7(c,a,b));
 	CLOCKS(mul_Element_1w_h0h7(c,b,c));
 	CLOCKS(mul_Element_1w_h0h7(c,c,b));
@@ -31,4 +33,10 @@ void bench_element_1w_h0h7()
 
 	BENCH = BENCH/10;
 	CLOCKS(inv_Element_1w_h0h7(c,a));
+
+	oper_second(
+			random_Element_1w_h0h7(a),
+			inv_Element_1w_h0h7(c,a)
+	);
+
 }
