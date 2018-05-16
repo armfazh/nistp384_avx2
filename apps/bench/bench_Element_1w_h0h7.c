@@ -22,9 +22,13 @@ void bench_element_1w_h0h7()
 	CLOCKS(addsub_Element_1w_h0h7(a,b));
 	CLOCKS(naddsub_Element_1w_h0h7(c,d,a,b));
 	CLOCKS(mul_schoolbook_Element_1w_h0h7(c,a,b));
+	CLOCKS(mul_karatsuba_1w_h0h7(c,a,b));
 	CLOCKS(mul_Element_1w_h0h7(c,a,b));
 	CLOCKS(mul_Element_1w_h0h7(c,b,c));
 	CLOCKS(mul_Element_1w_h0h7(c,c,b));
+	CLOCKS(sqr_schoolbook_1w_h0h7(c));
+	CLOCKS(sqr_karatsuba_1w_h0h7(c));
+	CLOCKS(sqr_complex_Element_1w_h0h7(c));
 	CLOCKS(sqr_Element_1w_h0h7(c));
 
 	CLOCKS(compress_Element_1w_h0h7(c));

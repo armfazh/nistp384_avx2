@@ -829,7 +829,7 @@ void sqr_karatsuba_1w_h0h7(uint64_t *  C)
 }
 
 
-inline void sqr_schoolbook_1w_h0h7(uint64_t *  C)
+void sqr_schoolbook_1w_h0h7(uint64_t *  C)
 {
 	const __m128i mask20 = _mm_set_epi64x(0x0,((uint64_t)1<<20)-1);
 	const __m128i mask16 = _mm_set_epi64x(0x0,((uint64_t)1<<16)-1);
@@ -998,7 +998,7 @@ inline void sqr_Element_1w_h0h7(uint64_t *  C)
 //	sqr_schoolbook_1w_h0h7(C);
 }
 
-inline void sqr_complex_Element_1w_h0h7(uint64_t *A)
+void sqr_complex_Element_1w_h0h7(uint64_t *A)
 {
 	const __m128i mask20 = _mm_set_epi64x(0x0,((uint64_t)1<<20)-1);
 	const __m128i mask16 = _mm_set_epi64x(0x0,((uint64_t)1<<16)-1);
