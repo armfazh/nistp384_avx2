@@ -5,6 +5,8 @@
 #include <openssl/ecdh.h>
 #include <openssl/sha.h>
 #include <openssl/ecdsa.h>
+#include <openssl/bn.h>
+#include <openssl/crypto.h>
 #include <openssl/objects.h>
 #include "../bench/clocks.h"
 
@@ -29,7 +31,7 @@ void print_point_proy(const EC_GROUP*ec_group, const EC_POINT*P)
 	BIGNUM *y = BN_new();
 	BIGNUM *z = BN_new();
 
-	if (EC_POINT_get_Jprojective_coordinates_GFp(ec_group, P, x, y,z, NULL))
+	//if (EC_POINT_get_Jprojective_coordinates_GFp(ec_group, P, x, y,z, NULL))
 	{
 		printf("x: ");	BN_print_fp(stdout, x);	printf("\n");
 		printf("y: ");	BN_print_fp(stdout, y);	printf("\n");

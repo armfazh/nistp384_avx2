@@ -8,10 +8,10 @@ set(LIBRARY_OUTPUT_PATH ./lib)
 set(TARGET nistp384_avx2)
 set(SRC ./src)
 # PATH to BoringSSL, modify as appropriate.
-set(BORINGSSL_PATH /home/armfazh/Downloads/boringssl/build)
+set(BORINGSSL_PATH /home/armfazh/Downloads/boringssl)
 enable_language(ASM-ATT)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -I./include -O3 -march=native -mtune=native")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wextra -I./include -O3 -march=native -mtune=native")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wall -Wextra -O3 -march=native -mtune=native -flto -lm ")
 
 add_library(${TARGET} STATIC
@@ -40,6 +40,8 @@ add_executable(tests
 		apps/tests/test_pointmul.c
 		)
 
+
+
 add_executable(main apps/spikes/main.c ${SRC}/random.c include/random.h)
 add_executable(openssl apps/spikes/openssl.c ${SRC}/random.c apps/bench/clocks.c apps/bench/clocks.h)
 add_executable(boringssl apps/spikes/boringssl.c ${SRC}/random.c apps/bench/clocks.c apps/bench/clocks.h)
@@ -63,6 +65,11 @@ target_link_libraries(
 		crypto
 		${TARGET}
 )
+
+set_target_properties(boringssl PROPERTIES
+		COMPILE_FLAGS "${COMPILE_FLAGS} -I${BORINGSSL_PATH}/include"
+		LINK_FLAGS "-L${BORINGSSL_PATH}/build/crypto -L${BORINGSSL_PATH}/build/ssl"
+		)
 target_link_libraries(
 		boringssl
 		pthread
