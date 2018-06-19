@@ -64,6 +64,7 @@ void print_str_bytes(const uint8_t * A)
 	}
 	printf("\n");
 }
+
 int main()
 {
 	int i=0;
@@ -98,6 +99,9 @@ int main()
 //	printf("3G: \n");print_point(ec_group,_3G);
 
 	EC_POINT *kG = EC_POINT_new(ec_group);
+	EC_POINT * OSSL_G  = EC_POINT_new(ec_group);
+	EC_POINT * OSSL_2G = EC_POINT_new(ec_group);
+	EC_POINT * OSSL_3G = EC_POINT_new(ec_group);
 	BIGNUM * k = BN_new();
 
 	do {
@@ -184,17 +188,34 @@ int main()
             BN_rand_range(a,prime),
             BN_mod_exp(c,a,prime,prime,ctx)
     );
-    printf("Mod inv exp ctegit st:\n");
-    CLOCKS_RANDOM(
-            BN_rand_range(a,prime),
-            BN_mod_exp_mont_consttime(c,a,prime,prime,ctx,mctx);
-    );
+	printf("Mod inv exp ctegit st:\n");
+	CLOCKS_RANDOM(
+			BN_rand_range(a,prime),
+			BN_mod_exp_mont_consttime(c,a,prime,prime,ctx,mctx);
+	);
 
+	BENCH=1000;
+	EC_POINT_copy(OSSL_G,EC_GROUP_get0_generator(ec_group));
+	EC_POINT_copy(OSSL_2G,EC_GROUP_get0_generator(ec_group));
+	EC_POINT_copy(OSSL_3G,EC_GROUP_get0_generator(ec_group));
+	printf("Point Doubling:\n");
+	CLOCKS_RANDOM(
+			EC_POINT_copy(OSSL_G,OSSL_2G),
+			EC_POINT_dbl(ec_group,OSSL_2G,OSSL_G,NULL);
+	);
+
+	printf("Point Addition:\n");
+	CLOCKS_RANDOM(
+			EC_POINT_copy(OSSL_2G,OSSL_3G),
+			EC_POINT_add(ec_group,OSSL_3G,OSSL_2G,OSSL_G,NULL);
+	);
 
 	BN_free(a);
 	BN_free(b);
 	BN_free(c);
 	BN_CTX_free(ctx);
+
+	BENCH=200;
 	printf("Variable point:\n");
 	CLOCKS_RANDOM(
 			BN_rand_range(k, ec_order),
@@ -243,6 +264,9 @@ int main()
 	BN_free(m);
 	EC_POINT_free(_2G);
 	EC_POINT_free(_3G);
+	EC_POINT_free(OSSL_G);
+	EC_POINT_free(OSSL_2G);
+	EC_POINT_free(OSSL_3G);
 	EC_KEY_free(ec_key);
 	return i;
 }
